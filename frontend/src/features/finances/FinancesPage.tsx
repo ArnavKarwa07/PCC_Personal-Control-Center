@@ -5,12 +5,12 @@ import './FinancesPage.css';
 
 export const FinancesPage: React.FC = () => {
   const { toast } = useToast();
-  const [income, setIncome] = useState(8500);
-  const [expenses, setExpenses] = useState(3200);
+  const [income, setIncome] = useState(185000);
+  const [expenses, setExpenses] = useState(42000);
   const [subscriptions] = useState([
-    { id: '1', name: 'Cloud Server Cluster', amount: 89.0, cycle: 'Monthly', category: 'Infrastructure' },
-    { id: '2', name: 'AI Copilot Suite', amount: 30.0, cycle: 'Monthly', category: 'Productivity' },
-    { id: '3', name: 'Health Club Membership', amount: 120.0, cycle: 'Monthly', category: 'Fitness' },
+    { id: '1', name: 'Cloud Server Cluster', amount: 3500.0, cycle: 'Monthly', category: 'Infrastructure' },
+    { id: '2', name: 'AI Copilot Suite', amount: 1500.0, cycle: 'Monthly', category: 'Productivity' },
+    { id: '3', name: 'Health Club Membership', amount: 4500.0, cycle: 'Monthly', category: 'Fitness' },
   ]);
 
   const [newTitle, setNewTitle] = useState('');
@@ -27,10 +27,10 @@ export const FinancesPage: React.FC = () => {
 
     if (newType === 'income') {
       setIncome((prev) => prev + val);
-      toast.success(`Recorded Income: +$${val.toFixed(2)} (${newTitle})`);
+      toast.success(`Recorded Income: +₹${val.toLocaleString('en-IN')} (${newTitle})`);
     } else {
       setExpenses((prev) => prev + val);
-      toast.success(`Recorded Expense: -$${val.toFixed(2)} (${newTitle})`);
+      toast.success(`Recorded Expense: -₹${val.toLocaleString('en-IN')} (${newTitle})`);
     }
     setNewTitle('');
     setNewAmount('');
@@ -41,21 +41,21 @@ export const FinancesPage: React.FC = () => {
       <div className="pcc-finances-header">
         <div>
           <h1 className="pcc-finances-title">Personal Finance Engine</h1>
-          <p className="pcc-finances-subtitle">Real-time cashflow analytics, budget gauges, and subscription telemetry</p>
+          <p className="pcc-finances-subtitle">Real-time cashflow analytics, budget gauges, and subscription telemetry (INR ₹)</p>
         </div>
       </div>
 
       <div className="pcc-finances-grid">
         <Card glass padding="lg" className="pcc-finance-card pcc-finance-card--networth">
           <span className="pcc-finance-card__label">Net Worth Balance</span>
-          <div className="pcc-finance-card__value">${netWorth.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+          <div className="pcc-finance-card__value">₹{netWorth.toLocaleString('en-IN')}</div>
           <Badge variant="success" size="sm">+12.4% this month</Badge>
         </Card>
 
         <Card glass padding="lg" className="pcc-finance-card pcc-finance-card--income">
           <span className="pcc-finance-card__label">Monthly Income</span>
           <div className="pcc-finance-card__value" style={{ color: 'var(--color-success)' }}>
-            +${income.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            +₹{income.toLocaleString('en-IN')}
           </div>
           <span className="pcc-finance-card__subtext">3 recurring sources</span>
         </Card>
@@ -63,9 +63,9 @@ export const FinancesPage: React.FC = () => {
         <Card glass padding="lg" className="pcc-finance-card pcc-finance-card--expenses">
           <span className="pcc-finance-card__label">Monthly Expenses</span>
           <div className="pcc-finance-card__value" style={{ color: 'var(--color-error)' }}>
-            -${expenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            -₹{expenses.toLocaleString('en-IN')}
           </div>
-          <span className="pcc-finance-card__subtext">37.6% burn rate</span>
+          <span className="pcc-finance-card__subtext">22.7% burn rate</span>
         </Card>
       </div>
 
@@ -77,17 +77,17 @@ export const FinancesPage: React.FC = () => {
               <Input
                 id="fin-title"
                 label="Description"
-                placeholder="e.g. Client Payment, Groceries"
+                placeholder="e.g. Client Invoice, Groceries"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 required
               />
               <Input
                 id="fin-amount"
-                label="Amount ($)"
+                label="Amount (₹)"
                 type="number"
-                step="0.01"
-                placeholder="0.00"
+                step="1"
+                placeholder="0"
                 value={newAmount}
                 onChange={(e) => setNewAmount(e.target.value)}
                 required
@@ -126,7 +126,7 @@ export const FinancesPage: React.FC = () => {
                   <div className="pcc-subscription-name">{sub.name}</div>
                   <div className="pcc-subscription-cat">{sub.category} • {sub.cycle}</div>
                 </div>
-                <div className="pcc-subscription-amount">${sub.amount.toFixed(2)}/mo</div>
+                <div className="pcc-subscription-amount">₹{sub.amount.toLocaleString('en-IN')}/mo</div>
               </div>
             ))}
           </div>

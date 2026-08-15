@@ -29,8 +29,8 @@ export const DashboardPage: React.FC = () => {
 
         <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/finances')}>
           <span className="pcc-metric-card__lbl">Net Worth Balance</span>
-          <div className="pcc-metric-card__val" style={{ color: 'var(--color-success)' }}>$5,300.00</div>
-          <Badge variant="success" size="sm">+$5.0k / -$1.2k</Badge>
+          <div className="pcc-metric-card__val" style={{ color: 'var(--color-success)' }}>₹1,43,000</div>
+          <Badge variant="success" size="sm">+₹1.85L / -₹42k</Badge>
         </Card>
 
         <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/fitness')}>

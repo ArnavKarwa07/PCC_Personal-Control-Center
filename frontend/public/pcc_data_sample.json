@@ -1,0 +1,80 @@
+{
+  "user": {
+    "name": "Arnav Karwa",
+    "email": "arnav@example.com",
+    "country": "India",
+    "currency": "INR"
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "Review Quarter 3 Product Strategy",
+      "status": "todo",
+      "priority": "high",
+      "dueDate": "2026-08-20",
+      "category": "Work"
+    },
+    {
+      "id": "task-2",
+      "title": "Schedule annual health checkup",
+      "status": "in_progress",
+      "priority": "medium",
+      "dueDate": "2026-08-18",
+      "category": "Health"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "PCC Personal Control Center",
+      "description": "Centralized personal operating system",
+      "status": "active",
+      "progress": 85,
+      "category": "Engineering"
+    }
+  ],
+  "notes": [
+    {
+      "id": "note-1",
+      "title": "PCC System Architecture",
+      "content": "# Architecture Overview\nFastAPI backend + Vite React frontend + SQLite/PostgreSQL telemetry.",
+      "pinned": true
+    }
+  ],
+  "finances": {
+    "income": 185000,
+    "expenses": 42000,
+    "currency": "INR",
+    "subscriptions": [
+      { "name": "Cloud Infrastructure", "amount": 3500, "cycle": "Monthly" },
+      { "name": "Copilot Suite", "amount": 1500, "cycle": "Monthly" }
+    ]
+  },
+  "fitness": {
+    "waterMl": 2500,
+    "sleepHours": 8.0,
+    "streakDays": 14,
+    "workouts": [
+      { "name": "Upper Body Hypertrophy", "duration": 50, "date": "2026-08-15" }
+    ]
+  },
+  "contacts": [
+    {
+      "id": "c-1",
+      "name": "Ananya Sharma",
+      "role": "Product Lead",
+      "organization": "TechCorp India",
+      "email": "ananya@techcorp.in",
+      "lastContacted": "2026-08-10"
+    }
+  ],
+  "goals": [
+    {
+      "id": "g-1",
+      "title": "Master Advanced Agentic Coding",
+      "category": "Skill",
+      "progress": 90,
+      "targetPeriod": "Q3 2026"
+    }
+  ]
+}

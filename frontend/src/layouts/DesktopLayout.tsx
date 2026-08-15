@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useNotificationStore } from '../stores/notificationStore';
 import { Avatar, Badge, Button, Dropdown, Modal, Input } from '../components/ui';
 import { useToast } from '../hooks/useToast';
+import { OnboardingModal } from '../features/onboarding/OnboardingModal';
 import { MAIN_NAV_ITEMS, renderNavIcon } from './navConfig';
 import { cn } from '../utils';
 import './DesktopLayout.css';
@@ -19,6 +20,7 @@ export const DesktopLayout: React.FC = () => {
   const unreadCount = getUnreadCount();
 
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [quickTitle, setQuickTitle] = useState('');
   const [quickType, setQuickType] = useState<'task' | 'project' | 'note'>('task');
 
@@ -170,6 +172,16 @@ export const DesktopLayout: React.FC = () => {
           </div>
 
           <div className="pcc-desktop-header__actions">
+            {/* JSON Data Onboarding Loader Button */}
+            <Button
+              id="header-load-json"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsOnboardingOpen(true)}
+            >
+              📥 Load Data JSON
+            </Button>
+
             {/* Quick Add Button */}
             <Button
               id="header-quick-add"
@@ -261,6 +273,8 @@ export const DesktopLayout: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <OnboardingModal isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
     </div>
   );
 };
