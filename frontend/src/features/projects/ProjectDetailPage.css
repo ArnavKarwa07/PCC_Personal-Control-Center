@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Project Detail Page Styles - Deep Dark Theme & Glassmorphism
+   ========================================================================== */
+
+.pcc-project-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  animation: fadeIn var(--transition-base);
+}
+
+.pcc-project-detail__header-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  padding: var(--space-6);
+}
+
+.pcc-project-detail__accent-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.pcc-project-detail__nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.pcc-project-detail__header-content {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .pcc-project-detail__header-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pcc-project-detail__title-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcc-project-detail__badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pcc-project-detail__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.pcc-project-detail__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 680px;
+}
+
+.pcc-project-detail__meta-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pcc-project-detail__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Progress summary widget */
+.pcc-project-detail__progress-box {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcc-project-detail__progress-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.pcc-project-detail__progress-number {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.pcc-project-detail__progress-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Project Tasks List inside Tab */
+.pcc-project-detail__tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcc-project-detail__task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.pcc-project-detail__task-row:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-elevated);
+}
+
+.pcc-project-detail__task-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pcc-project-detail__task-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--color-border-hover);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  background: transparent;
+}
+
+.pcc-project-detail__task-checkbox--checked {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+}
+
+.pcc-project-detail__task-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.pcc-project-detail__task-title--completed {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,84 @@
+.pcc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(5, 5, 10, 0.82);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: var(--space-4);
+  animation: fadeIn var(--transition-fast) ease-out;
+}
+
+.pcc-modal {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn var(--transition-fast) cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.pcc-modal--sm { max-width: 400px; }
+.pcc-modal--md { max-width: 560px; }
+.pcc-modal--lg { max-width: 760px; }
+.pcc-modal--xl { max-width: 960px; }
+
+.pcc-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcc-modal__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.pcc-modal__close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+}
+
+.pcc-modal__close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+}
+
+.pcc-modal__close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pcc-modal__body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+.pcc-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background-color: rgba(10, 10, 15, 0.4);
+}

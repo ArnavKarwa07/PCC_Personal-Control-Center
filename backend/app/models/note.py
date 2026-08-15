@@ -1,0 +1,18 @@
+"""Note model for markdown documents and knowledge capture."""
+
+from sqlalchemy import Boolean, Column, ForeignKey, String, Text, Uuid
+
+from app.models.base import BaseModel
+
+
+class Note(BaseModel):
+    """Note entity for personal documentation and ideas."""
+
+    __tablename__ = "notes"
+
+    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(500), nullable=True)
+    content = Column(Text, nullable=True)
+    category = Column(String(100), nullable=True)
+    is_pinned = Column(Boolean, default=False, nullable=False)
+

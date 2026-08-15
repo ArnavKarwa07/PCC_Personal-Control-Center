@@ -1,0 +1,26 @@
+.pcc-spinner {
+  display: inline-block;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--color-accent);
+  animation: spin 0.75s linear infinite;
+  box-sizing: border-box;
+}
+
+.pcc-spinner--sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.pcc-spinner--md {
+  width: 24px;
+  height: 24px;
+  border-width: 2.5px;
+}
+
+.pcc-spinner--lg {
+  width: 36px;
+  height: 36px;
+  border-width: 3px;
+}

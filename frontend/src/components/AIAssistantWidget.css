@@ -1,0 +1,99 @@
+.pcc-ai-widget {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast);
+}
+
+.pcc-ai-widget:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+.pcc-ai-widget__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pcc-ai-widget__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pcc-ai-widget__icon {
+  font-size: var(--font-size-xl);
+}
+
+.pcc-ai-widget__title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+
+.pcc-ai-widget__status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pcc-ai-widget__form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.pcc-ai-widget__form input {
+  flex: 1;
+}
+
+.pcc-ai-widget__response {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-border-active);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  animation: slideInUp 200ms ease;
+}
+
+.pcc-briefing-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcc-briefing-greeting {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.pcc-briefing-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.pcc-briefing-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.pcc-briefing-stat__val {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--color-accent);
+}
+
+.pcc-briefing-stat__lbl {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pcc-briefing-section h4 {
+  margin-bottom: var(--space-1);
+}

@@ -1,0 +1,56 @@
+.pcc-app-shell {
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.pcc-command-palette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcc-command-palette__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.pcc-command-palette__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.pcc-command-palette__item:hover,
+.pcc-command-palette__item:focus-visible {
+  background: var(--color-accent-subtle);
+  color: #ffffff;
+}
+
+.pcc-command-palette__item-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.pcc-command-palette__item-category {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pcc-command-palette__empty {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}

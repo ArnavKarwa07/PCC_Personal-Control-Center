@@ -1,0 +1,324 @@
+/* ==========================================================================
+   PCC - Timers, Pomodoro & Stopwatch Styles
+   ========================================================================== */
+
+.pcc-timers-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pcc-timers-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pcc-timers-header h1 {
+  font-size: var(--font-size-2xl);
+}
+
+.pcc-timers-header p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Tab Switcher */
+.pcc-timers-nav {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1-5, 6px);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  backdrop-filter: var(--glass-blur);
+}
+
+.pcc-timers-nav-btn {
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.pcc-timers-nav-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.pcc-timers-nav-btn--active {
+  background: var(--color-accent-gradient);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--color-accent-glow);
+}
+
+/* Card Container */
+.pcc-timer-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Circular SVG Progress Ring */
+.pcc-timer-ring-wrapper {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcc-timer-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.pcc-timer-svg__bg {
+  fill: none;
+  stroke: var(--color-bg-elevated);
+  stroke-width: 10;
+}
+
+.pcc-timer-svg__progress {
+  fill: none;
+  stroke: url(#timerGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.pcc-timer-svg__progress--break {
+  stroke: #22c55e;
+}
+
+.pcc-timer-ring-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.pcc-timer-ring-time {
+  font-family: var(--font-family-mono);
+  font-size: 3rem;
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.pcc-timer-ring-state {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent-hover);
+}
+
+.pcc-timer-ring-state--break {
+  color: var(--color-success);
+}
+
+.pcc-timer-ring-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Pomodoro Cycle Dots */
+.pcc-pomodoro-cycles {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pcc-pomodoro-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.pcc-pomodoro-dot--completed {
+  background: var(--color-accent);
+  border-color: var(--color-accent-hover);
+  box-shadow: 0 0 8px var(--color-accent-glow);
+}
+
+.pcc-pomodoro-dot--active {
+  background: var(--color-accent-hover);
+  border-color: #fff;
+  transform: scale(1.2);
+}
+
+/* Timer Controls */
+.pcc-timer-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pcc-timer-btn-primary {
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-accent-gradient);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: 0 4px 15px var(--color-accent-glow);
+  transition: all var(--transition-fast);
+}
+
+.pcc-timer-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--color-accent-glow);
+}
+
+.pcc-timer-btn-secondary {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.pcc-timer-btn-secondary:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border-hover);
+}
+
+/* Preset Buttons */
+.pcc-timer-presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.pcc-timer-preset-btn {
+  padding: var(--space-1-5, 6px) var(--space-3-5, 14px);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-timer-preset-btn:hover {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
+}
+
+.pcc-timer-preset-btn--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+/* Stopwatch Readout & Laps */
+.pcc-stopwatch-display {
+  font-family: var(--font-family-mono);
+  font-size: 4rem;
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+  margin: var(--space-4) 0;
+}
+
+.pcc-stopwatch-display__ms {
+  font-size: 2.2rem;
+  color: var(--color-accent-hover);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pcc-stopwatch-laps-wrapper {
+  width: 100%;
+  max-width: 500px;
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcc-stopwatch-laps-header {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+}
+
+.pcc-stopwatch-laps-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.pcc-stopwatch-lap-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.pcc-stopwatch-lap-item--fastest {
+  color: var(--color-success);
+  border-left: 3px solid var(--color-success);
+}
+
+.pcc-stopwatch-lap-item--slowest {
+  color: var(--color-error);
+  border-left: 3px solid var(--color-error);
+}

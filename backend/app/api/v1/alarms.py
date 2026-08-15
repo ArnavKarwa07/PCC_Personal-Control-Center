@@ -1,0 +1,126 @@
+"""Unified Alarms REST API endpoints."""
+
+import uuid
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+from app.schemas.alarm import (
+    AlarmCreate,
+    AlarmToggleRequest,
+    AlarmUpdate,
+)
+from app.services.alarm_service import alarm_service
+
+router = APIRouter(prefix="/alarms", tags=["Alarms"])
+
+
+@router.get("")
+def list_alarms(
+    is_enabled: Optional[bool] = None,
+    page: int = Query(1, ge=1, description="Page number"),
+    per_page: int = Query(50, ge=1, le=200, description="Items per page"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieve all configured alarms for the authenticated user."""
+    alarms, total, total_pages = alarm_service.list_alarms(
+        db=db,
+        user_id=current_user.id,
+        is_enabled=is_enabled,
+        page=page,
+        per_page=per_page,
+    )
+    return {
+        "data": [a.model_dump() for a in alarms],
+        "meta": {
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+        },
+    }
+
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+def create_alarm(
+    data: AlarmCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create a new wake/trigger alarm."""
+    alarm = alarm_service.create_alarm(db=db, user_id=current_user.id, data=data)
+    return {
+        "data": alarm.model_dump(),
+    }
+
+
+@router.get("/{alarm_id}")
+def get_alarm(
+    alarm_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get a single alarm by ID."""
+    alarm = alarm_service.get_alarm_response(db=db, user_id=current_user.id, alarm_id=alarm_id)
+    return {
+        "data": alarm.model_dump(),
+    }
+
+
+@router.patch("/{alarm_id}")
+def update_alarm(
+    alarm_id: uuid.UUID,
+    data: AlarmUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update alarm properties."""
+    alarm = alarm_service.update_alarm(
+        db=db,
+        user_id=current_user.id,
+        alarm_id=alarm_id,
+        data=data,
+    )
+    return {
+        "data": alarm.model_dump(),
+    }
+
+
+@router.patch("/{alarm_id}/toggle")
+def toggle_alarm(
+    alarm_id: uuid.UUID,
+    data: Optional[AlarmToggleRequest] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Toggle alarm armed state (enabled/disabled)."""
+    is_enabled = data.is_enabled if data else None
+    alarm = alarm_service.toggle_alarm(
+        db=db,
+        user_id=current_user.id,
+        alarm_id=alarm_id,
+        is_enabled=is_enabled,
+    )
+    return {
+        "data": alarm.model_dump(),
+    }
+
+
+@router.delete("/{alarm_id}")
+def delete_alarm(
+    alarm_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Soft delete an alarm."""
+    alarm_service.delete_alarm(db=db, user_id=current_user.id, alarm_id=alarm_id)
+    return {
+        "data": {
+            "message": "Alarm deleted successfully.",
+        }
+    }

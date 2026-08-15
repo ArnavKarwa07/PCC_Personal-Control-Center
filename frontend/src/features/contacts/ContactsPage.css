@@ -1,0 +1,92 @@
+.pcc-contacts-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.pcc-contacts-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.pcc-contacts-subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.pcc-contacts-toolbar {
+  max-width: 450px;
+}
+
+.pcc-contacts-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .pcc-contacts-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pcc-contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcc-contact-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: transform var(--transition-fast);
+}
+
+.pcc-contact-card:hover {
+  transform: translateY(-2px);
+}
+
+.pcc-contact-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pcc-contact-card__name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.pcc-contact-card__role {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.pcc-contact-card__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.pcc-contact-card__details span {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.pcc-contact-card__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pcc-add-contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}

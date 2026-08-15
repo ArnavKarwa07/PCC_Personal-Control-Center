@@ -1,0 +1,64 @@
+.pcc-card {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.pcc-card--glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+}
+
+.pcc-card--hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-hover);
+}
+
+/* Padding variants */
+.pcc-card--padding-none {
+  padding: 0;
+}
+
+.pcc-card--padding-sm {
+  padding: var(--space-3);
+}
+
+.pcc-card--padding-md {
+  padding: var(--space-5);
+}
+
+.pcc-card--padding-lg {
+  padding: var(--space-8);
+}
+
+.pcc-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcc-card__body {
+  flex: 1;
+}
+
+.pcc-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}

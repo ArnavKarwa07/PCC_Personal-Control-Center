@@ -1,0 +1,125 @@
+.pcc-goals-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.pcc-goals-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.pcc-goals-subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.pcc-goals-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .pcc-goals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pcc-goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcc-goal-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: transform var(--transition-fast);
+}
+
+.pcc-goal-card:hover {
+  transform: translateY(-2px);
+}
+
+.pcc-goal-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pcc-goal-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.pcc-goal-card__period {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pcc-goal-card__progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.pcc-goal-card__milestones {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.pcc-milestones-label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.pcc-goal-card__milestones ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pcc-goal-card__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.pcc-goals-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcc-add-goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.pcc-skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.pcc-skill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}

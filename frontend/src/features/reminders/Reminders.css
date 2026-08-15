@@ -1,0 +1,413 @@
+/* ==========================================================================
+   PCC - Reminders & Alerts Styles
+   ========================================================================== */
+
+.pcc-reminders-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pcc-reminders-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.pcc-reminders-header__titles h1 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-1);
+}
+
+.pcc-reminders-header__titles p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.pcc-reminders-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Summary Stats */
+.pcc-reminders-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.pcc-reminders-stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.pcc-reminders-stat-card:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
+}
+
+.pcc-reminders-stat-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pcc-reminders-stat-card__icon--primary {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.pcc-reminders-stat-card__icon--warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.pcc-reminders-stat-card__icon--success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.pcc-reminders-stat-card__icon--info {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.pcc-reminders-stat-card__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.pcc-reminders-stat-card__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pcc-reminders-stat-card__value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+
+.pcc-reminders-stat-card__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-1);
+}
+
+/* Controls Bar */
+.pcc-reminders-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--glass-blur);
+}
+
+.pcc-reminders-controls__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pcc-reminders-filter-pill {
+  padding: var(--space-1-5, 6px) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-reminders-filter-pill:hover {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
+}
+
+.pcc-reminders-filter-pill--active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.pcc-reminders-controls__search {
+  min-width: 240px;
+  max-width: 320px;
+  flex: 1;
+}
+
+/* Reminder Items List */
+.pcc-reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcc-reminder-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.pcc-reminder-card:hover {
+  border-color: var(--color-border-hover);
+  background: rgba(26, 26, 46, 0.7);
+  box-shadow: var(--shadow-md);
+}
+
+.pcc-reminder-card--completed {
+  opacity: 0.65;
+  background: rgba(18, 18, 26, 0.4);
+}
+
+.pcc-reminder-card--snoozed {
+  border-left: 4px solid var(--color-warning);
+}
+
+.pcc-reminder-card--urgent {
+  border-left: 4px solid var(--color-error);
+}
+
+.pcc-reminder-card__left {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+  flex: 1;
+}
+
+/* Custom Checkbox */
+.pcc-reminder-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-xs);
+  border: 2px solid var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: transparent;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pcc-reminder-checkbox:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.pcc-reminder-checkbox--checked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.pcc-reminder-checkbox--checked svg {
+  color: #fff;
+  width: 14px;
+  height: 14px;
+}
+
+.pcc-reminder-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.pcc-reminder-card__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.pcc-reminder-card--completed .pcc-reminder-card__title {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
+}
+
+.pcc-reminder-card__notes {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pcc-reminder-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pcc-reminder-card__time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-secondary);
+}
+
+.pcc-reminder-card__time svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pcc-reminder-card__time--overdue {
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+.pcc-reminder-card__recurrence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-accent-hover);
+  font-size: 11px;
+}
+
+.pcc-reminder-card__recurrence-badge svg {
+  width: 11px;
+  height: 11px;
+}
+
+.pcc-reminder-card__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.pcc-reminder-snooze-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-1) var(--space-2-5, 10px);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-reminder-snooze-btn:hover {
+  background: var(--color-surface);
+  color: var(--color-warning);
+  border-color: var(--color-warning-border);
+}
+
+.pcc-reminder-action-btn {
+  padding: var(--space-1-5, 6px);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-reminder-action-btn:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
+.pcc-reminder-action-btn--delete:hover {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+/* Add Reminder Modal */
+.pcc-reminder-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcc-reminder-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.pcc-reminder-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5, 6px);
+}
+
+.pcc-reminder-form__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.pcc-reminder-form__select,
+.pcc-reminder-form__textarea {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.pcc-reminder-form__select:focus,
+.pcc-reminder-form__textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.pcc-reminder-form__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}

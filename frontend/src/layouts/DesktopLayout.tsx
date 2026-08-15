@@ -1,0 +1,266 @@
+import React, { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useUIStore } from '../stores/uiStore';
+import { useAuthStore } from '../stores/authStore';
+import { useNotificationStore } from '../stores/notificationStore';
+import { Avatar, Badge, Button, Dropdown, Modal, Input } from '../components/ui';
+import { useToast } from '../hooks/useToast';
+import { MAIN_NAV_ITEMS, renderNavIcon } from './navConfig';
+import { cn } from '../utils';
+import './DesktopLayout.css';
+
+export const DesktopLayout: React.FC = () => {
+  const navigate = useNavigate();
+  const { sidebarCollapsed, toggleSidebar, toggleCommandPalette, theme, setTheme } = useUIStore();
+  const { user, logout } = useAuthStore();
+  const { getUnreadCount } = useNotificationStore();
+  const { toast } = useToast();
+
+  const unreadCount = getUnreadCount();
+
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [quickTitle, setQuickTitle] = useState('');
+  const [quickType, setQuickType] = useState<'task' | 'project' | 'note'>('task');
+
+  const handleQuickAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickTitle.trim()) return;
+    toast.success(`Created new ${quickType}: "${quickTitle}"`);
+    setQuickTitle('');
+    setIsQuickAddOpen(false);
+  };
+
+  const userMenuItems = [
+    {
+      id: 'profile',
+      label: 'My Profile',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      ),
+      onClick: () => navigate('/settings'),
+    },
+    {
+      id: 'theme',
+      label: theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      ),
+      onClick: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
+    },
+    { id: 'div-1', label: '', divider: true },
+    {
+      id: 'logout',
+      label: 'Sign Out',
+      danger: true,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      ),
+      onClick: () => {
+        logout();
+        toast.info('Signed out successfully');
+        navigate('/login');
+      },
+    },
+  ];
+
+  return (
+    <div className={cn('pcc-desktop-layout', sidebarCollapsed && 'pcc-desktop-layout--collapsed')}>
+      {/* Fixed Left Sidebar */}
+      <aside className="pcc-sidebar" aria-label="Main Navigation">
+        {/* Logo Branding */}
+        <div className="pcc-sidebar__header">
+          <div className="pcc-sidebar__logo" onClick={() => navigate('/')}>
+            <img src="/logo.png" alt="PCC Logo" className="pcc-sidebar__logo-img" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain' }} />
+            {!sidebarCollapsed && (
+              <div className="pcc-sidebar__logo-text">
+                <span className="pcc-sidebar__logo-title">PCC</span>
+                <span className="pcc-sidebar__logo-badge">PRO</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation Items */}
+        <nav className="pcc-sidebar__nav">
+          {MAIN_NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              id={item.id}
+              className={({ isActive }) =>
+                cn('pcc-sidebar__nav-item', isActive && 'pcc-sidebar__nav-item--active')
+              }
+              title={sidebarCollapsed ? item.label : undefined}
+            >
+              <span className="pcc-sidebar__nav-icon">{renderNavIcon(item.iconName)}</span>
+              {!sidebarCollapsed && <span className="pcc-sidebar__nav-label">{item.label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* User Profile & Collapse Toggle Section */}
+        <div className="pcc-sidebar__footer">
+          <div className="pcc-sidebar__user">
+            <Dropdown
+              trigger={
+                <div className="pcc-sidebar__user-trigger">
+                  <Avatar name={user?.name || 'User'} size="sm" status="online" />
+                  {!sidebarCollapsed && (
+                    <div className="pcc-sidebar__user-info">
+                      <span className="pcc-sidebar__user-name">{user?.name || 'User'}</span>
+                      <span className="pcc-sidebar__user-role">{user?.role || 'Admin'}</span>
+                    </div>
+                  )}
+                </div>
+              }
+              items={userMenuItems}
+              align="left"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="pcc-sidebar__collapse-btn"
+            onClick={toggleSidebar}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={cn('pcc-sidebar__collapse-icon', sidebarCollapsed && 'pcc-sidebar__collapse-icon--reversed')}
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="pcc-desktop-main">
+        {/* Top Header Bar */}
+        <header className="pcc-desktop-header">
+          {/* Search Trigger / Quick search */}
+          <div className="pcc-desktop-header__search" onClick={toggleCommandPalette}>
+            <svg className="pcc-desktop-header__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span className="pcc-desktop-header__search-placeholder">Search or jump to...</span>
+            <kbd className="pcc-desktop-header__search-kbd">Ctrl K</kbd>
+          </div>
+
+          <div className="pcc-desktop-header__actions">
+            {/* Quick Add Button */}
+            <Button
+              id="header-quick-add"
+              variant="primary"
+              size="sm"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              }
+              onClick={() => setIsQuickAddOpen(true)}
+            >
+              Quick Add
+            </Button>
+
+            {/* Notification Bell */}
+            <div
+              className="pcc-desktop-header__icon-btn"
+              onClick={() => navigate('/notifications')}
+              title="Notifications"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {unreadCount > 0 && (
+                <Badge variant="accent" size="sm" className="pcc-desktop-header__badge">
+                  {unreadCount}
+                </Badge>
+              )}
+            </div>
+
+            {/* Avatar Dropdown */}
+            <Dropdown
+              trigger={<Avatar name={user?.name || 'User'} size="sm" />}
+              items={userMenuItems}
+              align="right"
+            />
+          </div>
+        </header>
+
+        {/* Page View Body */}
+        <main className="pcc-desktop-content">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* Quick Add Modal */}
+      <Modal
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        title="Quick Create"
+        size="md"
+      >
+        <form onSubmit={handleQuickAddSubmit} className="pcc-quick-add-form">
+          <div className="pcc-quick-add-form__types">
+            {(['task', 'project', 'note'] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                className={cn(
+                  'pcc-quick-add-form__type-pill',
+                  quickType === type && 'pcc-quick-add-form__type-pill--active'
+                )}
+                onClick={() => setQuickType(type)}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <Input
+            id="quick-add-input"
+            label="Title"
+            placeholder={`What ${quickType} are you working on?`}
+            value={quickTitle}
+            onChange={(e) => setQuickTitle(e.target.value)}
+            autoFocus
+          />
+
+          <div className="pcc-quick-add-form__footer">
+            <Button variant="ghost" onClick={() => setIsQuickAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Create {quickType.charAt(0).toUpperCase() + quickType.slice(1)}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+};

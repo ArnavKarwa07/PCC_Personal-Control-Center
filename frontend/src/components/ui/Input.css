@@ -1,0 +1,115 @@
+.pcc-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pcc-input-wrapper--full-width {
+  width: 100%;
+}
+
+.pcc-input__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.pcc-input__field-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.pcc-input__icon-left {
+  position: absolute;
+  left: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pcc-input__icon-left svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pcc-input__element-right {
+  position: absolute;
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.pcc-input__field {
+  width: 100%;
+  height: 40px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-3);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.pcc-input__field::placeholder {
+  color: var(--color-text-muted);
+}
+
+.pcc-input__field:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background-color: var(--color-bg-tertiary);
+}
+
+.pcc-input__field:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+  background-color: var(--color-bg-tertiary);
+}
+
+.pcc-input__field--has-left-icon {
+  padding-left: calc(var(--space-3) + 24px);
+}
+
+.pcc-input__field--has-right-element {
+  padding-right: calc(var(--space-3) + 28px);
+}
+
+/* Error State */
+.pcc-input-wrapper--error .pcc-input__field {
+  border-color: var(--color-error);
+}
+
+.pcc-input-wrapper--error .pcc-input__field:focus {
+  box-shadow: 0 0 0 3px var(--color-error-bg);
+}
+
+.pcc-input-wrapper--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pcc-input-wrapper--disabled .pcc-input__field {
+  cursor: not-allowed;
+}
+
+.pcc-input__message {
+  font-size: var(--font-size-xs);
+  margin-top: 2px;
+}
+
+.pcc-input__message--error {
+  color: var(--color-error);
+}
+
+.pcc-input__message--helper {
+  color: var(--color-text-tertiary);
+}

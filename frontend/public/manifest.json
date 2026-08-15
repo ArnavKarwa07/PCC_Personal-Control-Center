@@ -1,0 +1,11 @@
+{
+  "name": "PCC — Personal Control Center",
+  "short_name": "PCC",
+  "description": "Centralized personal operating system for productivity and life management",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": []
+}
