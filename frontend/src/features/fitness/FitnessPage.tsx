@@ -33,6 +33,8 @@ export const FitnessPage: React.FC = () => {
     setDuration('');
   };
 
+  const waterPercentage = Math.min(100, Math.round((waterMl / 3000) * 100));
+
   return (
     <div className="pcc-fitness-page">
       <div className="pcc-fitness-header">
@@ -49,11 +51,47 @@ export const FitnessPage: React.FC = () => {
           <Badge variant="success" size="sm">Personal Record</Badge>
         </Card>
 
-        <Card glass padding="lg" className="pcc-fitness-card">
-          <span className="pcc-fitness-card__label">Hydration Target</span>
-          <div className="pcc-fitness-card__value">{waterMl} / 3000 ml</div>
+        <Card glass padding="lg" className="pcc-fitness-card pcc-fitness-card--water">
+          <div className="pcc-fitness-card__water-header">
+            <div>
+              <span className="pcc-fitness-card__label">Hydration Target</span>
+              <div className="pcc-fitness-card__value">{waterMl} / 3000 ml</div>
+            </div>
+            <Badge variant={waterPercentage >= 100 ? "success" : "info"} size="sm">
+              {waterPercentage >= 100 ? "Goal Reached! 🎉" : `${waterPercentage}%`}
+            </Badge>
+          </div>
+
+          <div className="pcc-water-wave-gauge" role="img" aria-label={`Hydration progress ${waterPercentage}%`}>
+            <div
+              className="pcc-water-wave-gauge__fill"
+              style={{ height: `${waterPercentage}%` }}
+            >
+              <svg
+                className="pcc-water-wave-gauge__wave pcc-water-wave-gauge__wave--front"
+                viewBox="0 0 1200 120"
+                preserveAspectRatio="none"
+              >
+                <path d="M 0 30 Q 150 5, 300 30 T 600 30 Q 750 5, 900 30 T 1200 30 L 1200 120 L 0 120 Z" />
+              </svg>
+              <svg
+                className="pcc-water-wave-gauge__wave pcc-water-wave-gauge__wave--back"
+                viewBox="0 0 1200 120"
+                preserveAspectRatio="none"
+              >
+                <path d="M 0 30 Q 150 55, 300 30 T 600 30 Q 750 55, 900 30 T 1200 30 L 1200 120 L 0 120 Z" />
+              </svg>
+            </div>
+            <div className="pcc-water-wave-gauge__overlay">
+              <span className="pcc-water-wave-gauge__percentage">{waterPercentage}%</span>
+              <span className="pcc-water-wave-gauge__status">
+                {waterMl >= 3000 ? 'Fully Hydrated' : `${3000 - waterMl} ml remaining`}
+              </span>
+            </div>
+          </div>
+
           <div className="pcc-progress-bar">
-            <div className="pcc-progress-bar__fill" style={{ width: `${Math.min(100, (waterMl / 3000) * 100)}%` }} />
+            <div className="pcc-progress-bar__fill" style={{ width: `${waterPercentage}%` }} />
           </div>
         </Card>
 

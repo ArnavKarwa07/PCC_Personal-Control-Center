@@ -172,6 +172,12 @@ html[data-theme='dark'] .pcc-subscription-amount {
   color: #818cf8;
 }
 
+.pcc-finances-chart-card {
+  width: 100%;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
 /* Mobile responsive 1-column layout for transaction record form */
 @media (max-width: 768px) {
   .pcc-finances-form__row {
@@ -194,3 +200,4 @@ html[data-theme='dark'] .pcc-subscription-amount {
     text-align: center;
   }
 }
+

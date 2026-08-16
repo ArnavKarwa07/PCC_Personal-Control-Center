@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Button, Badge, Input } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
+import { OKRProgressRing } from '../../components/OKRProgressRing';
 import './GoalsPage.css';
 
 export const GoalsPage: React.FC = () => {
@@ -71,21 +72,23 @@ export const GoalsPage: React.FC = () => {
         <div className="pcc-goals-list">
           {goals.map((g) => (
             <Card key={g.id} glass padding="lg" className="pcc-goal-card">
-              <div className="pcc-goal-card__header">
-                <div>
-                  <h3 className="pcc-goal-card__title">{g.title}</h3>
-                  <span className="pcc-goal-card__period">{g.period} Objective</span>
-                </div>
-                <Badge variant={g.status === 'Completed' ? 'success' : 'primary'}>{g.status}</Badge>
-              </div>
+              <div className="pcc-goal-card__top">
+                <OKRProgressRing progress={g.progress} status={g.status} size={88} strokeWidth={8} />
+                <div className="pcc-goal-card__meta">
+                  <div className="pcc-goal-card__header">
+                    <div>
+                      <h3 className="pcc-goal-card__title">{g.title}</h3>
+                      <span className="pcc-goal-card__period">{g.period} Objective</span>
+                    </div>
+                    <Badge variant={g.status === 'Completed' ? 'success' : 'primary'}>{g.status}</Badge>
+                  </div>
 
-              <div className="pcc-goal-card__progress">
-                <div className="pcc-goal-card__progress-info">
-                  <span>Target Completion:</span>
-                  <strong>{g.progress}%</strong>
-                </div>
-                <div className="pcc-progress-bar">
-                  <div className="pcc-progress-bar__fill" style={{ width: `${g.progress}%` }} />
+                  <div className="pcc-goal-card__velocity-status">
+                    <span>Target Completion: <strong>{g.progress}%</strong></span>
+                    <span className="pcc-goal-card__status-tag">
+                      {g.progress === 100 ? 'Objective Achieved 🎉' : `${100 - g.progress}% Remaining`}
+                    </span>
+                  </div>
                 </div>
               </div>
 

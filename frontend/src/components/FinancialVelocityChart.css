@@ -1,0 +1,169 @@
+.pcc-velocity-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.pcc-velocity-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pcc-velocity-chart-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.pcc-velocity-chart-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.pcc-velocity-chart-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.pcc-velocity-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  cursor: crosshair;
+}
+
+.velocity-grid-line {
+  stroke: var(--color-border);
+  stroke-dasharray: 4 4;
+  stroke-opacity: 0.5;
+}
+
+.velocity-axis-label {
+  font-size: 11px;
+  font-family: var(--font-family-sans);
+  fill: var(--color-text-tertiary);
+  transition: fill var(--transition-fast);
+}
+
+html[data-theme='light'] .velocity-axis-label,
+:root:not([data-theme]) .velocity-axis-label {
+  fill: #4b5563; /* High contrast text in light mode */
+}
+
+html[data-theme='dark'] .velocity-axis-label {
+  fill: #9ca3af;
+}
+
+.velocity-axis-label--active {
+  font-weight: var(--font-weight-bold);
+  fill: var(--color-accent, #4f46e5) !important;
+}
+
+.velocity-point {
+  fill: var(--color-bg-primary, #ffffff);
+  stroke: var(--color-accent, #4f46e5);
+  stroke-width: 2.5px;
+  transition: all var(--transition-fast);
+}
+
+.velocity-point--active {
+  r: 6px;
+  fill: var(--color-accent, #4f46e5);
+  stroke: var(--color-bg-primary, #ffffff);
+  stroke-width: 2.5px;
+}
+
+.velocity-hitbox {
+  cursor: pointer;
+}
+
+.velocity-active-line {
+  stroke: var(--color-accent, #4f46e5);
+  stroke-dasharray: 3 3;
+  stroke-width: 1.5px;
+  stroke-opacity: 0.8;
+}
+
+.velocity-halo-ring {
+  fill: none;
+  stroke: var(--color-accent, #4f46e5);
+  stroke-width: 2px;
+  stroke-opacity: 0.4;
+  animation: pccPulseHalo 1.5s infinite ease-in-out;
+}
+
+@keyframes pccPulseHalo {
+  0% {
+    r: 7px;
+    stroke-opacity: 0.6;
+  }
+  50% {
+    r: 11px;
+    stroke-opacity: 0.2;
+  }
+  100% {
+    r: 7px;
+    stroke-opacity: 0.6;
+  }
+}
+
+.velocity-tooltip-card {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  pointer-events: none;
+}
+
+.velocity-tooltip-bg {
+  fill: var(--color-bg-secondary, #ffffff);
+  stroke: var(--color-border);
+  stroke-width: 1px;
+}
+
+html[data-theme='light'] .velocity-tooltip-bg,
+:root:not([data-theme]) .velocity-tooltip-bg {
+  fill: #ffffff;
+  stroke: #cbd5e1;
+}
+
+html[data-theme='dark'] .velocity-tooltip-bg {
+  fill: #1e293b;
+  stroke: #334155;
+}
+
+.velocity-tooltip-title {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  fill: var(--color-text-secondary);
+}
+
+html[data-theme='light'] .velocity-tooltip-title,
+:root:not([data-theme]) .velocity-tooltip-title {
+  fill: #374151;
+}
+
+.velocity-tooltip-value {
+  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  fill: #10b981;
+}
+
+html[data-theme='light'] .velocity-tooltip-value,
+:root:not([data-theme]) .velocity-tooltip-value {
+  fill: #059669;
+}
+
+.velocity-tooltip-details {
+  font-size: 10px;
+  fill: var(--color-text-tertiary);
+}
+
+html[data-theme='light'] .velocity-tooltip-details,
+:root:not([data-theme]) .velocity-tooltip-details {
+  fill: #6b7280;
+}

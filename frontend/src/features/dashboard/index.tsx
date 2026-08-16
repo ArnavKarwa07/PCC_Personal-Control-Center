@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, Badge } from '../../components/ui';
 import { AIAssistantWidget } from '../../components/AIAssistantWidget';
+import { FinancialVelocityChart } from '../../components/FinancialVelocityChart';
 import './DashboardPage.css';
 
 export const DashboardPage: React.FC = () => {
@@ -51,6 +52,14 @@ export const DashboardPage: React.FC = () => {
           <Badge variant="success" size="sm">On Track</Badge>
         </Card>
       </div>
+
+      {/* Financial Cashflow Velocity SVG Telemetry */}
+      <Card glass padding="lg" className="pcc-dashboard-chart-card">
+        <FinancialVelocityChart
+          title="Financial Cashflow Velocity Telemetry"
+          subtitle="6-Month trajectory across revenue & operational expenses (INR ₹)"
+        />
+      </Card>
 
       <div className="pcc-dashboard-sections">
         <Card glass padding="lg" className="pcc-dashboard-focus">

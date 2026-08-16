@@ -44,10 +44,32 @@
   transform: translateY(-2px);
 }
 
+.pcc-goal-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .pcc-goal-card__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.pcc-goal-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+  width: 100%;
+}
+
 .pcc-goal-card__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--space-2);
 }
 
 .pcc-goal-card__title {
@@ -58,30 +80,29 @@
 .pcc-goal-card__period {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
+  display: block;
 }
 
-.pcc-goal-card__progress-info {
+.pcc-goal-card__velocity-status {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-1);
+  background: var(--color-bg-tertiary);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 
-.pcc-progress-bar {
-  width: 100%;
-  height: 10px;
-  background: var(--color-bg-tertiary, rgba(0, 0, 0, 0.06));
-  border-radius: 9999px;
-  overflow: hidden;
-  position: relative;
+.pcc-goal-card__status-tag {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent, #4f46e5);
 }
 
-.pcc-progress-bar__fill {
-  height: 100%;
-  background: var(--color-accent-gradient, var(--color-accent, #4f46e5));
-  border-radius: 9999px;
-  transition: width var(--transition-base, 0.3s ease);
+html[data-theme='light'] .pcc-goal-card__status-tag,
+:root:not([data-theme]) .pcc-goal-card__status-tag {
+  color: #4338ca;
 }
 
 .pcc-goal-card__key-results,

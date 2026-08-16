@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Button, Input, Badge } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
+import { FinancialVelocityChart, VelocityDataPoint } from '../../components/FinancialVelocityChart';
 import './FinancesPage.css';
 
 export const FinancesPage: React.FC = () => {
@@ -18,6 +19,15 @@ export const FinancesPage: React.FC = () => {
   const [newType, setNewType] = useState<'income' | 'expense'>('expense');
 
   const netWorth = income - expenses;
+
+  const dynamicVelocityData: VelocityDataPoint[] = [
+    { month: 'Mar', income: 145000, expenses: 58000, velocity: 87000 },
+    { month: 'Apr', income: 155000, expenses: 52000, velocity: 103000 },
+    { month: 'May', income: 160000, expenses: 55000, velocity: 105000 },
+    { month: 'Jun', income: 172000, expenses: 49000, velocity: 123000 },
+    { month: 'Jul', income: 180000, expenses: 44000, velocity: 136000 },
+    { month: 'Aug', income: income, expenses: expenses, velocity: netWorth },
+  ];
 
   const handleAddTransaction = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +78,15 @@ export const FinancesPage: React.FC = () => {
           <span className="pcc-finance-card__subtext">22.7% burn rate</span>
         </Card>
       </div>
+
+      {/* Inline SVG Financial Velocity Line Chart */}
+      <Card glass padding="lg" className="pcc-finances-chart-card">
+        <FinancialVelocityChart
+          data={dynamicVelocityData}
+          title="Financial Velocity & 6-Month Cashflow Trend"
+          subtitle="Smooth net cashflow trajectory, gradient area fill, and interactive INR data point tooltips"
+        />
+      </Card>
 
       <div className="pcc-finances-content">
         <Card glass padding="lg" className="pcc-finances-form-card">

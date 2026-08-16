@@ -10,7 +10,13 @@ export const AppShell: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
   );
-  const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
+  const { theme, accentColor, commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
+
+  // Sync theme and accent color DOM data attributes
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-accent', accentColor);
+  }, [theme, accentColor]);
 
   // Responsive breakpoint listener
   useEffect(() => {

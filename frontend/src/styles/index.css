@@ -113,6 +113,76 @@ html[data-theme='dark'] {
   --color-nav-active-text: #ffffff;
 }
 
+/* ==========================================================================
+   Accent Color Palette Customizations (Light & Dark)
+   ========================================================================== */
+
+/* Light Theme Accent Color Attributes (Default) */
+html[data-accent='indigo'] {
+  --color-accent: #4f46e5;
+  --color-accent-hover: #6366f1;
+  --color-accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --color-accent-glow: rgba(79, 70, 229, 0.2);
+  --color-accent-subtle: rgba(79, 70, 229, 0.08);
+}
+
+html[data-accent='emerald'] {
+  --color-accent: #059669;
+  --color-accent-hover: #10b981;
+  --color-accent-gradient: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  --color-accent-glow: rgba(5, 150, 105, 0.2);
+  --color-accent-subtle: rgba(5, 150, 105, 0.08);
+}
+
+html[data-accent='violet'] {
+  --color-accent: #7c3aed;
+  --color-accent-hover: #8b5cf6;
+  --color-accent-gradient: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
+  --color-accent-glow: rgba(124, 58, 237, 0.2);
+  --color-accent-subtle: rgba(124, 58, 237, 0.08);
+}
+
+html[data-accent='amber'] {
+  --color-accent: #d97706;
+  --color-accent-hover: #f59e0b;
+  --color-accent-gradient: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  --color-accent-glow: rgba(217, 119, 6, 0.2);
+  --color-accent-subtle: rgba(217, 119, 6, 0.08);
+}
+
+/* Dark Theme Accent Color Attributes */
+html[data-theme='dark'][data-accent='indigo'] {
+  --color-accent: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --color-accent-glow: rgba(99, 102, 241, 0.35);
+  --color-accent-subtle: rgba(99, 102, 241, 0.15);
+}
+
+html[data-theme='dark'][data-accent='emerald'] {
+  --color-accent: #10b981;
+  --color-accent-hover: #34d399;
+  --color-accent-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  --color-accent-glow: rgba(16, 185, 129, 0.35);
+  --color-accent-subtle: rgba(16, 185, 129, 0.15);
+}
+
+html[data-theme='dark'][data-accent='violet'] {
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #a78bfa;
+  --color-accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+  --color-accent-glow: rgba(139, 92, 246, 0.35);
+  --color-accent-subtle: rgba(139, 92, 246, 0.15);
+}
+
+html[data-theme='dark'][data-accent='amber'] {
+  --color-accent: #f59e0b;
+  --color-accent-hover: #fbbf24;
+  --color-accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  --color-accent-glow: rgba(245, 158, 11, 0.35);
+  --color-accent-subtle: rgba(245, 158, 11, 0.15);
+}
+
 :root {
   /* Typography */
   --font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;

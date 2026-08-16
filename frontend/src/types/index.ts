@@ -21,14 +21,17 @@ export interface AuthState {
 }
 
 export type Theme = 'dark' | 'light';
+export type AccentColor = 'indigo' | 'emerald' | 'violet' | 'amber';
 
 export interface UIState {
   sidebarCollapsed: boolean;
   theme: Theme;
+  accentColor: AccentColor;
   commandPaletteOpen: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setTheme: (theme: Theme) => void;
+  setAccentColor: (color: AccentColor) => void;
   toggleCommandPalette: () => void;
   setCommandPaletteOpen: (open: boolean) => void;
 }

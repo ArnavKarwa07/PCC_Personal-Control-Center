@@ -13,16 +13,23 @@ import { Button, Input, Badge } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
-import type { Integration, IntegrationService } from '../../types';
+import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
 
 type SettingsTab = 'general' | 'integrations' | 'audio' | 'data';
+
+const ACCENT_OPTIONS: { id: AccentColor; label: string; gradient: string }[] = [
+  { id: 'indigo', label: 'Indigo', gradient: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' },
+  { id: 'emerald', label: 'Emerald', gradient: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)' },
+  { id: 'violet', label: 'Violet', gradient: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)' },
+  { id: 'amber', label: 'Amber', gradient: 'linear-gradient(135deg, #d97706 0%, #ea580c 100%)' },
+];
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
   const { user, setUser } = useAuthStore();
-  const { theme, setTheme } = useUIStore();
+  const { theme, setTheme, accentColor, setAccentColor } = useUIStore();
   const { integrations, isSyncing, toggleConnect, updateConfig, syncIntegration, testConnection } =
     useIntegrationStore();
 
@@ -270,6 +277,47 @@ export const SettingsPage: React.FC = () => {
                     >
                       Light Mode
                     </Button>
+                  </div>
+                </div>
+
+                <div className="pcc-reminder-form__group">
+                  <label className="pcc-reminder-form__label">Accent Color Palette</label>
+                  <div className="pcc-accent-swatches">
+                    {ACCENT_OPTIONS.map((opt) => {
+                      const isSelected = accentColor === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          className={cn('pcc-accent-swatch', isSelected && 'pcc-accent-swatch--active')}
+                          onClick={() => {
+                            setAccentColor(opt.id);
+                            soundEffects.playPip();
+                            toast.success(`Accent color set to ${opt.label}`);
+                          }}
+                          title={`Select ${opt.label} accent color`}
+                        >
+                          <span
+                            className="pcc-accent-swatch__preview"
+                            style={{ background: opt.gradient }}
+                          />
+                          <span className="pcc-accent-swatch__label">{opt.label}</span>
+                          {isSelected && (
+                            <svg
+                              viewBox="0 0 24 24"
+                              width="14"
+                              height="14"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              className="pcc-accent-swatch__check"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
