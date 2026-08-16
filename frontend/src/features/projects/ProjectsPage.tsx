@@ -197,6 +197,7 @@ export const ProjectsPage: React.FC = () => {
             placeholder="Search projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery('')}
             style={{ width: '220px' }}
             icon={
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
@@ -210,15 +211,7 @@ export const ProjectsPage: React.FC = () => {
             id="projects-priority-filter"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            style={{
-              background: 'var(--color-bg-elevated)',
-              color: 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--space-2) var(--space-3)',
-              fontSize: 'var(--font-size-xs)',
-              height: '38px',
-            }}
+            className="pcc-tasks__filter-select"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>

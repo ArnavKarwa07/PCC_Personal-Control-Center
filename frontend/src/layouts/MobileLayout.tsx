@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useNotificationStore } from '../stores/notificationStore';
 import { Avatar, Badge, Dropdown, Modal, Input, Button } from '../components/ui';
 import { useToast } from '../hooks/useToast';
-import { MOBILE_NAV_ITEMS, renderNavIcon } from './navConfig';
+import { MOBILE_NAV_ITEMS, ALL_PCC_PAGES, renderNavIcon } from './navConfig';
 import { cn } from '../utils';
 import './MobileLayout.css';
 
 export const MobileLayout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuthStore();
   const { getUnreadCount } = useNotificationStore();
   const { toast } = useToast();
@@ -17,6 +18,7 @@ export const MobileLayout: React.FC = () => {
   const unreadCount = getUnreadCount();
 
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isMoreDrawerOpen, setIsMoreDrawerOpen] = useState(false);
   const [quickTitle, setQuickTitle] = useState('');
   const [quickType, setQuickType] = useState<'task' | 'project' | 'note'>('task');
 
@@ -65,7 +67,12 @@ export const MobileLayout: React.FC = () => {
       {/* Mobile Top Header */}
       <header className="pcc-mobile-header">
         <div className="pcc-mobile-header__brand" onClick={() => navigate('/')}>
-          <img src="/logo.png" alt="PCC Logo" className="pcc-mobile-header__logo-img" style={{ width: 26, height: 26, borderRadius: 5, objectFit: 'contain' }} />
+          <img
+            src="/logo.png"
+            alt="PCC Logo"
+            className="pcc-mobile-header__logo-img"
+            style={{ width: 26, height: 26, borderRadius: 5, objectFit: 'contain' }}
+          />
           <span className="pcc-mobile-header__title">PCC</span>
         </div>
 
@@ -115,20 +122,97 @@ export const MobileLayout: React.FC = () => {
 
       {/* Fixed Bottom Navigation */}
       <nav className="pcc-mobile-nav" aria-label="Mobile Navigation">
-        {MOBILE_NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.id}
-            to={item.path}
-            id={item.id}
-            className={({ isActive }) =>
-              cn('pcc-mobile-nav__item', isActive && 'pcc-mobile-nav__item--active')
-            }
-          >
-            <span className="pcc-mobile-nav__icon">{renderNavIcon(item.iconName)}</span>
-            <span className="pcc-mobile-nav__label">{item.label}</span>
-          </NavLink>
-        ))}
+        {MOBILE_NAV_ITEMS.map((item) => {
+          if (item.id === 'mob-more' || item.path === '#more') {
+            const isMoreActive =
+              isMoreDrawerOpen ||
+              !['/', '/tasks', '/calendar', '/finances'].includes(location.pathname);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                id={item.id}
+                className={cn('pcc-mobile-nav__item', isMoreActive && 'pcc-mobile-nav__item--active')}
+                onClick={() => setIsMoreDrawerOpen((prev) => !prev)}
+                aria-label="Open More Pages Navigation Drawer"
+              >
+                <span className="pcc-mobile-nav__icon">{renderNavIcon(item.iconName)}</span>
+                <span className="pcc-mobile-nav__label">{item.label}</span>
+              </button>
+            );
+          }
+
+          return (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              id={item.id}
+              className={({ isActive }) =>
+                cn('pcc-mobile-nav__item', isActive && 'pcc-mobile-nav__item--active')
+              }
+            >
+              <span className="pcc-mobile-nav__icon">{renderNavIcon(item.iconName)}</span>
+              <span className="pcc-mobile-nav__label">{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
+
+      {/* More Navigation Drawer (Access to all 24 PCC pages) */}
+      {isMoreDrawerOpen && (
+        <div className="pcc-mobile-drawer-overlay" onClick={() => setIsMoreDrawerOpen(false)}>
+          <div className="pcc-mobile-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="pcc-mobile-drawer__header">
+              <div className="pcc-mobile-drawer__title">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ width: 20, height: 20, color: 'var(--color-accent)' }}
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span>All PCC Pages ({ALL_PCC_PAGES.length})</span>
+              </div>
+              <button
+                type="button"
+                className="pcc-mobile-drawer__close-btn"
+                onClick={() => setIsMoreDrawerOpen(false)}
+                aria-label="Close drawer"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="pcc-mobile-drawer__grid">
+              {ALL_PCC_PAGES.map((page) => {
+                const isActive = location.pathname === page.path;
+                return (
+                  <button
+                    key={page.id}
+                    type="button"
+                    className={cn('pcc-mobile-drawer__item', isActive && 'pcc-mobile-drawer__item--active')}
+                    onClick={() => {
+                      navigate(page.path);
+                      setIsMoreDrawerOpen(false);
+                    }}
+                  >
+                    <span className="pcc-mobile-drawer__item-icon">{renderNavIcon(page.iconName)}</span>
+                    <span className="pcc-mobile-drawer__item-label">{page.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Add Modal */}
       <Modal

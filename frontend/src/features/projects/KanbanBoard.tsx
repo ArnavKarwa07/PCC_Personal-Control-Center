@@ -169,6 +169,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             placeholder="Search cards in board..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery('')}
             style={{ width: '260px' }}
             icon={
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">

@@ -189,9 +189,19 @@ export const TaskDetailPage: React.FC = () => {
 
           {task.description && (
             <div style={{ padding: 'var(--space-4)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--line-height-relaxed)' }}>
+              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--line-height-relaxed)', wordBreak: 'break-word' }}>
                 {task.description}
               </p>
+            </div>
+          )}
+
+          {task.tags && task.tags.length > 0 && (
+            <div className="pcc-task-tags-list">
+              {task.tags.map((tag, idx) => (
+                <Badge key={idx} variant="default" size="sm">
+                  #{tag}
+                </Badge>
+              ))}
             </div>
           )}
 
@@ -301,7 +311,7 @@ export const TaskDetailPage: React.FC = () => {
             <label className="pcc-input__label" htmlFor="page-edit-desc">Description</label>
             <textarea
               id="page-edit-desc"
-              className="pcc-input__field"
+              className="pcc-input__field pcc-textarea-field"
               rows={3}
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}

@@ -95,22 +95,20 @@ export const FinancesPage: React.FC = () => {
             </div>
             <div className="pcc-finances-form__actions">
               <div className="pcc-type-toggle">
-                <Button
+                <button
                   type="button"
-                  variant={newType === 'expense' ? 'primary' : 'outline'}
-                  size="sm"
+                  className={`pcc-type-toggle-btn pcc-type-toggle-btn--expense ${newType === 'expense' ? 'pcc-type-toggle-btn--active' : ''}`}
                   onClick={() => setNewType('expense')}
                 >
                   Expense
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
-                  variant={newType === 'income' ? 'primary' : 'outline'}
-                  size="sm"
+                  className={`pcc-type-toggle-btn pcc-type-toggle-btn--income ${newType === 'income' ? 'pcc-type-toggle-btn--active' : ''}`}
                   onClick={() => setNewType('income')}
                 >
                   Income
-                </Button>
+                </button>
               </div>
               <Button type="submit" variant="primary">Record</Button>
             </div>

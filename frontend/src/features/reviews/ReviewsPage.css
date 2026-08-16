@@ -67,7 +67,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .pcc-review-stat-card:hover {
@@ -195,7 +197,9 @@
   border: 1px solid var(--color-border);
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
-  transition: all var(--transition-fast);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background-color 0.2s ease;
+  will-change: transform;
+  backface-visibility: hidden;
   position: relative;
 }
 
@@ -307,6 +311,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 /* Reflection Sections Grid */
@@ -324,13 +329,15 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-bg-secondary);
-  transition: all var(--transition-fast);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+  backface-visibility: hidden;
   position: relative;
 }
 
 .pcc-reflection-section:focus-within {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent), var(--shadow-sm);
+  box-shadow: 0 0 0 2px var(--color-accent-glow), var(--shadow-sm);
 }
 
 /* Specific Section Theme Accents */
@@ -418,13 +425,13 @@
   border-radius: var(--radius-md);
   resize: vertical;
   line-height: 1.5;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   outline: none;
 }
 
 .pcc-reflection-textarea:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-glow);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
 
 .pcc-reflection-textarea::placeholder {

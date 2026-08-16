@@ -83,29 +83,46 @@ export const ContactsPage: React.FC = () => {
 
       <div className="pcc-contacts-content">
         <div className="pcc-contacts-list">
-          {filtered.map((c) => (
-            <Card key={c.id} glass padding="lg" className="pcc-contact-card">
-              <div className="pcc-contact-card__header">
-                <div>
-                  <h3 className="pcc-contact-card__name">{c.name}</h3>
-                  <div className="pcc-contact-card__role">{c.role} @ {c.organization}</div>
+          {filtered.map((c) => {
+            const initials = c.name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .slice(0, 2)
+              .toUpperCase();
+
+            return (
+              <Card key={c.id} glass padding="lg" className="pcc-contact-card">
+                <div className="pcc-contact-card__header">
+                  <div className="pcc-contact-card__user-info">
+                    <div className="pcc-contact-card__avatar">{initials}</div>
+                    <div className="pcc-contact-card__meta">
+                      <h3 className="pcc-contact-card__name">{c.name}</h3>
+                      <div className="pcc-contact-card__role">
+                        {c.role} @ {c.organization}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={c.status === 'Catch up due' ? 'warning' : 'success'}
+                    className="pcc-contact-card__badge"
+                  >
+                    {c.status}
+                  </Badge>
                 </div>
-                <Badge variant={c.status === 'Catch up due' ? 'warning' : 'success'}>
-                  {c.status}
-                </Badge>
-              </div>
-              <div className="pcc-contact-card__details">
-                <div><span>Email:</span> {c.email}</div>
-                <div><span>Phone:</span> {c.phone}</div>
-                <div><span>Last sync:</span> {c.lastContact}</div>
-              </div>
-              <div className="pcc-contact-card__actions">
-                <Button size="sm" variant="outline" onClick={() => toast.info(`Logged catch-up with ${c.name}`)}>
-                  Log Catch-Up
-                </Button>
-              </div>
-            </Card>
-          ))}
+                <div className="pcc-contact-card__details">
+                  <div><span>Email:</span> {c.email}</div>
+                  <div><span>Phone:</span> {c.phone}</div>
+                  <div><span>Last sync:</span> {c.lastContact}</div>
+                </div>
+                <div className="pcc-contact-card__actions">
+                  <Button size="sm" variant="outline" onClick={() => toast.info(`Logged catch-up with ${c.name}`)}>
+                    Log Catch-Up
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
         <Card glass padding="lg" className="pcc-add-contact-card">

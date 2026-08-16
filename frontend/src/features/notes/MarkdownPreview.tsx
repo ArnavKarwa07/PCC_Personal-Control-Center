@@ -18,6 +18,19 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
   let inCodeBlock = false;
   let codeBlockContent: string[] = [];
   let listItems: string[] = [];
+  let tableBuffer: string[] = [];
+
+  const formatInlineMarkdown = (text: string): string => {
+    return text
+      // Bold
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Italic
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Inline Code
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+  };
 
   const flushList = (key: number) => {
     if (listItems.length > 0) {
@@ -32,16 +45,56 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
     }
   };
 
-  const formatInlineMarkdown = (text: string): string => {
-    return text
-      // Bold
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Italic
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      // Inline Code
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // Links
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+  const flushTable = (key: number) => {
+    if (tableBuffer.length >= 2) {
+      const parseRow = (rowStr: string) =>
+        rowStr
+          .trim()
+          .replace(/^\|/, '')
+          .replace(/\|$/, '')
+          .split('|')
+          .map((c) => c.trim());
+
+      const headerRow = parseRow(tableBuffer[0]);
+      // Skip row 1 if it's a divider line like |---|---|
+      const isDivider = (str: string) => /^[:\-\|\s]+$/.test(str.trim());
+      const bodyStartIndex = isDivider(tableBuffer[1]) ? 2 : 1;
+      const bodyRows = tableBuffer.slice(bodyStartIndex).map(parseRow);
+
+      renderedElements.push(
+        <div key={`table-wrapper-${key}`} className="pcc-markdown-table-wrapper">
+          <table className="pcc-markdown-table">
+            <thead>
+              <tr>
+                {headerRow.map((h, hIdx) => (
+                  <th key={hIdx} dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(h) }} />
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bodyRows.map((row, rIdx) => (
+                <tr key={rIdx}>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(cell) }} />
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    } else if (tableBuffer.length === 1) {
+      // Fallback as simple paragraph if not a valid table structure
+      renderedElements.push(
+        <p key={`table-fallback-${key}`} dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(tableBuffer[0]) }} />
+      );
+    }
+    tableBuffer = [];
+  };
+
+  const flushAll = (key: number) => {
+    flushList(key);
+    flushTable(key);
   };
 
   lines.forEach((line, index) => {
@@ -49,14 +102,16 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
     if (line.trim().startsWith('```')) {
       if (inCodeBlock) {
         renderedElements.push(
-          <pre key={`code-${index}`}>
-            <code>{codeBlockContent.join('\n')}</code>
-          </pre>
+          <div key={`code-wrapper-${index}`} className="pcc-markdown-code-wrapper">
+            <pre>
+              <code>{codeBlockContent.join('\n')}</code>
+            </pre>
+          </div>
         );
         codeBlockContent = [];
         inCodeBlock = false;
       } else {
-        flushList(index);
+        flushAll(index);
         inCodeBlock = true;
       }
       return;
@@ -65,6 +120,15 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
     if (inCodeBlock) {
       codeBlockContent.push(line);
       return;
+    }
+
+    // Markdown Table lines starting with '|'
+    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      flushList(index);
+      tableBuffer.push(line);
+      return;
+    } else if (tableBuffer.length > 0) {
+      flushTable(index);
     }
 
     // Headers
@@ -116,7 +180,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
     }
   });
 
-  flushList(lines.length);
+  flushAll(lines.length);
 
   return <div className="pcc-notes-preview">{renderedElements}</div>;
 };

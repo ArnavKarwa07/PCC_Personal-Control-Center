@@ -234,7 +234,28 @@
   display: flex;
   gap: var(--space-3);
   overflow-x: auto;
-  padding-bottom: var(--space-2);
+  padding-bottom: var(--space-3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-hover) transparent;
+}
+
+.pcc-weather-hourly-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.pcc-weather-hourly-track::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: var(--radius-full);
+}
+
+.pcc-weather-hourly-track::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.pcc-weather-hourly-track::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
 }
 
 .pcc-weather-hourly-card {

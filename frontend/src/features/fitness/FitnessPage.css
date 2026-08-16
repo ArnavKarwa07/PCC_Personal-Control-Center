@@ -17,7 +17,7 @@
 
 .pcc-fitness-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--space-4);
 }
 
@@ -25,6 +25,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .pcc-fitness-card__label {
@@ -35,23 +37,53 @@
 }
 
 .pcc-fitness-card__value {
-  font-size: var(--font-size-2xl);
+  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
   font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.pcc-fitness-card__subtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Progress bar styling & Light Theme Contrast */
 .pcc-progress-bar {
-  height: 8px;
-  background: var(--color-surface);
+  height: 10px;
   border-radius: var(--radius-full);
   overflow: hidden;
   margin-top: var(--space-2);
+  position: relative;
+}
+
+html[data-theme='light'] .pcc-progress-bar,
+:root:not([data-theme]) .pcc-progress-bar {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+}
+
+html[data-theme='dark'] .pcc-progress-bar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .pcc-progress-bar__fill {
   height: 100%;
-  background: var(--color-accent-gradient);
   border-radius: var(--radius-full);
   transition: width var(--transition-base);
+}
+
+html[data-theme='light'] .pcc-progress-bar__fill,
+:root:not([data-theme]) .pcc-progress-bar__fill {
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+}
+
+html[data-theme='dark'] .pcc-progress-bar__fill {
+  background: var(--color-accent-gradient);
+  box-shadow: 0 0 10px var(--color-accent-glow);
 }
 
 .pcc-fitness-content {
@@ -73,13 +105,60 @@
   margin-top: var(--space-4);
 }
 
+/* Quick Water Logger Buttons */
 .pcc-quick-water {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   margin-top: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.pcc-quick-water__label {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.pcc-quick-water__buttons {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pcc-water-btn {
+  padding: 6px 14px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+/* Light theme contrast rule compliance for water logger buttons */
+html[data-theme='light'] .pcc-water-btn,
+:root:not([data-theme]) .pcc-water-btn {
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.3);
+  color: #4f46e5;
+}
+
+html[data-theme='light'] .pcc-water-btn:hover,
+:root:not([data-theme]) .pcc-water-btn:hover {
+  background: rgba(79, 70, 229, 0.16);
+  border-color: #4f46e5;
+  color: #3730a3;
+}
+
+html[data-theme='dark'] .pcc-water-btn {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #c7d2fe;
+}
+
+html[data-theme='dark'] .pcc-water-btn:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
 }
 
 .pcc-workouts-list {
@@ -106,4 +185,10 @@
 .pcc-workout-item__date {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
+}
+
+@media (max-width: 640px) {
+  .pcc-fitness-grid {
+    grid-template-columns: 1fr;
+  }
 }

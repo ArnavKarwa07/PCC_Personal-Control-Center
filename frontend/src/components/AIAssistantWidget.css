@@ -3,14 +3,27 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--glass-bg);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-fast);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .pcc-ai-widget:hover {
-  box-shadow: var(--shadow-glow);
+  box-shadow: var(--shadow-md), 0 0 20px var(--color-accent-glow);
+  border-color: var(--color-border-active);
+  transform: translateY(-1px);
 }
+
+html[data-theme='light'] .pcc-ai-widget {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--color-border);
+}
+
+html[data-theme='light'] .pcc-ai-widget:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 6px 24px rgba(79, 70, 229, 0.1);
+}
+
 
 .pcc-ai-widget__header {
   display: flex;

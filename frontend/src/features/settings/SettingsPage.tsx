@@ -255,7 +255,7 @@ export const SettingsPage: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 <div className="pcc-reminder-form__group">
                   <label className="pcc-reminder-form__label">Theme Mode</label>
-                  <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <div className="pcc-theme-toggle-group">
                     <Button
                       variant={theme === 'dark' ? 'primary' : 'secondary'}
                       size="sm"

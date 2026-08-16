@@ -62,8 +62,15 @@
   justify-content: center;
   width: 36px;
   height: 36px;
+  border-radius: var(--radius-md);
   color: var(--color-text-secondary);
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-mobile-header__icon-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-hover-overlay);
 }
 
 .pcc-mobile-header__icon-btn svg {
@@ -88,7 +95,7 @@
 .pcc-mobile-fab {
   position: fixed;
   right: var(--space-5);
-  bottom: calc(var(--bottom-nav-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--bottom-nav-height) + 16px + env(safe-area-inset-bottom, 0px));
   width: 54px;
   height: 54px;
   border-radius: var(--radius-full);
@@ -141,6 +148,9 @@
   height: 100%;
   color: var(--color-text-tertiary);
   text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   transition: color var(--transition-fast);
 }
 
@@ -163,9 +173,141 @@
 }
 
 .pcc-mobile-nav__item--active {
-  color: var(--color-accent-hover);
+  color: var(--color-nav-active-text);
 }
 
 .pcc-mobile-nav__item--active .pcc-mobile-nav__icon {
   color: var(--color-accent);
+}
+
+/* More Navigation Drawer Styles */
+.pcc-mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(5, 5, 10, 0.75);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn var(--transition-fast) ease-out;
+}
+
+.pcc-mobile-drawer {
+  width: 100%;
+  max-height: 85vh;
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-hover);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideInUp var(--transition-base) cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pcc-mobile-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-elevated);
+}
+
+.pcc-mobile-drawer__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.pcc-mobile-drawer__close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-mobile-drawer__close-btn:hover {
+  background-color: var(--color-hover-overlay);
+  color: var(--color-text-primary);
+}
+
+.pcc-mobile-drawer__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow-y: auto;
+  max-height: calc(85vh - 70px);
+}
+
+@media (max-width: 360px) {
+  .pcc-mobile-drawer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pcc-mobile-drawer__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.pcc-mobile-drawer__item:hover,
+.pcc-mobile-drawer__item:active {
+  background-color: var(--color-hover-overlay);
+  color: var(--color-text-primary);
+  transform: scale(0.97);
+}
+
+.pcc-mobile-drawer__item--active {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+  color: var(--color-nav-active-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pcc-mobile-drawer__item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.pcc-mobile-drawer__item-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.pcc-mobile-drawer__item-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }

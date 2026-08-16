@@ -47,6 +47,26 @@
   gap: var(--space-3);
 }
 
+.pcc-knowledge-mobile-filter-toggle {
+  display: none;
+}
+
+.pcc-knowledge-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .pcc-knowledge-mobile-filter-toggle {
+    display: inline-flex;
+  }
+
+  .pcc-knowledge-panel--mobile-collapsed {
+    display: none !important;
+  }
+}
+
 /* Stats Overview Cards */
 .pcc-knowledge-stats {
   display: grid;
@@ -580,4 +600,33 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
+}
+
+/* Markdown Code & Table Overflow Containers */
+.pcc-markdown-code-wrapper,
+.pcc-markdown-table-wrapper,
+.pcc-learning-card__notes pre {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.pcc-learning-card__notes table,
+.pcc-markdown-table {
+  width: 100%;
+  min-width: 320px;
+  border-collapse: collapse;
+}
+
+.pcc-learning-card__notes th,
+.pcc-learning-card__notes td,
+.pcc-markdown-table th,
+.pcc-markdown-table td {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  text-align: left;
 }

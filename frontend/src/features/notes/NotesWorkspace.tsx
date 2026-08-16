@@ -128,10 +128,28 @@ export const NotesWorkspace: React.FC = () => {
   const wordCount = localContent.trim() ? localContent.trim().split(/\s+/).length : 0;
   const charCount = localContent.length;
 
+  const [isMobileListOpen, setIsMobileListOpen] = useState(false);
+
   return (
     <div className="pcc-notes-workspace" id="notes-workspace-root">
+      {/* Mobile Collapsible List Toggle Bar */}
+      <div className="pcc-notes-mobile-toggle-bar">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMobileListOpen(!isMobileListOpen)}
+        >
+          {isMobileListOpen ? '⬆️ Hide Notes List' : '📋 Show Notes List'} ({filteredNotes.length})
+        </Button>
+        {activeNote && !isMobileListOpen && (
+          <span className="pcc-notes-mobile-active-note">
+            Editing: <strong>{activeNote.title}</strong>
+          </span>
+        )}
+      </div>
+
       {/* Left Pane: Notes Navigation */}
-      <div className="pcc-notes-list-pane">
+      <div className={cn('pcc-notes-list-pane', !isMobileListOpen && 'pcc-notes-list-pane--mobile-collapsed')}>
         <div className="pcc-notes-list__header">
           <h2 className="pcc-notes-list__title">Notes & Knowledge</h2>
           <Button
@@ -406,7 +424,10 @@ export const NotesWorkspace: React.FC = () => {
           'pcc-note-item-card',
           isSelected && 'pcc-note-item-card--active'
         )}
-        onClick={() => setActiveNoteId(note.id)}
+        onClick={() => {
+          setActiveNoteId(note.id);
+          setIsMobileListOpen(false);
+        }}
       >
         <div className="pcc-note-item-card__header">
           <h4 className="pcc-note-item-card__title">{note.title}</h4>

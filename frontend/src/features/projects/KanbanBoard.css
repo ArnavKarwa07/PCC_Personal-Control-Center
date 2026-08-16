@@ -36,27 +36,40 @@
 }
 
 .pcc-kanban__columns {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(270px, 1fr));
+  display: flex;
   gap: var(--space-4);
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: var(--space-4);
   align-items: flex-start;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 1200px) {
-  .pcc-kanban__columns {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-  }
+.pcc-kanban__columns::-webkit-scrollbar {
+  height: 8px;
 }
 
-@media (max-width: 768px) {
-  .pcc-kanban__columns {
-    grid-template-columns: 1fr;
-  }
+.pcc-kanban__columns::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+}
+
+.pcc-kanban__columns::-webkit-scrollbar-thumb {
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+}
+
+.pcc-kanban__columns::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
 }
 
 .pcc-kanban__column {
+  flex: 0 0 300px;
+  min-width: 270px;
+  max-width: 340px;
+  scroll-snap-align: start;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -64,13 +77,21 @@
   flex-direction: column;
   min-height: 480px;
   max-height: calc(100vh - 240px);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), background-color var(--transition-base);
+}
+
+@media (max-width: 640px) {
+  .pcc-kanban__column {
+    flex: 0 0 calc(100vw - 48px);
+    max-width: 100%;
+    scroll-snap-align: center;
+  }
 }
 
 .pcc-kanban__column--dragover {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 16px var(--color-accent-glow);
-  background: var(--color-bg-tertiary);
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 16px var(--color-accent-glow), 0 0 0 2px var(--color-accent);
+  background: var(--color-accent-subtle) !important;
 }
 
 .pcc-kanban__column-header {
@@ -164,10 +185,13 @@
   line-height: var(--line-height-normal);
   margin: 0;
   cursor: pointer;
+  transition: color var(--transition-fast);
+  word-break: break-word;
 }
 
 .pcc-kanban-card__title:hover {
-  color: var(--color-accent-hover);
+  color: var(--color-accent);
+  text-decoration: underline;
 }
 
 .pcc-kanban-card__description {
@@ -189,7 +213,7 @@
   gap: var(--space-2);
   margin-top: var(--space-1);
   padding-top: var(--space-2);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--color-border);
 }
 
 .pcc-kanban-card__tags {
@@ -233,26 +257,37 @@
   justify-content: flex-end;
   gap: var(--space-1);
   margin-top: var(--space-1);
+  flex-wrap: wrap;
 }
 
 .pcc-kanban-card__move-btn {
-  padding: 3px 8px;
+  padding: 4px 8px;
   font-size: 11px;
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-xs);
-  background: var(--color-surface);
+  background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
   transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
 }
 
 .pcc-kanban-card__move-btn:hover {
-  background: var(--color-accent-subtle);
+  background: var(--color-bg-tertiary);
   border-color: var(--color-accent);
-  color: var(--color-accent-hover);
+  color: var(--color-accent);
+}
+
+.pcc-kanban-card__move-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.pcc-kanban-card__move-btn:active {
+  transform: translateY(1px);
 }
 
 /* Inline Add Card */
@@ -274,20 +309,29 @@
 
 .pcc-kanban__add-textarea {
   width: 100%;
-  min-height: 60px;
-  padding: var(--space-2);
+  min-height: 64px;
+  padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-sm);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--color-text-primary);
-  resize: none;
+  resize: vertical;
   font-family: inherit;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.pcc-kanban__add-textarea:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-tertiary);
 }
 
 .pcc-kanban__add-textarea:focus {
   outline: none;
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+  background: var(--color-bg-tertiary);
 }
 
 .pcc-kanban__add-buttons {

@@ -396,6 +396,8 @@ export const KnowledgePage: React.FC = () => {
     toast.warning(`Deleted resource "${title}"`);
   };
 
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
   return (
     <div className="pcc-knowledge-page">
       {/* Header */}
@@ -407,46 +409,56 @@ export const KnowledgePage: React.FC = () => {
           </p>
         </div>
         <div className="pcc-knowledge-header__actions">
+          <Button
+            variant="outline"
+            size="md"
+            className="pcc-knowledge-mobile-filter-toggle"
+            onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+          >
+            {isMobileFiltersOpen ? '⚡ Hide Filters' : '⚡ Show Filters'}
+          </Button>
           <Button variant="primary" size="md" onClick={handleOpenCreateModal}>
             + Add Learning Resource
           </Button>
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="pcc-knowledge-stats">
-        <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--total">
-          <div className="pcc-knowledge-stat-card__icon">📚</div>
-          <div className="pcc-knowledge-stat-card__data">
-            <span className="pcc-knowledge-stat-card__value">{stats.total}</span>
-            <span className="pcc-knowledge-stat-card__label">Total Resources</span>
+      {/* Collapsible Filters & Stats Container for Mobile */}
+      <div className={`pcc-knowledge-panel ${!isMobileFiltersOpen ? 'pcc-knowledge-panel--mobile-collapsed' : ''}`}>
+        {/* Stats Overview */}
+        <div className="pcc-knowledge-stats">
+          <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--total">
+            <div className="pcc-knowledge-stat-card__icon">📚</div>
+            <div className="pcc-knowledge-stat-card__data">
+              <span className="pcc-knowledge-stat-card__value">{stats.total}</span>
+              <span className="pcc-knowledge-stat-card__label">Total Resources</span>
+            </div>
           </div>
-        </div>
 
-        <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--learning">
-          <div className="pcc-knowledge-stat-card__icon">🚀</div>
-          <div className="pcc-knowledge-stat-card__data">
-            <span className="pcc-knowledge-stat-card__value">{stats.learning}</span>
-            <span className="pcc-knowledge-stat-card__label">Active in Progress</span>
+          <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--learning">
+            <div className="pcc-knowledge-stat-card__icon">🚀</div>
+            <div className="pcc-knowledge-stat-card__data">
+              <span className="pcc-knowledge-stat-card__value">{stats.learning}</span>
+              <span className="pcc-knowledge-stat-card__label">Active in Progress</span>
+            </div>
           </div>
-        </div>
 
-        <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--completed">
-          <div className="pcc-knowledge-stat-card__icon">🏆</div>
-          <div className="pcc-knowledge-stat-card__data">
-            <span className="pcc-knowledge-stat-card__value">{stats.completed}</span>
-            <span className="pcc-knowledge-stat-card__label">Completed Materials</span>
+          <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--completed">
+            <div className="pcc-knowledge-stat-card__icon">🏆</div>
+            <div className="pcc-knowledge-stat-card__data">
+              <span className="pcc-knowledge-stat-card__value">{stats.completed}</span>
+              <span className="pcc-knowledge-stat-card__label">Completed Materials</span>
+            </div>
           </div>
-        </div>
 
-        <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--progress">
-          <div className="pcc-knowledge-stat-card__icon">📊</div>
-          <div className="pcc-knowledge-stat-card__data">
-            <span className="pcc-knowledge-stat-card__value">{stats.avgProgress}%</span>
-            <span className="pcc-knowledge-stat-card__label">Avg Completion Rate</span>
+          <div className="pcc-knowledge-stat-card pcc-knowledge-stat-card--progress">
+            <div className="pcc-knowledge-stat-card__icon">📊</div>
+            <div className="pcc-knowledge-stat-card__data">
+              <span className="pcc-knowledge-stat-card__value">{stats.avgProgress}%</span>
+              <span className="pcc-knowledge-stat-card__label">Avg Completion Rate</span>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Toolbar & Filters */}
       <div className="pcc-knowledge-toolbar">
@@ -504,6 +516,7 @@ export const KnowledgePage: React.FC = () => {
             </button>
           ))}
         </div>
+      </div>
       </div>
 
       {/* Learning Items Grid */}

@@ -8,6 +8,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   helperText?: string;
   icon?: React.ReactNode;
   rightElement?: React.ReactNode;
+  onClear?: () => void;
   fullWidth?: boolean;
 }
 
@@ -19,6 +20,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       helperText,
       icon,
       rightElement,
+      onClear,
       fullWidth = true,
       className,
       id,
@@ -28,6 +30,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const hasValue = Boolean(rest.value !== undefined && rest.value !== null && String(rest.value).length > 0);
 
     return (
       <div
@@ -62,13 +65,26 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               'pcc-input__field',
               Boolean(icon) && 'pcc-input__field--has-left-icon',
-              Boolean(rightElement) && 'pcc-input__field--has-right-element'
+              Boolean(rightElement || (onClear && hasValue)) && 'pcc-input__field--has-right-element'
             )}
             {...rest}
           />
-          {rightElement && (
+          {onClear && hasValue ? (
+            <button
+              type="button"
+              className="pcc-input__clear-btn"
+              onClick={onClear}
+              aria-label="Clear input"
+              title="Clear search"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          ) : rightElement ? (
             <div className="pcc-input__element-right">{rightElement}</div>
-          )}
+          ) : null}
         </div>
 
         {error ? (

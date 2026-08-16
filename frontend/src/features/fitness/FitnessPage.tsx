@@ -89,9 +89,23 @@ export const FitnessPage: React.FC = () => {
           </form>
 
           <div className="pcc-quick-water">
-            <span>Quick Hydration Log:</span>
-            <Button size="sm" variant="outline" onClick={() => handleLogWater(250)}>+250ml Glass</Button>
-            <Button size="sm" variant="outline" onClick={() => handleLogWater(500)}>+500ml Bottle</Button>
+            <span className="pcc-quick-water__label">Quick Hydration Log:</span>
+            <div className="pcc-quick-water__buttons">
+              <button
+                type="button"
+                className="pcc-water-btn"
+                onClick={() => handleLogWater(250)}
+              >
+                +250ml Glass
+              </button>
+              <button
+                type="button"
+                className="pcc-water-btn"
+                onClick={() => handleLogWater(500)}
+              >
+                +500ml Bottle
+              </button>
+            </div>
           </div>
         </Card>
 

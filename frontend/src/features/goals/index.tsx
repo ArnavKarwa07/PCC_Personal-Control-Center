@@ -89,13 +89,20 @@ export const GoalsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pcc-goal-card__milestones">
-                <span className="pcc-milestones-label">Milestones Checkpoints:</span>
-                <ul>
+              <div className="pcc-goal-card__key-results">
+                <span className="pcc-milestones-label">Key Results & Checkpoints:</span>
+                <div className="pcc-key-results-list">
                   {g.milestones.map((m, idx) => (
-                    <li key={idx}>✓ {m}</li>
+                    <label key={idx} className="pcc-key-result-item">
+                      <input
+                        type="checkbox"
+                        className="pcc-key-result-checkbox"
+                        defaultChecked={g.progress === 100 || idx === 0}
+                      />
+                      <span className="pcc-key-result-text">{m}</span>
+                    </label>
                   ))}
-                </ul>
+                </div>
               </div>
 
               <div className="pcc-goal-card__actions">

@@ -21,31 +21,31 @@ export const DashboardPage: React.FC = () => {
 
       {/* Primary OS Metric Gauges */}
       <div className="pcc-dashboard-metrics">
-        <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/tasks')}>
+        <Card glass hoverable padding="md" className="pcc-metric-card" onClick={() => navigate('/tasks')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/tasks')}>
           <span className="pcc-metric-card__lbl">Pending Tasks</span>
           <div className="pcc-metric-card__val">12</div>
           <Badge variant="warning" size="sm">3 High Priority</Badge>
         </Card>
 
-        <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/finances')}>
+        <Card glass hoverable padding="md" className="pcc-metric-card" onClick={() => navigate('/finances')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/finances')}>
           <span className="pcc-metric-card__lbl">Net Worth Balance</span>
           <div className="pcc-metric-card__val" style={{ color: 'var(--color-success)' }}>₹1,43,000</div>
           <Badge variant="success" size="sm">+₹1.85L / -₹42k</Badge>
         </Card>
 
-        <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/fitness')}>
+        <Card glass hoverable padding="md" className="pcc-metric-card" onClick={() => navigate('/fitness')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/fitness')}>
           <span className="pcc-metric-card__lbl">Habit Streak</span>
           <div className="pcc-metric-card__val">12 Days 🔥</div>
           <Badge variant="primary" size="sm">2,100 ml Water</Badge>
         </Card>
 
-        <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/contacts')}>
+        <Card glass hoverable padding="md" className="pcc-metric-card" onClick={() => navigate('/contacts')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/contacts')}>
           <span className="pcc-metric-card__lbl">CRM Followups</span>
           <div className="pcc-metric-card__val">1 Overdue</div>
           <Badge variant="outline" size="sm">2 Contacts</Badge>
         </Card>
 
-        <Card glass padding="md" className="pcc-metric-card" onClick={() => navigate('/goals')}>
+        <Card glass hoverable padding="md" className="pcc-metric-card" onClick={() => navigate('/goals')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate('/goals')}>
           <span className="pcc-metric-card__lbl">Q3 OKRs</span>
           <div className="pcc-metric-card__val">85%</div>
           <Badge variant="success" size="sm">On Track</Badge>

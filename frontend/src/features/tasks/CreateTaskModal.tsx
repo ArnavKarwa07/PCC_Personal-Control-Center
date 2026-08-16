@@ -114,8 +114,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           </label>
           <textarea
             id="new-task-desc"
-            className="pcc-input__field"
-            rows={2}
+            className="pcc-input__field pcc-textarea-field"
+            rows={3}
             placeholder="Context, requirements, links..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}

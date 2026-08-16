@@ -36,7 +36,7 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border);
-  background: rgba(26, 26, 46, 0.6);
+  background: var(--color-bg-tertiary);
 }
 
 .pcc-command-dialog__icon {
@@ -101,10 +101,11 @@
   color: var(--color-text-primary);
 }
 
+.pcc-command-item:hover,
 .pcc-command-item--active {
-  background: var(--color-bg-elevated);
+  background: var(--color-active-overlay);
   border-left: 3px solid var(--color-accent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .pcc-command-item__left {

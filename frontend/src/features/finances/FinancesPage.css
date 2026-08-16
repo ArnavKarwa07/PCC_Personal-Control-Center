@@ -69,11 +69,66 @@
   justify-content: space-between;
   align-items: center;
   margin-top: var(--space-4);
+  gap: var(--space-3);
 }
 
 .pcc-type-toggle {
   display: flex;
-  gap: var(--space-2);
+  gap: 4px;
+  background: var(--color-bg-tertiary);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.pcc-type-toggle-btn {
+  padding: 6px 14px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  color: var(--color-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-type-toggle-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* Active Highlight Contrast for Income / Expense Toggle Buttons in Light Theme */
+html[data-theme='light'] .pcc-type-toggle-btn--expense.pcc-type-toggle-btn--active,
+:root:not([data-theme]) .pcc-type-toggle-btn--expense.pcc-type-toggle-btn--active {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+html[data-theme='light'] .pcc-type-toggle-btn--income.pcc-type-toggle-btn--active,
+:root:not([data-theme]) .pcc-type-toggle-btn--income.pcc-type-toggle-btn--active {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #15803d;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+}
+
+/* Active Highlight Contrast in Dark Theme */
+html[data-theme='dark'] .pcc-type-toggle-btn--expense.pcc-type-toggle-btn--active {
+  background: rgba(220, 38, 38, 0.25);
+  color: #fca5a5;
+  border-color: rgba(220, 38, 38, 0.5);
+  font-weight: var(--font-weight-semibold);
+}
+
+html[data-theme='dark'] .pcc-type-toggle-btn--income.pcc-type-toggle-btn--active {
+  background: rgba(22, 163, 74, 0.25);
+  color: #86efac;
+  border-color: rgba(22, 163, 74, 0.5);
+  font-weight: var(--font-weight-semibold);
 }
 
 .pcc-subscriptions-list {
@@ -103,6 +158,39 @@
 }
 
 .pcc-subscription-amount {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-accent);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+}
+
+/* High Contrast Subscription Amount Text in Light Mode */
+html[data-theme='light'] .pcc-subscription-amount,
+:root:not([data-theme]) .pcc-subscription-amount {
+  color: #3730a3; /* Deep Indigo text for crisp contrast on light tertiary bg */
+}
+
+html[data-theme='dark'] .pcc-subscription-amount {
+  color: #818cf8;
+}
+
+/* Mobile responsive 1-column layout for transaction record form */
+@media (max-width: 768px) {
+  .pcc-finances-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .pcc-finances-form__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .pcc-type-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pcc-type-toggle-btn {
+    flex: 1;
+    text-align: center;
+  }
 }
