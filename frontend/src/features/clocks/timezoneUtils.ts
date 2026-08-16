@@ -13,11 +13,30 @@ import {
  */
 export function getTimezoneOffsetMinutes(timeZone: string, date: Date = new Date()): number {
   try {
-    const utcStr = date.toLocaleString('en-US', { timeZone: 'UTC' });
-    const tzStr = date.toLocaleString('en-US', { timeZone });
-    const utcDate = new Date(utcStr);
-    const tzDate = new Date(tzStr);
-    return Math.round((tzDate.getTime() - utcDate.getTime()) / 60000);
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(date);
+    const getPart = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0', 10);
+
+    const year = getPart('year');
+    const month = getPart('month') - 1;
+    const day = getPart('day');
+    let hour = getPart('hour');
+    if (hour === 24) hour = 0;
+    const minute = getPart('minute');
+    const second = getPart('second');
+
+    const tzAsUtcMs = Date.UTC(year, month, day, hour, minute, second);
+    const realUtcMs = date.getTime();
+    return Math.round((tzAsUtcMs - realUtcMs) / 60000);
   } catch {
     return 0;
   }

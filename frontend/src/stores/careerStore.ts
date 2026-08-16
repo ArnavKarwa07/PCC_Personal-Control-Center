@@ -290,7 +290,7 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   fetchAchievements: async () => {
     try {
       const res = await careerApi.getAchievements();
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.data && Array.isArray(res.data)) {
         set({ achievements: res.data });
       }
     } catch (err) {
@@ -301,7 +301,7 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   fetchSkills: async () => {
     try {
       const res = await careerApi.getSkills();
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.data && Array.isArray(res.data)) {
         set({ skills: res.data });
       }
     } catch (err) {
@@ -312,7 +312,7 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   fetchCertifications: async () => {
     try {
       const res = await careerApi.getCertifications();
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.data && Array.isArray(res.data)) {
         set({ certifications: res.data });
       }
     } catch (err) {
@@ -323,7 +323,7 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   fetchExperiences: async () => {
     try {
       const res = await careerApi.getExperiences();
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.data && Array.isArray(res.data)) {
         set({ experiences: res.data });
       }
     } catch (err) {
@@ -334,7 +334,7 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   fetchResumes: async () => {
     try {
       const res = await careerApi.getResumes();
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.data && Array.isArray(res.data)) {
         set({ resumes: res.data });
       }
     } catch (err) {

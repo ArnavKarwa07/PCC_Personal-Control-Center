@@ -282,11 +282,15 @@ export const SearchPage: React.FC = () => {
   // Highlight matched terms in text
   const highlightMatch = (text: string | undefined, searchTerm: string) => {
     if (!text) return null;
-    if (!searchTerm.trim()) return text;
+    const tokens = searchTerm.trim().split(/\s+/).filter(Boolean).map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (tokens.length === 0) return text;
 
-    const parts = text.split(new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    const regex = new RegExp(`(${tokens.join('|')})`, 'gi');
+    const parts = text.split(regex);
+    const tokenSet = new Set(tokens.map((t) => t.toLowerCase()));
+
     return parts.map((part, i) =>
-      part.toLowerCase() === searchTerm.toLowerCase() ? (
+      tokenSet.has(part.toLowerCase()) ? (
         <mark key={i} className="pcc-search-highlight">
           {part}
         </mark>

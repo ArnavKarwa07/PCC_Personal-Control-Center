@@ -4,7 +4,7 @@ import uuid
 from datetime import date as PyDate
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.fitness import ExerciseType
 
@@ -23,21 +23,19 @@ class ExerciseCreate(ExerciseBase):
 
 
 class ExerciseRead(ExerciseBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     workout_id: uuid.UUID
 
-    class Config:
-        from_attributes = True
-
 
 class WorkoutBase(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     workout_date: PyDate = Field(..., alias="date", description="Workout date")
     name: Optional[str] = Field(default=None, max_length=255)
     notes: Optional[str] = None
     duration_minutes: Optional[int] = Field(default=None, ge=1)
-
-    class Config:
-        populate_by_name = True
 
 
 class WorkoutCreate(WorkoutBase):
@@ -45,23 +43,20 @@ class WorkoutCreate(WorkoutBase):
 
 
 class WorkoutRead(WorkoutBase):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     exercises: List[ExerciseRead] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
-
 
 class HealthLogCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     log_date: PyDate = Field(..., alias="date")
     water_ml: int = Field(default=0, ge=0)
     sleep_hours: float = Field(default=0.0, ge=0.0, le=24.0)
     habit_completed: bool = Field(default=True)
-
-    class Config:
-        populate_by_name = True
 
 
 class FitnessSummaryRead(BaseModel):

@@ -28,6 +28,9 @@ SUPPORTED_ENTITY_TYPES = {
     "goals",
     "finances",
     "reminders",
+    "learning",
+    "career",
+    "reviews",
 }
 
 # Type aliases mapping for flexible query parameters
@@ -56,6 +59,13 @@ TYPE_ALIASES = {
     "subscriptions": "finances",
     "reminder": "reminders",
     "reminders": "reminders",
+    "learning": "learning",
+    "knowledge": "learning",
+    "career": "career",
+    "achievements": "career",
+    "skills": "career",
+    "review": "reviews",
+    "reviews": "reviews",
 }
 
 
@@ -153,7 +163,7 @@ class SearchService:
             .filter(
                 Task.user_id == user_id,
                 Task.deleted_at.is_(None),
-                (Task.title.ilike(pattern)) | (Task.description.ilike(pattern)),
+                (Task.title.ilike(pattern, escape="\\")) | (Task.description.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -196,7 +206,7 @@ class SearchService:
             .filter(
                 Project.user_id == user_id,
                 Project.deleted_at.is_(None),
-                (Project.name.ilike(pattern)) | (Project.description.ilike(pattern)),
+                (Project.name.ilike(pattern, escape="\\")) | (Project.description.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -239,9 +249,9 @@ class SearchService:
             .filter(
                 Note.user_id == user_id,
                 Note.deleted_at.is_(None),
-                (Note.title.ilike(pattern))
-                | (Note.content.ilike(pattern))
-                | (Note.category.ilike(pattern)),
+                (Note.title.ilike(pattern, escape="\\"))
+                | (Note.content.ilike(pattern, escape="\\"))
+                | (Note.category.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -280,9 +290,9 @@ class SearchService:
             .filter(
                 Idea.user_id == user_id,
                 Idea.deleted_at.is_(None),
-                (Idea.title.ilike(pattern))
-                | (Idea.description.ilike(pattern))
-                | (Idea.category.ilike(pattern)),
+                (Idea.title.ilike(pattern, escape="\\"))
+                | (Idea.description.ilike(pattern, escape="\\"))
+                | (Idea.category.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -322,9 +332,9 @@ class SearchService:
             .filter(
                 CalendarEvent.user_id == user_id,
                 CalendarEvent.deleted_at.is_(None),
-                (CalendarEvent.title.ilike(pattern))
-                | (CalendarEvent.description.ilike(pattern))
-                | (CalendarEvent.location.ilike(pattern)),
+                (CalendarEvent.title.ilike(pattern, escape="\\"))
+                | (CalendarEvent.description.ilike(pattern, escape="\\"))
+                | (CalendarEvent.location.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -367,11 +377,11 @@ class SearchService:
             .filter(
                 Contact.user_id == user_id,
                 Contact.deleted_at.is_(None),
-                (Contact.name.ilike(pattern))
-                | (Contact.organization.ilike(pattern))
-                | (Contact.role.ilike(pattern))
-                | (Contact.email.ilike(pattern))
-                | (Contact.notes.ilike(pattern)),
+                (Contact.name.ilike(pattern, escape="\\"))
+                | (Contact.organization.ilike(pattern, escape="\\"))
+                | (Contact.role.ilike(pattern, escape="\\"))
+                | (Contact.email.ilike(pattern, escape="\\"))
+                | (Contact.notes.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -412,7 +422,7 @@ class SearchService:
             .filter(
                 Goal.user_id == user_id,
                 Goal.deleted_at.is_(None),
-                (Goal.name.ilike(pattern)) | (Goal.description.ilike(pattern)),
+                (Goal.name.ilike(pattern, escape="\\")) | (Goal.description.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -455,7 +465,7 @@ class SearchService:
             .filter(
                 FinanceItem.user_id == user_id,
                 FinanceItem.deleted_at.is_(None),
-                (FinanceItem.description.ilike(pattern)) | (FinanceItem.category.ilike(pattern)),
+                (FinanceItem.description.ilike(pattern, escape="\\")) | (FinanceItem.category.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -493,7 +503,7 @@ class SearchService:
             .filter(
                 Subscription.user_id == user_id,
                 Subscription.deleted_at.is_(None),
-                (Subscription.name.ilike(pattern)) | (Subscription.category.ilike(pattern)),
+                (Subscription.name.ilike(pattern, escape="\\")) | (Subscription.category.ilike(pattern, escape="\\")),
             )
             .all()
         )
@@ -536,7 +546,7 @@ class SearchService:
             .filter(
                 Reminder.user_id == user_id,
                 Reminder.deleted_at.is_(None),
-                (Reminder.title.ilike(pattern)) | (Reminder.description.ilike(pattern)),
+                (Reminder.title.ilike(pattern, escape="\\")) | (Reminder.description.ilike(pattern, escape="\\")),
             )
             .all()
         )

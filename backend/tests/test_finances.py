@@ -19,7 +19,7 @@ def test_finance_summary_and_item_crud(client: TestClient, auth_headers: dict):
         json={
             "type": "income",
             "amount": 5000.00,
-            "currency": "USD",
+            "currency": "INR",
             "category": "Salary",
             "date": date.today().isoformat(),
             "description": "Monthly salary payout",
@@ -35,7 +35,7 @@ def test_finance_summary_and_item_crud(client: TestClient, auth_headers: dict):
         json={
             "type": "expense",
             "amount": 1200.00,
-            "currency": "USD",
+            "currency": "INR",
             "category": "Housing",
             "date": date.today().isoformat(),
             "description": "Rent payment",

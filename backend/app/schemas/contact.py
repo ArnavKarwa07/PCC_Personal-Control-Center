@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ContactBase(BaseModel):
@@ -36,8 +36,7 @@ class ContactUpdate(BaseModel):
 
 
 class ContactRead(ContactBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
-
-    class Config:
-        from_attributes = True

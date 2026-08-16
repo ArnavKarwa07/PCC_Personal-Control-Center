@@ -5,22 +5,21 @@ from datetime import date as PyDate
 from decimal import Decimal
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.finance import BillingCycle, FinanceItemType
 
 
 class FinanceItemBase(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     item_type: FinanceItemType = Field(..., alias="type", description="Income or Expense")
     amount: Decimal = Field(..., gt=0, description="Transaction amount")
-    currency: str = Field(default="USD", max_length=3)
+    currency: str = Field(default="INR", max_length=3)
     category: Optional[str] = Field(default=None, max_length=100)
     transaction_date: PyDate = Field(..., alias="date", description="Transaction date")
     description: Optional[str] = Field(default=None, max_length=500)
     is_recurring: bool = Field(default=False)
-
-    class Config:
-        populate_by_name = True
 
 
 class FinanceItemCreate(FinanceItemBase):
@@ -28,6 +27,8 @@ class FinanceItemCreate(FinanceItemBase):
 
 
 class FinanceItemUpdate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     item_type: Optional[FinanceItemType] = Field(default=None, alias="type")
     amount: Optional[Decimal] = Field(default=None, gt=0)
     currency: Optional[str] = None
@@ -36,23 +37,18 @@ class FinanceItemUpdate(BaseModel):
     description: Optional[str] = None
     is_recurring: Optional[bool] = None
 
-    class Config:
-        populate_by_name = True
-
 
 class FinanceItemRead(FinanceItemBase):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
-
-    class Config:
-        from_attributes = True
-        populate_by_name = True
 
 
 class SubscriptionBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     amount: Decimal = Field(..., gt=0)
-    currency: str = Field(default="USD", max_length=3)
+    currency: str = Field(default="INR", max_length=3)
     billing_cycle: BillingCycle = Field(default=BillingCycle.MONTHLY)
     next_payment: Optional[PyDate] = None
     category: Optional[str] = Field(default=None, max_length=100)
@@ -74,11 +70,10 @@ class SubscriptionUpdate(BaseModel):
 
 
 class SubscriptionRead(SubscriptionBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
-
-    class Config:
-        from_attributes = True
 
 
 class CategoryBreakdown(BaseModel):

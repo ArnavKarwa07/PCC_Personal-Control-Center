@@ -265,13 +265,22 @@ class ReviewService:
         drafts = total - completed
         completion_rate = round((completed / total) * 100, 1) if total > 0 else 0.0
 
-        # Calculate streak of consecutive completed reviews sorted by date
+        # Calculate streak of strictly consecutive weekly completed reviews (7 days apart)
+        completed_reviews = [r for r in reviews if r.status == ReviewStatus.COMPLETED]
         streak = 0
-        for r in reviews:
-            if r.status == ReviewStatus.COMPLETED:
-                streak += 1
-            else:
-                break
+        if completed_reviews:
+            prev_date = None
+            for r in completed_reviews:
+                if prev_date is None:
+                    streak += 1
+                    prev_date = r.week_start
+                else:
+                    days_diff = (prev_date - r.week_start).days
+                    if days_diff == 7:
+                        streak += 1
+                        prev_date = r.week_start
+                    else:
+                        break
 
         return {
             "total_reviews": total,

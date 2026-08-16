@@ -622,3 +622,30 @@
   color: var(--color-text-secondary);
   max-width: 420px;
 }
+
+/* Responsive Breakpoints */
+@media (max-width: 640px) {
+  .pcc-search-container {
+    padding: var(--space-3);
+    gap: var(--space-4);
+  }
+
+  .pcc-search-input {
+    padding: 12px 40px 12px 42px;
+    font-size: var(--font-size-base);
+  }
+
+  .pcc-search-header__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .pcc-search-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .pcc-search-card__meta {
+    flex-wrap: wrap;
+  }
+}

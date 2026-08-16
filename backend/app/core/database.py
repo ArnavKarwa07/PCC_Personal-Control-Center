@@ -10,6 +10,7 @@ from app.core.config import settings
 connect_args = {}
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
+    connect_args["timeout"] = 30
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -23,6 +24,8 @@ def _set_sqlite_pragma(dbapi_conn, connection_record):
     if settings.DATABASE_URL.startswith("sqlite"):
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=30000")
         cursor.close()
 
 
@@ -31,6 +34,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Base(DeclarativeBase):
     """Base declarative class for all SQLAlchemy models."""
+
     pass
 
 

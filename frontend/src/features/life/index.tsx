@@ -76,13 +76,29 @@ export const LifePage: React.FC = () => {
     fetchGoals();
   }, []);
 
+  const computeVitalityScore = (
+    waterMl: number,
+    waterTargetMl: number,
+    sleepHours: number,
+    sleepTargetHours: number,
+    workoutCompleted: boolean
+  ): number => {
+    const waterPct = Math.min(1, Math.max(0, waterMl / (waterTargetMl || 1)));
+    const sleepPct = Math.min(1, Math.max(0, sleepHours / (sleepTargetHours || 1)));
+    const workoutPts = workoutCompleted ? 30 : 0;
+    return Math.min(100, Math.round(waterPct * 35 + sleepPct * 35 + workoutPts));
+  };
+
   const handleWaterStep = (step: number) => {
     setWellness((prev) => {
       const nextMl = Math.max(0, prev.waterMl + step);
-      const waterPct = Math.min(1, nextMl / prev.waterTargetMl);
-      const sleepPct = Math.min(1, prev.sleepHours / prev.sleepTargetHours);
-      const workoutPts = prev.workoutCompleted ? 30 : 0;
-      const score = Math.round(waterPct * 35 + sleepPct * 35 + workoutPts);
+      const score = computeVitalityScore(
+        nextMl,
+        prev.waterTargetMl,
+        prev.sleepHours,
+        prev.sleepTargetHours,
+        prev.workoutCompleted
+      );
       return { ...prev, waterMl: nextMl, vitalityScore: score };
     });
     toast.info(step > 0 ? `+${step}ml water logged` : `${step}ml water updated`);
@@ -108,10 +124,13 @@ export const LifePage: React.FC = () => {
 
   const handleLogSleep = () => {
     setWellness((prev) => {
-      const sleepPct = Math.min(1, sleepInput / prev.sleepTargetHours);
-      const waterPct = Math.min(1, prev.waterMl / prev.waterTargetMl);
-      const workoutPts = prev.workoutCompleted ? 30 : 0;
-      const score = Math.round(waterPct * 35 + sleepPct * 35 + workoutPts);
+      const score = computeVitalityScore(
+        prev.waterMl,
+        prev.waterTargetMl,
+        sleepInput,
+        prev.sleepTargetHours,
+        prev.workoutCompleted
+      );
       return {
         ...prev,
         sleepHours: sleepInput,
@@ -124,13 +143,22 @@ export const LifePage: React.FC = () => {
   };
 
   const handleLogWorkout = () => {
-    setWellness((prev) => ({
-      ...prev,
-      workoutCompleted: true,
-      workoutTitle: workoutTitleInput || 'Custom Workout Session',
-      workoutDuration: workoutDurationInput,
-      vitalityScore: Math.min(100, prev.vitalityScore + 15),
-    }));
+    setWellness((prev) => {
+      const score = computeVitalityScore(
+        prev.waterMl,
+        prev.waterTargetMl,
+        prev.sleepHours,
+        prev.sleepTargetHours,
+        true
+      );
+      return {
+        ...prev,
+        workoutCompleted: true,
+        workoutTitle: workoutTitleInput || 'Custom Workout Session',
+        workoutDuration: workoutDurationInput,
+        vitalityScore: score,
+      };
+    });
     toast.success(`Workout logged: ${workoutTitleInput || 'Session'} (${workoutDurationInput} mins) 💪`);
     setActiveModal(null);
   };

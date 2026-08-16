@@ -28,7 +28,7 @@ class FinanceItem(BaseModel):
         nullable=False,
     )
     amount = Column(Numeric(12, 2), nullable=False)
-    currency = Column(String(3), default="USD", nullable=False)
+    currency = Column(String(3), default="INR", nullable=False)
     category = Column(String(100), nullable=True)
     date = Column(Date, nullable=False, index=True)
     description = Column(String(500), nullable=True)
@@ -43,7 +43,7 @@ class Subscription(BaseModel):
     user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     amount = Column(Numeric(12, 2), nullable=False)
-    currency = Column(String(3), default="USD", nullable=False)
+    currency = Column(String(3), default="INR", nullable=False)
     billing_cycle = Column(
         Enum(BillingCycle, name="billing_cycle", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,

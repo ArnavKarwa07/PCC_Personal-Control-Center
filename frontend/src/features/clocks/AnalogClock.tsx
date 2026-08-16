@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { getAnalogAngles } from './timezoneUtils';
 import { DayNightPeriod } from './types';
 
@@ -23,6 +23,10 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({
   showNumbers = true,
   className = '',
 }) => {
+  const uniqueId = useId().replace(/:/g, '-');
+  const shadowFilterId = `clock-shadow-${uniqueId}`;
+  const gradientId = `clock-face-grad-${uniqueId}`;
+
   const { hourAngle, minuteAngle, secondAngle } = getAnalogAngles(hours, minutes, seconds);
 
   const sizeMap = {
@@ -43,15 +47,17 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({
     const outerR = radius - 2;
     const innerR = outerR - tickLength;
 
-    const x1 = center + innerR * Math.sin(angle);
-    const y1 = center - innerR * Math.cos(angle);
-    const x2 = center + outerR * Math.sin(angle);
-    const y2 = center - outerR * Math.cos(angle);
-
-    return { index: i, x1, y1, x2, y2, isMain };
+    return {
+      x1: center + innerR * Math.sin(angle),
+      y1: center - innerR * Math.cos(angle),
+      x2: center + outerR * Math.sin(angle),
+      y2: center - outerR * Math.cos(angle),
+      isMain,
+      index: i,
+    };
   });
 
-  // Numbers 12, 3, 6, 9 or all
+  // Numerals positions (12, 3, 6, 9)
   const numbers = [12, 3, 6, 9].map((num) => {
     const angle = (num * 30 * Math.PI) / 180;
     const numR = radius - (size === 'sm' ? 14 : 18);
@@ -72,10 +78,10 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({
         className="pcc-analog-clock-svg"
       >
         <defs>
-          <filter id={`clock-shadow-${size}`} x="-10%" y="-10%" width="120%" height="120%">
+          <filter id={shadowFilterId} x="-10%" y="-10%" width="120%" height="120%">
             <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.12" />
           </filter>
-          <radialGradient id={`clock-face-grad-${dayNightPeriod}`} cx="50%" cy="50%" r="50%">
+          <radialGradient id={gradientId} cx="50%" cy="50%" r="50%">
             {dayNightPeriod === 'night' ? (
               <>
                 <stop offset="0%" stopColor="#1e1e38" />
@@ -106,7 +112,7 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({
           cy={center}
           r={radius}
           className="pcc-analog-clock__bezel"
-          fill={`url(#clock-face-grad-${dayNightPeriod})`}
+          fill={`url(#${gradientId})`}
         />
 
         {/* Ticks */}
