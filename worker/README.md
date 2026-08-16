@@ -8,5 +8,5 @@ This directory contains the background job workers, scheduled tasks, and asynchr
 - External integration polling (e.g. calendar, weather, or IoT status checks)
 
 ## Architecture
-- Integrates with backend shared models and Redis message broker / task queue.
+- Integrates with backend shared models and database polling for task processing.
 - Executes independently of the main API server to ensure non-blocking HTTP request processing.

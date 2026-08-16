@@ -3,17 +3,14 @@
 import uuid
 from typing import List, Optional, Tuple
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.finance import BillingCycle, FinanceItem, FinanceItemType, Subscription
 from app.schemas.finance import (
     CategoryBreakdown,
     FinanceItemCreate,
-    FinanceItemUpdate,
     FinanceSummaryRead,
     SubscriptionCreate,
-    SubscriptionUpdate,
 )
 
 
@@ -67,7 +64,7 @@ class FinanceService:
 
     def get_summary(self, db: Session, user_id: uuid.UUID) -> FinanceSummaryRead:
         items = db.query(FinanceItem).filter(FinanceItem.user_id == user_id).all()
-        subs = db.query(Subscription).filter(Subscription.user_id == user_id, Subscription.is_active == True).all()
+        subs = db.query(Subscription).filter(Subscription.user_id == user_id, Subscription.is_active.is_(True)).all()
 
         total_income = sum(float(i.amount) for i in items if i.type == FinanceItemType.INCOME)
         total_expenses = sum(float(i.amount) for i in items if i.type == FinanceItemType.EXPENSE)

@@ -1,6 +1,7 @@
 """Tests for Health & Fitness telemetry endpoints."""
 
 from datetime import date
+
 from fastapi.testclient import TestClient
 
 

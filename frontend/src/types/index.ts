@@ -292,3 +292,283 @@ export interface NavItem {
   badge?: number;
 }
 
+export type ReviewStatus = 'draft' | 'completed';
+export type ReviewSection = 'accomplishments' | 'outstanding' | 'reflection' | 'next_week';
+
+export interface ReviewEntry {
+  id: string;
+  review_id: string;
+  user_id: string;
+  section: ReviewSection;
+  content: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Review {
+  id: string;
+  user_id: string;
+  week_start: string;
+  week_end: string;
+  status: ReviewStatus;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  entries?: ReviewEntry[];
+}
+
+export interface ReviewStats {
+  total_reviews: number;
+  completed_reviews: number;
+  draft_reviews: number;
+  completion_rate: number;
+  streak_weeks: number;
+}
+
+export type LearningResourceType = 'course' | 'book' | 'video' | 'tutorial' | 'certification' | 'technology';
+export type LearningStatus = 'saved' | 'planned' | 'learning' | 'practicing' | 'completed';
+
+export interface LearningItem {
+  id: string;
+  user_id?: string;
+  userId?: string;
+  title: string;
+  resource_type: LearningResourceType;
+  resourceType?: LearningResourceType;
+  url?: string;
+  status: LearningStatus;
+  progress: number;
+  notes?: string;
+  created_at?: string;
+  createdAt?: string;
+  updated_at?: string;
+  updatedAt?: string;
+}
+
+export interface LearningStats {
+  total: number;
+  completed: number;
+  in_progress?: number;
+  inProgress?: number;
+  saved: number;
+  planned: number;
+  practicing: number;
+  by_type?: Record<string, number>;
+  byType?: Record<string, number>;
+  average_progress?: number;
+  averageProgress?: number;
+}
+
+/* ==========================================================================
+   Global Search Types
+   ========================================================================== */
+
+export type SearchEntityType =
+  | 'task'
+  | 'project'
+  | 'note'
+  | 'idea'
+  | 'calendar_event'
+  | 'contact'
+  | 'goal'
+  | 'finance'
+  | 'reminder';
+
+export interface SearchResultItem {
+  id: string;
+  entity_type: SearchEntityType;
+  title: string;
+  snippet?: string;
+  relevance: number;
+  url: string;
+  metadata?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SearchMeta {
+  query: string;
+  total: number;
+  types_searched: string[];
+  counts_by_type: Record<string, number>;
+  limit: number;
+  offset: number;
+}
+
+export interface SearchResponse {
+  data: SearchResultItem[];
+  meta: SearchMeta;
+}
+
+/* ==========================================================================
+   Health, Fitness & Life OS Types
+   ========================================================================== */
+
+export type ExerciseType = 'strength' | 'cardio' | 'flexibility';
+
+export interface ExerciseItem {
+  id?: string;
+  workout_id?: string;
+  name: string;
+  sets?: number;
+  reps?: number;
+  weight?: number;
+  duration_seconds?: number;
+  exercise_type?: ExerciseType;
+}
+
+export interface WorkoutItem {
+  id: string;
+  user_id?: string;
+  date: string;
+  name?: string;
+  notes?: string;
+  duration_minutes?: number;
+  exercises?: ExerciseItem[];
+}
+
+export interface FitnessSummary {
+  total_workouts: number;
+  total_duration_minutes: number;
+  current_habit_streak: number;
+  avg_sleep_hours: number;
+  avg_water_ml: number;
+}
+
+export type GoalStatus = 'not_started' | 'in_progress' | 'completed' | 'abandoned';
+
+export interface GoalMilestone {
+  id?: string;
+  goal_id?: string;
+  name: string;
+  target_date?: string;
+  completed_at?: string | null;
+}
+
+export interface GoalItem {
+  id: string;
+  user_id?: string;
+  name: string;
+  description?: string;
+  parent_goal_id?: string;
+  time_period?: string;
+  status: GoalStatus;
+  progress: number;
+  milestones?: GoalMilestone[];
+}
+
+export type HabitCategory = 'health' | 'mindset' | 'productivity' | 'routine';
+
+export interface HabitItem {
+  id: string;
+  name: string;
+  icon: string;
+  category: HabitCategory;
+  streak: number;
+  target: string;
+  unit?: string;
+  completedToday: boolean;
+  history: boolean[];
+}
+
+export interface DailyWellness {
+  waterMl: number;
+  waterTargetMl: number;
+  sleepHours: number;
+  sleepTargetHours: number;
+  sleepQuality: 'Deep & Restorative' | 'Good' | 'Fair' | 'Poor';
+  workoutCompleted: boolean;
+  workoutTitle?: string;
+  workoutDuration?: number;
+  vitalityScore: number;
+}
+
+export interface WellnessTrendDay {
+  day: string;
+  date: string;
+  waterMl: number;
+  sleepHours: number;
+  workoutDone: boolean;
+  habitsCompleted: number;
+  habitsTotal: number;
+}
+
+/* ==========================================================================
+   Career & Professional Growth Types
+   ========================================================================== */
+
+export interface Achievement {
+  id: string;
+  user_id?: string;
+  title: string;
+  description?: string;
+  date?: string; // YYYY-MM-DD
+  category?: string;
+  project_id?: string;
+  evidence?: string;
+  resume_relevant: boolean;
+  linkedin_relevant: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ResumeVersion {
+  id: string;
+  user_id?: string;
+  version_name: string;
+  target_role?: string;
+  content?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type SkillProficiency = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Master';
+
+export interface Skill {
+  id: string;
+  user_id?: string;
+  name: string;
+  category?: string;
+  proficiency?: SkillProficiency | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Certification {
+  id: string;
+  user_id?: string;
+  name: string;
+  issuer?: string;
+  date_obtained?: string; // YYYY-MM-DD
+  expiry_date?: string; // YYYY-MM-DD
+  credential_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Experience {
+  id: string;
+  user_id?: string;
+  company: string;
+  role: string;
+  start_date?: string; // YYYY-MM-DD
+  end_date?: string; // YYYY-MM-DD
+  description?: string;
+  is_current: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CareerSummary {
+  achievements_count: number;
+  resume_relevant_achievements: number;
+  skills_count: number;
+  certifications_count: number;
+  experiences_count: number;
+  resume_versions_count: number;
+  recent_achievements: Achievement[];
+  current_experiences: Experience[];
+}
+

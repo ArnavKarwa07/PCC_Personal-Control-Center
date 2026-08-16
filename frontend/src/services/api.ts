@@ -12,6 +12,22 @@ import type {
   AppNotification,
   Integration,
   WeatherData,
+  Review,
+  ReviewSection,
+  ReviewEntry,
+  ReviewStats,
+  LearningItem,
+  LearningStats,
+  SearchResponse,
+  FitnessSummary,
+  WorkoutItem,
+  GoalItem,
+  Achievement,
+  ResumeVersion,
+  Skill,
+  Certification,
+  Experience,
+  CareerSummary,
 } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -218,4 +234,265 @@ export const weatherApi = {
     return apiClient.get<WeatherData>(`/weather${query}`);
   },
 };
+
+export const reviewsApi = {
+  getAll: (status?: string, page: number = 1, perPage: number = 20) => {
+    const query = new URLSearchParams();
+    if (status && status !== 'all') query.append('status', status);
+    query.append('page', String(page));
+    query.append('per_page', String(perPage));
+    return apiClient.get<{ data: Review[]; meta: { total: number; page: number; per_page: number; total_pages: number } }>(
+      `/reviews?${query.toString()}`
+    );
+  },
+  getById: (id: string) => apiClient.get<{ data: Review }>(`/reviews/${id}`),
+  getCurrent: () => apiClient.get<{ data: Review | null }>('/reviews/current'),
+  getStats: () => apiClient.get<{ data: ReviewStats }>('/reviews/stats'),
+  create: (data: {
+    week_start: string;
+    week_end: string;
+    status?: string;
+    entries?: { section: string; content?: string; sort_order?: number }[];
+  }) => apiClient.post<{ data: Review }>('/reviews', data),
+  update: (
+    id: string,
+    data: {
+      week_start?: string;
+      week_end?: string;
+      status?: string;
+      completed_at?: string | null;
+      entries?: { section: string; content?: string; sort_order?: number }[];
+    }
+  ) => apiClient.patch<{ data: Review }>(`/reviews/${id}`, data),
+  upsertEntry: (
+    reviewId: string,
+    data: { section: string; content?: string; sort_order?: number }
+  ) => apiClient.post<{ data: ReviewEntry }>(`/reviews/${reviewId}/entries`, data),
+  complete: (id: string) => apiClient.patch<{ data: Review }>(`/reviews/${id}/complete`, {}),
+  delete: (id: string) => apiClient.delete<{ success?: boolean }>(`/reviews/${id}`),
+};
+
+export const learningApi = {
+  getAll: (params?: {
+    resource_type?: string;
+    status?: string;
+    search?: string;
+    page?: number;
+    per_page?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.resource_type && params.resource_type !== 'all') {
+      query.append('resource_type', params.resource_type);
+    }
+    if (params?.status && params.status !== 'all') {
+      query.append('status', params.status);
+    }
+    if (params?.search) {
+      query.append('search', params.search);
+    }
+    if (params?.page) {
+      query.append('page', String(params.page));
+    }
+    if (params?.per_page) {
+      query.append('per_page', String(params.per_page));
+    }
+    const qs = query.toString();
+    return apiClient.get<{
+      data: LearningItem[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/learning${qs ? `?${qs}` : ''}`);
+  },
+  getById: (id: string) => apiClient.get<{ data: LearningItem }>(`/learning/${id}`),
+  getStats: () => apiClient.get<LearningStats>('/learning/stats'),
+  create: (data: Partial<LearningItem>) => apiClient.post<{ data: LearningItem }>('/learning', data),
+  update: (id: string, data: Partial<LearningItem>) =>
+    apiClient.patch<{ data: LearningItem }>(`/learning/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success?: boolean }>(`/learning/${id}`),
+};
+
+export const searchApi = {
+  search: (params: { q: string; types?: string[]; limit?: number; offset?: number }) => {
+    const query = new URLSearchParams();
+    query.append('q', params.q);
+    if (params.types && params.types.length > 0) {
+      query.append('types', params.types.join(','));
+    }
+    if (params.limit !== undefined) {
+      query.append('limit', String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      query.append('offset', String(params.offset));
+    }
+    return apiClient.get<SearchResponse>(`/search?${query.toString()}`);
+  },
+};
+
+export const fitnessApi = {
+  getSummary: () => apiClient.get<FitnessSummary>('/fitness/summary'),
+  getWorkouts: (page = 1, perPage = 20) => {
+    const query = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    return apiClient.get<{
+      data: WorkoutItem[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/fitness/workouts?${query.toString()}`);
+  },
+  createWorkout: (data: {
+    date: string;
+    name?: string;
+    notes?: string;
+    duration_minutes?: number;
+    exercises?: Array<{
+      name: string;
+      sets?: number;
+      reps?: number;
+      weight?: number;
+      duration_seconds?: number;
+      exercise_type?: string;
+    }>;
+  }) => apiClient.post<{ data: WorkoutItem }>('/fitness/workouts', data),
+  deleteWorkout: (id: string) => apiClient.delete<void>(`/fitness/workouts/${id}`),
+};
+
+export const goalsApi = {
+  getAll: (params?: { status?: string; time_period?: string; page?: number; per_page?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.status && params.status !== 'all') query.append('status', params.status);
+    if (params?.time_period) query.append('time_period', params.time_period);
+    if (params?.page) query.append('page', String(params.page));
+    if (params?.per_page) query.append('per_page', String(params.per_page));
+    const qs = query.toString();
+    return apiClient.get<{
+      data: GoalItem[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/goals${qs ? `?${qs}` : ''}`);
+  },
+  create: (data: Partial<GoalItem>) => apiClient.post<{ data: GoalItem }>('/goals', data),
+  update: (id: string, data: Partial<GoalItem>) => apiClient.patch<{ data: GoalItem }>(`/goals/${id}`, data),
+  delete: (id: string) => apiClient.delete<void>(`/goals/${id}`),
+};
+
+export const careerApi = {
+  getSummary: () => apiClient.get<CareerSummary>('/career/summary'),
+
+  // Achievements
+  getAchievements: (params?: {
+    category?: string;
+    resume_relevant?: boolean;
+    linkedin_relevant?: boolean;
+    page?: number;
+    per_page?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.category && params.category !== 'all') query.append('category', params.category);
+    if (params?.resume_relevant !== undefined) query.append('resume_relevant', String(params.resume_relevant));
+    if (params?.linkedin_relevant !== undefined) query.append('linkedin_relevant', String(params.linkedin_relevant));
+    if (params?.page) query.append('page', String(params.page));
+    if (params?.per_page) query.append('per_page', String(params.per_page));
+    const qs = query.toString();
+    return apiClient.get<{
+      data: Achievement[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/career/achievements${qs ? `?${qs}` : ''}`);
+  },
+  createAchievement: (data: Partial<Achievement>) =>
+    apiClient.post<{ data: Achievement }>('/career/achievements', data),
+  updateAchievement: (id: string, data: Partial<Achievement>) =>
+    apiClient.patch<{ data: Achievement }>(`/career/achievements/${id}`, data),
+  deleteAchievement: (id: string) => apiClient.delete<void>(`/career/achievements/${id}`),
+
+  // Skills
+  getSkills: (category?: string, page = 1, perPage = 100) => {
+    const query = new URLSearchParams();
+    if (category && category !== 'all') query.append('category', category);
+    query.append('page', String(page));
+    query.append('per_page', String(perPage));
+    return apiClient.get<{
+      data: Skill[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/career/skills?${query.toString()}`);
+  },
+  createSkill: (data: Partial<Skill>) => apiClient.post<{ data: Skill }>('/career/skills', data),
+  updateSkill: (id: string, data: Partial<Skill>) =>
+    apiClient.patch<{ data: Skill }>(`/career/skills/${id}`, data),
+  deleteSkill: (id: string) => apiClient.delete<void>(`/career/skills/${id}`),
+
+  // Certifications
+  getCertifications: (page = 1, perPage = 50) => {
+    const query = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    return apiClient.get<{
+      data: Certification[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/career/certifications?${query.toString()}`);
+  },
+  createCertification: (data: Partial<Certification>) =>
+    apiClient.post<{ data: Certification }>('/career/certifications', data),
+  updateCertification: (id: string, data: Partial<Certification>) =>
+    apiClient.patch<{ data: Certification }>(`/career/certifications/${id}`, data),
+  deleteCertification: (id: string) => apiClient.delete<void>(`/career/certifications/${id}`),
+
+  // Experiences
+  getExperiences: (page = 1, perPage = 50) => {
+    const query = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    return apiClient.get<{
+      data: Experience[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/career/experiences?${query.toString()}`);
+  },
+  createExperience: (data: Partial<Experience>) =>
+    apiClient.post<{ data: Experience }>('/career/experiences', data),
+  updateExperience: (id: string, data: Partial<Experience>) =>
+    apiClient.patch<{ data: Experience }>(`/career/experiences/${id}`, data),
+  deleteExperience: (id: string) => apiClient.delete<void>(`/career/experiences/${id}`),
+
+  // Resumes
+  getResumes: (page = 1, perPage = 50) => {
+    const query = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    return apiClient.get<{
+      data: ResumeVersion[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/career/resumes?${query.toString()}`);
+  },
+  createResume: (data: Partial<ResumeVersion>) =>
+    apiClient.post<{ data: ResumeVersion }>('/career/resumes', data),
+  updateResume: (id: string, data: Partial<ResumeVersion>) =>
+    apiClient.patch<{ data: ResumeVersion }>(`/career/resumes/${id}`, data),
+  deleteResume: (id: string) => apiClient.delete<void>(`/career/resumes/${id}`),
+};
+
+export const reviewApi = {
+  getAll: (status?: string, page = 1, perPage = 20) => {
+    const query = new URLSearchParams();
+    if (status && status !== 'all') query.append('status', status);
+    query.append('page', String(page));
+    query.append('per_page', String(perPage));
+    return apiClient.get<{
+      data: Review[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/reviews?${query.toString()}`);
+  },
+
+  getStats: () => apiClient.get<{ data: ReviewStats }>('/reviews/stats'),
+
+  getCurrentWeek: () => apiClient.get<{ data: Review | null }>('/reviews/current'),
+
+  getById: (id: string) => apiClient.get<{ data: Review }>(`/reviews/${id}`),
+
+  create: (data: { week_start?: string; week_end?: string; status?: string }) =>
+    apiClient.post<{ data: Review }>('/reviews', data),
+
+  update: (id: string, data: Partial<Review>) =>
+    apiClient.patch<{ data: Review }>(`/reviews/${id}`, data),
+
+  upsertEntry: (id: string, section: ReviewSection, content: string) =>
+    apiClient.post<{ data: ReviewEntry }>(`/reviews/${id}/entries`, { section, content }),
+
+  complete: (id: string) => apiClient.patch<{ data: Review }>(`/reviews/${id}/complete`),
+
+  delete: (id: string) => apiClient.delete<void>(`/reviews/${id}`),
+};
+
+
+
+
+
 

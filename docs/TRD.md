@@ -6,7 +6,7 @@
 **Version:** 1.0
 **Architecture:** Web + PWA + API
 **Primary deployment:** Cloud-hosted application
-**Primary database:** PostgreSQL
+**Primary database:** SQLite 3
 
 ---
 
@@ -49,7 +49,7 @@ The architecture must allow new modules to be added without rewriting the core p
 
 ## Database
 
-* PostgreSQL
+* SQLite 3
 
 ## Background Processing
 
@@ -97,7 +97,7 @@ Object storage for:
        |                    |                    |
        +--------------------+--------------------+
                             |
-                       PostgreSQL
+                          SQLite
                             |
               +-------------+-------------+
               |                           |
@@ -781,7 +781,7 @@ Future versions can use field-level merges.
 
 # 33. Search Architecture
 
-Initial search can use PostgreSQL full-text search.
+Initial search can use SQLite full-text search (FTS5).
 
 Searchable fields:
 
@@ -795,7 +795,7 @@ Searchable fields:
 
 Later, introduce:
 
-* PostgreSQL `tsvector`
+* SQLite FTS5 index optimizations
 * Vector embeddings
 * Semantic search
 
@@ -856,7 +856,7 @@ High-risk actions require explicit confirmation.
 
 # 36. File Storage
 
-Documents should be stored outside PostgreSQL.
+Documents should be stored outside SQLite.
 
 Database stores:
 
@@ -1360,7 +1360,7 @@ The first production-capable PCC build should include:
 * FastAPI
 * Authentication
 * REST API
-* PostgreSQL
+* SQLite 3
 * Background jobs
 * Notifications
 
@@ -1412,9 +1412,9 @@ The final PCC architecture should evolve into:
         │               │              Weather           │
         └───────────────┴───────┬────────┴───────────────┘
                                 │
-                         Personal Data Layer
+                          Personal Data Layer
                                 │
-                           PostgreSQL
+                              SQLite
                                 │
                       ┌─────────┴─────────┐
                       │                   │

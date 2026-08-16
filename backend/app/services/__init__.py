@@ -11,10 +11,12 @@ from app.services.integration_service import (
     WeatherConnector,
     integration_service,
 )
+from app.services.learning_service import LearningService, learning_service
 from app.services.note_service import NoteService, note_service
 from app.services.notification_service import NotificationService, notification_service
 from app.services.project_service import ProjectService, project_service
 from app.services.reminder_service import ReminderService, reminder_service
+from app.services.search_service import SearchService, search_service
 from app.services.task_service import TaskService, task_service
 from app.services.timer_service import TimerService, timer_service
 from app.services.weather_service import WeatherService, weather_service
@@ -34,6 +36,8 @@ __all__ = [
     "calendar_service",
     "ReminderService",
     "reminder_service",
+    "SearchService",
+    "search_service",
     "AlarmService",
     "alarm_service",
     "TimerService",
@@ -47,4 +51,7 @@ __all__ = [
     "WeatherConnector",
     "WeatherService",
     "weather_service",
+    "LearningService",
+    "learning_service",
 ]
+

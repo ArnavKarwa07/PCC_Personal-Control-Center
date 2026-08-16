@@ -1,6 +1,7 @@
 """Tests for Personal Finance REST endpoints."""
 
 from datetime import date
+
 from fastapi.testclient import TestClient
 
 

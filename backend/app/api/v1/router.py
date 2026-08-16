@@ -7,6 +7,7 @@ from app.api.v1.assistant import router as assistant_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.boards import router as boards_router
 from app.api.v1.calendar import router as calendar_router
+from app.api.v1.career import router as career_router
 from app.api.v1.contacts import router as contacts_router
 from app.api.v1.finances import router as finances_router
 from app.api.v1.fitness import router as fitness_router
@@ -14,10 +15,13 @@ from app.api.v1.goals import router as goals_router
 from app.api.v1.health import router as health_router
 from app.api.v1.ideas import router as ideas_router
 from app.api.v1.integrations import router as integrations_router
+from app.api.v1.learning import router as learning_router
 from app.api.v1.notes import router as notes_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.projects import router as projects_router
 from app.api.v1.reminders import router as reminders_router
+from app.api.v1.reviews import router as reviews_router
+from app.api.v1.search import router as search_router
 from app.api.v1.tasks import router as tasks_router
 from app.api.v1.timers import router as timers_router
 from app.api.v1.users import router as users_router
@@ -44,4 +48,9 @@ api_v1_router.include_router(finances_router)
 api_v1_router.include_router(fitness_router)
 api_v1_router.include_router(contacts_router)
 api_v1_router.include_router(goals_router)
+api_v1_router.include_router(career_router)
+api_v1_router.include_router(learning_router)
 api_v1_router.include_router(assistant_router)
+api_v1_router.include_router(reviews_router)
+api_v1_router.include_router(search_router)
+

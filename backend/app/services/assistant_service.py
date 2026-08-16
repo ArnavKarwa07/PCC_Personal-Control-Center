@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import date
-from typing import Dict
 
 from sqlalchemy.orm import Session
 

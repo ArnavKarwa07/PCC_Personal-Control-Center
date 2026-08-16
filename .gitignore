@@ -38,7 +38,11 @@ coverage/
 *.lcov
 
 # Database
+# SQLite database files
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 *.sqlite3
 
 # Logs

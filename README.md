@@ -3,6 +3,7 @@
 [![CI/CD Pipeline](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/actions/workflows/ci.yml/badge.svg)](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/actions)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57.svg)](https://www.sqlite.org/)
 [![React 18](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF.svg)](https://vitejs.dev/)
@@ -42,7 +43,7 @@ PCC_Personal-Control-Center/
 │
 ├── worker/                   # Root worker forwarder package
 ├── docs/                     # PRD v1.0 & TRD v1.0 baseline documentation
-├── docker-compose.yml        # PostgreSQL 16 + Redis 7 + FastAPI + Worker manifest
+├── docker-compose.yml        # SQLite 3 + FastAPI + Worker manifest
 ├── Makefile                  # Project orchestration commands
 └── README.md
 ```
@@ -54,15 +55,9 @@ PCC_Personal-Control-Center/
 ### Prerequisites
 - Node.js 18+ & npm
 - Python 3.12+
-- Docker & Docker Compose (optional, for containerized databases)
+- Docker & Docker Compose (optional)
 
-### 1. Database & Cache Setup (Docker Compose)
-Start PostgreSQL 16 and Redis 7 background services:
-```bash
-docker-compose up -d postgres redis
-```
-
-### 2. Backend Setup
+### 1. Backend & Database Setup
 ```bash
 cd backend
 
@@ -76,7 +71,7 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run database migrations
+# Run database migrations to initialize SQLite database
 alembic upgrade head
 
 # Start FastAPI development server (port 8000)
@@ -84,14 +79,14 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 Interactive OpenAPI documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### 3. Background Worker Engine
+### 2. Background Worker Engine
 In a separate terminal:
 ```bash
 cd backend
 python -m worker.main
 ```
 
-### 4. Frontend Setup
+### 3. Frontend Setup
 ```bash
 cd frontend
 
@@ -137,3 +132,4 @@ docker-compose up -d --build
 ## License
 
 Copyright © 2026. All rights reserved.
+

@@ -8,14 +8,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment or .env files."""
 
-    DATABASE_URL: str = "postgresql://pcc:pcc_password@localhost:5432/pcc"
+    DATABASE_URL: str = "sqlite:///./pcc.db"
     SECRET_KEY: str = "change-me-in-production-super-secret-key-32-chars-min"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     CORS_ORIGINS: str = "http://localhost:5173"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
-    REDIS_URL: str = "redis://localhost:6379/0"
 
     @property
     def cors_origins_list(self) -> List[str]:
