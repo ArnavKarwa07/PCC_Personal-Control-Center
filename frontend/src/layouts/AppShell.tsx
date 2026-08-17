@@ -3,6 +3,7 @@ import { DesktopLayout } from './DesktopLayout';
 import { MobileLayout } from './MobileLayout';
 import { ToastContainer } from '../components/ui/Toast';
 import { CommandPalette } from '../components/CommandPalette';
+import { AIAssistantWidget } from '../components/AIAssistantWidget';
 import { useUIStore } from '../stores/uiStore';
 import './AppShell.css';
 
@@ -48,6 +49,9 @@ export const AppShell: React.FC = () => {
 
       {/* Global Command Palette & Fuzzy Search */}
       <CommandPalette />
+
+      {/* Global Floating AI Assistant */}
+      <AIAssistantWidget />
     </div>
   );
 };

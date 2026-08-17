@@ -96,8 +96,8 @@ export const OKRProgressRing: React.FC<OKRProgressRingProps> = ({
           <text
             x="50%"
             y="50%"
-            textAnchor="middle"
             dominantBaseline="central"
+            textAnchor="middle"
             className="pcc-okr-ring__text"
           >
             {Math.round(normalizedProgress)}%

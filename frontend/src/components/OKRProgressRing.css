@@ -4,6 +4,7 @@
   justify-content: center;
   position: relative;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .pcc-okr-ring-svg {
@@ -73,10 +74,12 @@ html[data-theme='light'] .okr-ring--low .pcc-okr-ring__fill,
 
 /* Center Percentage Text */
 .pcc-okr-ring__text {
-  font-family: var(--font-family-sans);
+  font-family: var(--font-family-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   font-size: 15px;
-  font-weight: var(--font-weight-bold);
-  fill: var(--color-text-primary);
+  font-weight: var(--font-weight-bold, 700);
+  fill: var(--color-text-primary, #ffffff);
+  pointer-events: none;
+  user-select: none;
 }
 
 html[data-theme='light'] .pcc-okr-ring__text,

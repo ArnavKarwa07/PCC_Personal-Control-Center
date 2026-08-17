@@ -60,14 +60,6 @@ from app.schemas.integration import (
     IntegrationResponse,
     IntegrationStatusResponse,
 )
-from app.schemas.learning import (
-    LearningItemBase,
-    LearningItemCreate,
-    LearningItemListResponse,
-    LearningItemResponse,
-    LearningItemUpdate,
-    LearningStatsResponse,
-)
 from app.schemas.note import (
     NoteBase,
     NoteCreate,
@@ -250,15 +242,7 @@ __all__ = [
     "ExperienceUpdate",
     "ExperienceRead",
     "CareerSummaryRead",
-    "LearningItemBase",
-    "LearningItemCreate",
-    "LearningItemUpdate",
-    "LearningItemResponse",
-    "LearningItemListResponse",
-    "LearningStatsResponse",
     "SearchMeta",
     "SearchResponse",
     "SearchResultItem",
 ]
-
-

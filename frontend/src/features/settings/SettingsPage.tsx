@@ -9,10 +9,11 @@ import { useIdeaStore } from '../../stores/ideaStore';
 import { useCalendarStore } from '../../stores/calendarStore';
 import { useReminderStore } from '../../stores/reminderStore';
 import { useAlarmStore } from '../../stores/alarmStore';
-import { Button, Input, Badge } from '../../components/ui';
+import { Button, Input, Badge, Modal } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
+import { apiClient } from '../../services/api';
 import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
 
@@ -25,12 +26,44 @@ const ACCENT_OPTIONS: { id: AccentColor; label: string; gradient: string }[] = [
   { id: 'amber', label: 'Amber', gradient: 'linear-gradient(135deg, #d97706 0%, #ea580c 100%)' },
 ];
 
+const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'text' | 'password' }[]> = {
+  github: [
+    { key: 'token', label: 'Personal Access Token', type: 'password' },
+    { key: 'repositories', label: 'Repositories (comma-separated)', type: 'text' },
+  ],
+  google_calendar: [
+    { key: 'account', label: 'Google Account', type: 'text' },
+    { key: 'calendars', label: 'Calendars', type: 'text' },
+  ],
+  telegram: [
+    { key: 'botToken', label: 'Bot Token', type: 'password' },
+    { key: 'chatId', label: 'Chat ID', type: 'text' },
+  ],
+  notion: [
+    { key: 'integrationToken', label: 'Integration Token', type: 'password' },
+    { key: 'workspaceId', label: 'Workspace ID', type: 'text' },
+  ],
+  discord: [
+    { key: 'webhookUrl', label: 'Webhook URL', type: 'text' },
+  ],
+  openweather: [
+    { key: 'apiKey', label: 'API Key', type: 'password' },
+    { key: 'defaultCity', label: 'Default City', type: 'text' },
+    { key: 'units', label: 'Units', type: 'text' },
+  ],
+  weather: [
+    { key: 'apiKey', label: 'API Key', type: 'password' },
+    { key: 'defaultCity', label: 'Default City', type: 'text' },
+    { key: 'units', label: 'Units', type: 'text' },
+  ],
+};
+
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
   const { user, setUser } = useAuthStore();
   const { theme, setTheme, accentColor, setAccentColor } = useUIStore();
-  const { integrations, isSyncing, toggleConnect, updateConfig, syncIntegration, testConnection } =
+  const { integrations, isSyncing, toggleConnect, updateConfig, syncIntegration, testConnection, fetchIntegrations } =
     useIntegrationStore();
 
   const { tasks } = useTaskStore();
@@ -51,6 +84,40 @@ export const SettingsPage: React.FC = () => {
 
   // Audio tone setting
   const [selectedTone, setSelectedTone] = useState('radiant');
+
+  // Integration connect modal state
+  const [connectModal, setConnectModal] = useState<{ provider: string; name: string; id?: string } | null>(null);
+  const [connectConfig, setConnectConfig] = useState<Record<string, string>>({});
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+
+  const handleConnectIntegration = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!connectModal) return;
+
+    setIsConnecting(true);
+    setConnectError(null);
+    try {
+      await apiClient.post(`/integrations/${connectModal.provider}/connect`, connectConfig);
+      await fetchIntegrations();
+      const matching = integrations.find(
+        (i) => ((i as any).provider || i.service) === connectModal.provider || i.id === connectModal.id
+      );
+      if (matching && !matching.connected) {
+        await toggleConnect(matching.id, connectConfig);
+      }
+      soundEffects.playChime();
+      toast.success(`Connected to ${connectModal.name}`);
+      setConnectModal(null);
+      setConnectConfig({});
+    } catch (err: any) {
+      const message = err?.message || `Failed to connect to ${connectModal.name}`;
+      setConnectError(message);
+      toast.error(message);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,7 +335,7 @@ export const SettingsPage: React.FC = () => {
                       size="sm"
                       onClick={() => setTheme('dark')}
                     >
-                      Deep Dark Mode
+                      Dark Mode
                     </Button>
                     <Button
                       variant={theme === 'light' ? 'primary' : 'secondary'}
@@ -463,8 +530,14 @@ export const SettingsPage: React.FC = () => {
                             variant="primary"
                             size="sm"
                             onClick={() => {
-                              toggleConnect(item.id);
-                              toast.success(`Connected to ${item.name}`);
+                              const provider = (item as any).provider || item.service;
+                              setConnectModal({
+                                provider,
+                                name: item.name,
+                                id: item.id,
+                              });
+                              setConnectConfig({});
+                              setConnectError(null);
                             }}
                           >
                             Connect
@@ -599,6 +672,67 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* Connect Integration Modal */}
+      {connectModal && (
+        <Modal
+          isOpen={Boolean(connectModal)}
+          onClose={() => {
+            setConnectModal(null);
+            setConnectError(null);
+          }}
+          title={`Connect ${connectModal.name}`}
+          size="md"
+        >
+          <form onSubmit={handleConnectIntegration} className="pcc-connect-modal-form">
+            {connectError && (
+              <div className="pcc-connect-modal-error" role="alert">
+                {connectError}
+              </div>
+            )}
+
+            {(INTEGRATION_FIELDS[connectModal.provider] || []).map((field) => (
+              <div key={field.key} className="pcc-connect-modal-field">
+                <label htmlFor={`config-${field.key}`}>{field.label}</label>
+                <input
+                  id={`config-${field.key}`}
+                  type={field.type}
+                  value={connectConfig[field.key] || ''}
+                  onChange={(e) =>
+                    setConnectConfig((prev) => ({
+                      ...prev,
+                      [field.key]: e.target.value,
+                    }))
+                  }
+                  placeholder={`Enter ${field.label.toLowerCase()}`}
+                  autoComplete="off"
+                />
+              </div>
+            ))}
+
+            <div className="pcc-connect-modal-actions">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setConnectModal(null);
+                  setConnectError(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                loading={isConnecting}
+              >
+                Connect
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

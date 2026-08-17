@@ -108,6 +108,10 @@
   color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pcc-calendar-month-grid {
@@ -116,6 +120,7 @@
   grid-auto-rows: minmax(110px, 1fr);
   gap: 1px;
   background: var(--color-border);
+  width: 100%;
 }
 
 .pcc-calendar-day-cell {
@@ -125,6 +130,9 @@
   flex-direction: column;
   gap: 4px;
   min-height: 110px;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
   cursor: pointer;
   transition: background var(--transition-fast);
   position: relative;
@@ -136,35 +144,57 @@
 
 .pcc-calendar-day-cell--other-month {
   background: rgba(10, 10, 15, 0.5);
-  opacity: 0.45;
+  opacity: 0.5;
+}
+
+html[data-theme='light'] .pcc-calendar-day-cell--other-month {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .pcc-calendar-day-cell--today {
-  background: rgba(99, 102, 241, 0.06);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+html[data-theme='light'] .pcc-calendar-day-cell--today {
+  background: rgba(79, 70, 229, 0.06);
 }
 
 .pcc-calendar-day-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-width: 0;
 }
 
 .pcc-calendar-day-number {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  width: 24px;
-  height: 24px;
-  display: flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-full);
+  border-radius: 50%;
+  transition: all var(--transition-fast);
 }
 
+.pcc-calendar-day-cell--other-month .pcc-calendar-day-number {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+.pcc-calendar-day-cell--today .pcc-calendar-day-number,
 .pcc-calendar-day-number--today {
   background: var(--color-accent);
-  color: white;
-  font-weight: var(--font-weight-bold);
+  color: #ffffff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   box-shadow: 0 0 10px var(--color-accent-glow);
 }
 
@@ -213,6 +243,8 @@ html[data-theme='light'] .pcc-calendar-view-btn--active {
   gap: 3px;
   overflow-y: auto;
   max-height: 85px;
+  min-width: 0;
+  width: 100%;
 }
 
 /* Event Chip inside Cell */
@@ -224,10 +256,8 @@ html[data-theme='light'] .pcc-calendar-view-btn--active {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
   border: 1px solid transparent;
   transition: all var(--transition-fast);
   width: 100%;
@@ -241,7 +271,6 @@ html[data-theme='light'] .pcc-calendar-view-btn--active {
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
-  flex: 1;
   min-width: 0;
 }
 
@@ -460,6 +489,13 @@ html[data-theme='dark'] .pcc-calendar-event-chip--reminder,
 .pcc-calendar-agenda-loc {
   font-size: 11px;
   color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pcc-calendar-agenda-loc svg {
+  flex-shrink: 0;
 }
 
 /* Agenda View */

@@ -68,7 +68,7 @@ class AssistantService:
                 suggested_followups=[
                     "What are my high priority tasks?",
                     "Generate my daily briefing",
-                    "Summarize financial standing",
+                    "Review my calendar events",
                 ],
             )
 

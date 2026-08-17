@@ -7,7 +7,7 @@
   padding: var(--space-12) var(--space-6);
   border-radius: var(--radius-xl);
   border: 1px dashed var(--color-border);
-  background-color: rgba(18, 18, 26, 0.4);
+  background-color: transparent;
   max-width: 520px;
   margin: var(--space-6) auto;
 }

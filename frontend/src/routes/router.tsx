@@ -10,12 +10,9 @@ const TaskDetailPage = lazy(() => import('../features/tasks/TaskDetailPage'));
 const ProjectsPage = lazy(() => import('../features/projects'));
 const ProjectDetailPage = lazy(() => import('../features/projects/ProjectDetailPage'));
 const CalendarPage = lazy(() => import('../features/calendar'));
-const KnowledgePage = lazy(() => import('../features/knowledge'));
+const GoalsPage = lazy(() => import('../features/goals'));
 const CareerPage = lazy(() => import('../features/career'));
 const LifePage = lazy(() => import('../features/life'));
-const GoalsPage = lazy(() => import('../features/goals'));
-const FinancesPage = lazy(() => import('../features/finances/FinancesPage'));
-const FitnessPage = lazy(() => import('../features/fitness/FitnessPage'));
 const ContactsPage = lazy(() => import('../features/contacts/ContactsPage'));
 const ReviewsPage = lazy(() => import('../features/reviews'));
 const SettingsPage = lazy(() => import('../features/settings'));
@@ -120,22 +117,6 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'finances',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <FinancesPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'fitness',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <FitnessPage />
-          </Suspense>
-        ),
-      },
-      {
         path: 'contacts',
         element: (
           <Suspense fallback={<PageFallback />}>
@@ -148,14 +129,6 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageFallback />}>
             <GoalsPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'knowledge',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <KnowledgePage />
           </Suspense>
         ),
       },

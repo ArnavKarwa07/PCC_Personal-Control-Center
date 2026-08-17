@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { useToast } from '../../hooks/useToast';
-import { Task, KanbanColumnId, Priority } from '../../types';
+import { Task, Project, KanbanColumnId, Priority } from '../../types';
 import { Badge, Button, Input } from '../../components/ui';
 import { formatDate, cn } from '../../utils';
 import './KanbanBoard.css';
@@ -13,25 +13,47 @@ interface KanbanColumnConfig {
   dotClass: string;
 }
 
-const COLUMNS: KanbanColumnConfig[] = [
+const SINGLE_COLUMNS: KanbanColumnConfig[] = [
   { id: 'todo', title: 'To Do', dotClass: 'pcc-kanban__column-dot--todo' },
   { id: 'in_progress', title: 'In Progress', dotClass: 'pcc-kanban__column-dot--in_progress' },
   { id: 'waiting', title: 'Waiting', dotClass: 'pcc-kanban__column-dot--waiting' },
   { id: 'done', title: 'Done', dotClass: 'pcc-kanban__column-dot--done' },
 ];
 
+const GLOBAL_COLUMNS: KanbanColumnConfig[] = [
+  { id: 'todo', title: 'Backlog', dotClass: 'pcc-kanban__column-dot--todo' },
+  { id: 'in_progress', title: 'In Progress', dotClass: 'pcc-kanban__column-dot--in_progress' },
+  { id: 'waiting', title: 'Review', dotClass: 'pcc-kanban__column-dot--waiting' },
+  { id: 'done', title: 'Done', dotClass: 'pcc-kanban__column-dot--done' },
+];
+
 export interface KanbanBoardProps {
   projectId?: string;
+  globalMode?: boolean;
+  projects?: Project[];
   onCardClick?: (task: Task) => void;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   projectId,
+  globalMode = false,
+  projects: projectsProp,
   onCardClick,
 }) => {
   const { tasks, moveTaskColumn, addTask } = useTaskStore();
-  const { projects } = useProjectStore();
+  const { projects: storeProjects } = useProjectStore();
   const { addToast } = useToast();
+
+  const allProjects = projectsProp || storeProjects;
+
+  // Map project ID to Project object for fast lookup
+  const projectMap = useMemo(() => {
+    const map = new Map<string, Project>();
+    allProjects.forEach((p) => map.set(p.id, p));
+    return map;
+  }, [allProjects]);
+
+  const activeColumns = globalMode ? GLOBAL_COLUMNS : SINGLE_COLUMNS;
 
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<KanbanColumnId | null>(null);
@@ -42,13 +64,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   // Filter tasks
   const filteredTasks = tasks.filter((t) => {
-    if (projectId && t.projectId !== projectId) return false;
+    if (!globalMode && projectId && t.projectId !== projectId) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      return (
-        t.title.toLowerCase().includes(q) ||
-        (t.description && t.description.toLowerCase().includes(q))
+      const proj = t.projectId ? projectMap.get(t.projectId) : undefined;
+      const matchTitle = t.title.toLowerCase().includes(q);
+      const matchDesc = Boolean(t.description && t.description.toLowerCase().includes(q));
+      const matchProject = Boolean(
+        (t.projectName && t.projectName.toLowerCase().includes(q)) ||
+        (proj && proj.title.toLowerCase().includes(q))
       );
+      return matchTitle || matchDesc || matchProject;
     }
     return true;
   });
@@ -91,10 +117,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     await moveTaskColumn(taskId, targetCol);
     setDraggedTaskId(null);
+
+    const colTitle = activeColumns.find((c) => c.id === targetCol)?.title || targetCol;
     addToast({
       type: 'info',
       title: 'Card Moved',
-      message: `Card moved to ${targetCol.replace('_', ' ').toUpperCase()}`,
+      message: `Card moved to ${colTitle}`,
       duration: 3000,
     });
   };
@@ -103,10 +131,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const handleQuickMove = async (taskId: string, targetCol: KanbanColumnId, e: React.MouseEvent) => {
     e.stopPropagation();
     await moveTaskColumn(taskId, targetCol);
+
+    const colTitle = activeColumns.find((c) => c.id === targetCol)?.title || targetCol;
     addToast({
       type: 'info',
       title: 'Card Moved',
-      message: `Card moved to ${targetCol.replace('_', ' ').toUpperCase()}`,
+      message: `Card moved to ${colTitle}`,
       duration: 3000,
     });
   };
@@ -119,7 +149,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     let targetProjectName = undefined;
 
     if (projectId) {
-      const proj = projects.find((p) => p.id === projectId);
+      const proj = allProjects.find((p) => p.id === projectId);
       targetProjectName = proj?.title;
     }
 
@@ -134,10 +164,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       tags: [],
     });
 
+    const colTitle = activeColumns.find((c) => c.id === colId)?.title || colId;
     addToast({
       type: 'success',
       title: 'Task Created',
-      message: `Added new card in ${colId.replace('_', ' ')}`,
+      message: `Added new card in ${colTitle}`,
       duration: 3000,
     });
 
@@ -166,11 +197,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         <div className="pcc-kanban__toolbar-left">
           <Input
             id="kanban-search"
-            placeholder="Search cards in board..."
+            placeholder={globalMode ? "Search cards across all projects..." : "Search cards in board..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onClear={() => setSearchQuery('')}
-            style={{ width: '260px' }}
+            style={{ width: '280px' }}
             icon={
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
@@ -181,14 +212,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
         <div className="pcc-kanban__toolbar-right">
           <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-            Showing {filteredTasks.length} cards
+            Showing {filteredTasks.length} cards {globalMode && `across ${allProjects.length} projects`}
           </span>
         </div>
       </div>
 
       {/* Kanban Columns */}
       <div className="pcc-kanban__columns">
-        {COLUMNS.map((col) => {
+        {activeColumns.map((col) => {
           const colTasks = getColumnTasks(col.id);
           const isDragOver = dragOverCol === col.id;
           const isAdding = activeAddCol === col.id;
@@ -234,6 +265,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   const totalSubtasks = task.subtasks?.length || 0;
                   const isDragging = draggedTaskId === task.id;
 
+                  const proj = task.projectId ? projectMap.get(task.projectId) : undefined;
+                  const projectName = task.projectName || proj?.title;
+                  const projectColor = proj?.color;
+
                   return (
                     <div
                       key={task.id}
@@ -246,6 +281,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         isDragging && 'pcc-kanban-card--dragging'
                       )}
                     >
+                      {/* Project Label at Top (Global mode or cards with project) */}
+                      {(globalMode || !projectId) && projectName && (
+                        <div
+                          className="pcc-kanban-card__project-label"
+                          title={`Project: ${projectName}`}
+                          style={projectColor ? { borderColor: `${projectColor}40` } : undefined}
+                        >
+                          <span
+                            className="pcc-kanban-card__project-indicator"
+                            style={{ backgroundColor: projectColor || 'var(--color-accent)' }}
+                          />
+                          <span className="pcc-kanban-card__project-name">{projectName}</span>
+                        </div>
+                      )}
+
                       <div className="pcc-kanban-card__header">
                         <h4 className="pcc-kanban-card__title">{task.title}</h4>
                         <Badge variant={getPriorityBadgeVariant(task.priority)} size="sm">
@@ -259,11 +309,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
                       <div className="pcc-kanban-card__meta">
                         <div className="pcc-kanban-card__tags">
-                          {!projectId && task.projectName && (
-                            <span className="pcc-kanban-card__project-badge" title={task.projectName}>
-                              {task.projectName}
-                            </span>
-                          )}
                           {task.dueDate && (
                             <span className="pcc-kanban-card__due" title={`Due ${formatDate(task.dueDate)}`}>
                               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
@@ -305,9 +350,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               type="button"
                               className="pcc-kanban-card__move-btn"
                               onClick={(e) => handleQuickMove(task.id, 'waiting', e)}
-                              title="Move to Waiting"
+                              title={globalMode ? "Move to Review" : "Move to Waiting"}
                             >
-                              &rarr; Wait
+                              &rarr; {globalMode ? 'Review' : 'Wait'}
                             </button>
                             <button
                               type="button"
@@ -344,9 +389,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             type="button"
                             className="pcc-kanban-card__move-btn"
                             onClick={(e) => handleQuickMove(task.id, 'todo', e)}
-                            title="Reopen card to To Do"
+                            title={globalMode ? "Reopen card to Backlog" : "Reopen card to To Do"}
                           >
-                            &larr; Reopen
+                            &larr; {globalMode ? 'Backlog' : 'Reopen'}
                           </button>
                         )}
                       </div>
@@ -442,3 +487,4 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     </div>
   );
 };
+

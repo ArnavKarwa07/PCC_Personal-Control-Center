@@ -114,9 +114,11 @@
   border-radius: var(--radius-full);
 }
 
-.pcc-kanban__column-dot--todo { background: var(--color-text-tertiary); }
+.pcc-kanban__column-dot--todo,
+.pcc-kanban__column-dot--backlog { background: var(--color-text-tertiary); }
 .pcc-kanban__column-dot--in_progress { background: var(--color-accent); box-shadow: 0 0 8px var(--color-accent); }
-.pcc-kanban__column-dot--waiting { background: var(--color-warning); }
+.pcc-kanban__column-dot--waiting,
+.pcc-kanban__column-dot--review { background: var(--color-warning); }
 .pcc-kanban__column-dot--done { background: var(--color-success); box-shadow: 0 0 8px var(--color-success); }
 
 .pcc-kanban__column-title {
@@ -169,6 +171,40 @@
   opacity: 0.4;
   cursor: grabbing;
   border-style: dashed;
+}
+
+/* Project Label Pill Badge at Top of Card */
+.pcc-kanban-card__project-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  padding: 2px 7px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.pcc-kanban-card__project-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.pcc-kanban-card__project-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pcc-kanban-card__header {

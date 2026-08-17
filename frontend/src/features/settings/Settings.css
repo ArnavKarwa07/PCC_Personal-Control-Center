@@ -131,13 +131,13 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   backdrop-filter: var(--glass-blur);
-  transition: all var(--transition-base);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .pcc-integration-card:hover {
   border-color: var(--color-border-hover);
-  background: rgba(26, 26, 46, 0.7);
-  box-shadow: var(--shadow-md);
+  background-color: var(--color-bg-elevated);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .pcc-integration-card--connected {
@@ -372,4 +372,51 @@
   .pcc-accent-swatch {
     justify-content: center;
   }
+}
+
+/* Connect Modal */
+.pcc-connect-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pcc-connect-modal-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.pcc-connect-modal-field input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle, var(--color-border));
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.pcc-connect-modal-field input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.pcc-connect-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pcc-connect-modal-error {
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-danger, #ef4444);
+  border-radius: 8px;
+  color: var(--color-danger, #ef4444);
+  font-size: 0.8rem;
 }

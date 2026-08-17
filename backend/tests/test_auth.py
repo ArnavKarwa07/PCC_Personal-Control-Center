@@ -78,8 +78,8 @@ def test_login_nonexistent_user(client):
 
 
 def test_get_me_authenticated(client, auth_headers, test_user):
-    """Test GET /auth/me returns current user profile."""
-    response = client.get("/api/v1/auth/me", headers=auth_headers)
+    """Test GET /users/me returns current user profile."""
+    response = client.get("/api/v1/users/me", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["email"] == test_user.email
@@ -87,21 +87,21 @@ def test_get_me_authenticated(client, auth_headers, test_user):
 
 
 def test_get_me_unauthenticated(client):
-    """Test GET /auth/me without authorization returns 401."""
-    response = client.get("/api/v1/auth/me")
+    """Test GET /users/me without authorization returns 401."""
+    response = client.get("/api/v1/users/me")
     assert response.status_code == 401
     error = response.json()["error"]
     assert error["code"] == "UNAUTHORIZED"
 
 
 def test_update_me(client, auth_headers):
-    """Test PATCH /auth/me updates user settings."""
+    """Test PATCH /users/me updates user settings."""
     payload = {
         "full_name": "Updated Name",
         "theme": "light",
         "timezone": "America/New_York",
     }
-    response = client.patch("/api/v1/auth/me", json=payload, headers=auth_headers)
+    response = client.patch("/api/v1/users/me", json=payload, headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["full_name"] == "Updated Name"

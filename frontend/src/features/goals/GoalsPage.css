@@ -105,6 +105,18 @@ html[data-theme='light'] .pcc-goal-card__status-tag,
   color: #4338ca;
 }
 
+.pcc-goal-achieved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #16a34a;
+}
+
+html[data-theme='light'] .pcc-goal-achieved-badge,
+:root:not([data-theme]) .pcc-goal-achieved-badge {
+  color: #15803d;
+}
+
 .pcc-goal-card__key-results,
 .pcc-goal-card__milestones {
   font-size: var(--font-size-xs);
@@ -156,10 +168,9 @@ html[data-theme='light'] .pcc-goal-card__status-tag,
   word-break: break-word;
 }
 
-.pcc-goal-card__actions {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: flex-end;
+.pcc-key-result-text--completed {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
 }
 
 .pcc-goals-sidebar {
@@ -175,19 +186,85 @@ html[data-theme='light'] .pcc-goal-card__status-tag,
   margin-top: var(--space-4);
 }
 
-.pcc-skills-list {
+.pcc-checkpoint-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
+  gap: 4px;
 }
 
-.pcc-skill-item {
+.pcc-checkpoint-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.pcc-checkpoint-list {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pcc-checkpoint-row {
+  display: flex;
   align-items: center;
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg-tertiary);
-  border-radius: var(--radius-sm);
+  gap: 8px;
+}
+
+.pcc-checkpoint-row input {
+  flex: 1;
+  height: 36px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-3);
+  color: var(--color-text-primary);
   font-size: var(--font-size-sm);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.pcc-checkpoint-row input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-glow);
+}
+
+.pcc-checkpoint-remove {
+  background: none;
+  border: none;
+  color: var(--color-danger, #ef4444);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.pcc-checkpoint-remove:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.pcc-checkpoint-add {
+  background: none;
+  border: 1px dashed var(--color-border-subtle, var(--color-border));
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  width: 100%;
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.pcc-checkpoint-add:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
 }

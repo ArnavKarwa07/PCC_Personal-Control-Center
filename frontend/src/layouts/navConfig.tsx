@@ -9,15 +9,12 @@ export interface NavItemConfig {
     | 'tasks'
     | 'projects'
     | 'calendar'
-    | 'knowledge'
     | 'career'
     | 'life'
     | 'more'
     | 'goals'
     | 'reviews'
     | 'settings'
-    | 'finances'
-    | 'fitness'
     | 'contacts'
     | 'reminders'
     | 'notes'
@@ -39,10 +36,7 @@ export const MAIN_NAV_ITEMS: NavItemConfig[] = [
   { id: 'nav-projects', label: 'Projects', path: '/projects', iconName: 'projects' },
   { id: 'nav-calendar', label: 'Calendar', path: '/calendar', iconName: 'calendar' },
   { id: 'nav-goals', label: 'Goals', path: '/goals', iconName: 'goals' },
-  { id: 'nav-finances', label: 'Finances', path: '/finances', iconName: 'finances' },
-  { id: 'nav-fitness', label: 'Fitness', path: '/fitness', iconName: 'fitness' },
   { id: 'nav-contacts', label: 'Contacts', path: '/contacts', iconName: 'contacts' },
-  { id: 'nav-knowledge', label: 'Knowledge', path: '/knowledge', iconName: 'knowledge' },
   { id: 'nav-more', label: 'Settings', path: '/settings', iconName: 'settings' },
 ];
 
@@ -50,7 +44,6 @@ export const MOBILE_NAV_ITEMS: NavItemConfig[] = [
   { id: 'mob-home', label: 'Home', path: '/', iconName: 'home' },
   { id: 'mob-tasks', label: 'Tasks', path: '/tasks', iconName: 'tasks' },
   { id: 'mob-calendar', label: 'Calendar', path: '/calendar', iconName: 'calendar' },
-  { id: 'mob-finances', label: 'Finances', path: '/finances', iconName: 'finances' },
   { id: 'mob-more', label: 'More', path: '#more', iconName: 'more' },
 ];
 
@@ -59,11 +52,8 @@ export const ALL_PCC_PAGES: NavItemConfig[] = [
   { id: 'page-tasks', label: 'Tasks', path: '/tasks', iconName: 'tasks', category: 'Core' },
   { id: 'page-projects', label: 'Projects', path: '/projects', iconName: 'projects', category: 'Core' },
   { id: 'page-calendar', label: 'Calendar', path: '/calendar', iconName: 'calendar', category: 'Core' },
-  { id: 'page-finances', label: 'Finances', path: '/finances', iconName: 'finances', category: 'Personal' },
-  { id: 'page-fitness', label: 'Fitness & Health', path: '/fitness', iconName: 'fitness', category: 'Personal' },
   { id: 'page-contacts', label: 'Contacts', path: '/contacts', iconName: 'contacts', category: 'Personal' },
   { id: 'page-goals', label: 'Goals & Targets', path: '/goals', iconName: 'goals', category: 'Productivity' },
-  { id: 'page-knowledge', label: 'Knowledge Base', path: '/knowledge', iconName: 'knowledge', category: 'Productivity' },
   { id: 'page-career', label: 'Career & Growth', path: '/career', iconName: 'career', category: 'Productivity' },
   { id: 'page-life', label: 'Life Management', path: '/life', iconName: 'life', category: 'Personal' },
   { id: 'page-reviews', label: 'Periodic Reviews', path: '/reviews', iconName: 'reviews', category: 'Productivity' },
@@ -112,23 +102,6 @@ export const renderNavIcon = (name: NavItemConfig['iconName']): React.ReactEleme
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
       );
-    case 'finances':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="12" y1="1" x2="12" y2="23" />
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      );
-    case 'fitness':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-          <path d="M2 8h1a4 4 0 0 1 0 8H2" />
-          <path d="M6 12h12" />
-          <rect x="5" y="6" width="3" height="12" rx="1" />
-          <rect x="16" y="6" width="3" height="12" rx="1" />
-        </svg>
-      );
     case 'contacts':
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -144,13 +117,6 @@ export const renderNavIcon = (name: NavItemConfig['iconName']): React.ReactEleme
           <circle cx="12" cy="12" r="10" />
           <circle cx="12" cy="12" r="6" />
           <circle cx="12" cy="12" r="2" />
-        </svg>
-      );
-    case 'knowledge':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
         </svg>
       );
     case 'career':

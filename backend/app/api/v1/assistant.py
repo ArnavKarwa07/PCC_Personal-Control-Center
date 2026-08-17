@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.assistant import AssistantQueryRequest, AssistantQueryResponse, DailyBriefingRead
 from app.services.assistant_service import assistant_service
 
-router = APIRouter(prefix="/ai/assistant", tags=["AI Executive Assistant"])
+router = APIRouter(prefix="/assistant", tags=["AI Executive Assistant"])
 
 
 @router.post("/query", response_model=AssistantQueryResponse, summary="Dispatch Natural Language Assistant Query")

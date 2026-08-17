@@ -126,7 +126,7 @@ export const MobileLayout: React.FC = () => {
           if (item.id === 'mob-more' || item.path === '#more') {
             const isMoreActive =
               isMoreDrawerOpen ||
-              !['/', '/tasks', '/calendar', '/finances'].includes(location.pathname);
+              !['/', '/tasks', '/calendar'].includes(location.pathname);
             return (
               <button
                 key={item.id}

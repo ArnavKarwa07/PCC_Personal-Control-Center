@@ -19,8 +19,6 @@ from app.models.career import (
 )
 from app.models.contact import Contact
 from app.models.document import Document
-from app.models.finance import BillingCycle, FinanceItem, FinanceItemType, Subscription
-from app.models.fitness import Exercise, ExerciseType, Workout
 from app.models.goal import Goal, GoalMilestone, GoalStatus
 from app.models.idea import Idea, IdeaStatus
 from app.models.integration import (
@@ -29,7 +27,6 @@ from app.models.integration import (
     IntegrationStatus,
     IntegrationToken,
 )
-from app.models.learning import LearningItem, LearningResourceType, LearningStatus
 from app.models.note import Note
 from app.models.notification import (
     Notification,
@@ -102,17 +99,7 @@ __all__ = [
     "Skill",
     "Certification",
     "Experience",
-    "LearningItem",
-    "LearningResourceType",
-    "LearningStatus",
     "Document",
-    "FinanceItem",
-    "FinanceItemType",
-    "Subscription",
-    "BillingCycle",
-    "Workout",
-    "Exercise",
-    "ExerciseType",
     "Notification",
     "NotificationChannel",
     "NotificationDeliveryStatus",

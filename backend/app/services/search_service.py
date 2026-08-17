@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from app.models.calendar_event import CalendarEvent
 from app.models.contact import Contact
-from app.models.finance import FinanceItem, Subscription
 from app.models.goal import Goal
 from app.models.idea import Idea
 from app.models.note import Note
@@ -26,9 +25,7 @@ SUPPORTED_ENTITY_TYPES = {
     "calendar_events",
     "contacts",
     "goals",
-    "finances",
     "reminders",
-    "learning",
     "career",
     "reviews",
 }
@@ -51,16 +48,8 @@ TYPE_ALIASES = {
     "contacts": "contacts",
     "goal": "goals",
     "goals": "goals",
-    "finance": "finances",
-    "finances": "finances",
-    "finance_item": "finances",
-    "finance_items": "finances",
-    "subscription": "finances",
-    "subscriptions": "finances",
     "reminder": "reminders",
     "reminders": "reminders",
-    "learning": "learning",
-    "knowledge": "learning",
     "career": "career",
     "achievements": "career",
     "skills": "career",
@@ -454,90 +443,6 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_finances(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
-        """Search finance transactions and subscriptions."""
-        pattern = f"%{cls._escape_like(q)}%"
-        results = []
-
-        # 1. Finance Items
-        items = (
-            db.query(FinanceItem)
-            .filter(
-                FinanceItem.user_id == user_id,
-                FinanceItem.deleted_at.is_(None),
-                (FinanceItem.description.ilike(pattern, escape="\\")) | (FinanceItem.category.ilike(pattern, escape="\\")),
-            )
-            .all()
-        )
-        for item in items:
-            type_val = item.type.value if hasattr(item.type, "value") else str(item.type)
-            display_title = item.description or f"{item.category or 'Finance'} ({type_val.title()})"
-            metadata: Dict[str, Any] = {
-                "type": type_val,
-                "amount": float(item.amount),
-                "currency": "INR",  # Strict default currency INR
-                "category": item.category,
-                "date": item.date.isoformat() if item.date else None,
-            }
-            meta_text = f"{type_val} {item.category or ''}"
-            snippet = cls._create_snippet(q, f"{display_title} - ₹{item.amount:,.2f} ({item.category or ''})")
-            rel = cls._compute_relevance(q, display_title, item.category, meta_text)
-
-            results.append(
-                SearchResultItem(
-                    id=str(item.id),
-                    entity_type="finance",
-                    title=display_title,
-                    snippet=snippet,
-                    relevance=rel,
-                    url="/finances",
-                    metadata=metadata,
-                    created_at=item.created_at,
-                    updated_at=item.updated_at,
-                )
-            )
-
-        # 2. Subscriptions
-        subs = (
-            db.query(Subscription)
-            .filter(
-                Subscription.user_id == user_id,
-                Subscription.deleted_at.is_(None),
-                (Subscription.name.ilike(pattern, escape="\\")) | (Subscription.category.ilike(pattern, escape="\\")),
-            )
-            .all()
-        )
-        for sub in subs:
-            cycle_val = sub.billing_cycle.value if hasattr(sub.billing_cycle, "value") else str(sub.billing_cycle)
-            metadata = {
-                "type": "subscription",
-                "amount": float(sub.amount),
-                "currency": "INR",
-                "category": sub.category,
-                "billing_cycle": cycle_val,
-                "is_active": sub.is_active,
-            }
-            meta_text = f"subscription {sub.category or ''} {cycle_val}"
-            snippet = cls._create_snippet(q, f"{sub.name} - ₹{sub.amount:,.2f}/{cycle_val}")
-            rel = cls._compute_relevance(q, sub.name, sub.category, meta_text)
-
-            results.append(
-                SearchResultItem(
-                    id=str(sub.id),
-                    entity_type="finance",
-                    title=sub.name,
-                    snippet=snippet,
-                    relevance=rel,
-                    url="/finances",
-                    metadata=metadata,
-                    created_at=sub.created_at,
-                    updated_at=sub.updated_at,
-                )
-            )
-
-        return results
-
-    @classmethod
     def _search_reminders(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
         """Search reminders table."""
         pattern = f"%{cls._escape_like(q)}%"
@@ -641,11 +546,6 @@ class SearchService:
             goals_res = cls._search_goals(db, user_id, clean_q)
             counts_by_type["goals"] = len(goals_res)
             all_results.extend(goals_res)
-
-        if "finances" in active_types:
-            finances_res = cls._search_finances(db, user_id, clean_q)
-            counts_by_type["finances"] = len(finances_res)
-            all_results.extend(finances_res)
 
         if "reminders" in active_types:
             reminders_res = cls._search_reminders(db, user_id, clean_q)

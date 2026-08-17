@@ -11,7 +11,6 @@ from app.services.integration_service import (
     WeatherConnector,
     integration_service,
 )
-from app.services.learning_service import LearningService, learning_service
 from app.services.note_service import NoteService, note_service
 from app.services.notification_service import NotificationService, notification_service
 from app.services.project_service import ProjectService, project_service
@@ -51,7 +50,4 @@ __all__ = [
     "WeatherConnector",
     "WeatherService",
     "weather_service",
-    "LearningService",
-    "learning_service",
 ]
-

@@ -177,7 +177,6 @@ export const CommandPalette: React.FC = () => {
       { name: 'Weather & Environment', path: '/weather' },
       { name: 'Notes & Workspace', path: '/notes' },
       { name: 'Idea Capture & Brainstorming', path: '/ideas' },
-      { name: 'Knowledge Graph & Docs', path: '/knowledge' },
       { name: 'Career & Executive Portfolio', path: '/career' },
       { name: 'Life & Longevity Tracking', path: '/life' },
       { name: 'Goals & OKR Tracking', path: '/goals' },

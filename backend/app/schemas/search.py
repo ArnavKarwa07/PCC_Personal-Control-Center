@@ -12,7 +12,7 @@ class SearchResultItem(BaseModel):
     id: str = Field(..., description="Entity unique ID")
     entity_type: str = Field(
         ...,
-        description="Entity category: task, project, note, idea, calendar_event, contact, goal, finance, reminder",
+        description="Entity category: task, project, note, idea, calendar_event, contact, goal, reminder",
     )
     title: str = Field(..., description="Primary title or display name")
     snippet: Optional[str] = Field(None, description="Contextual snippet highlighting matching terms")

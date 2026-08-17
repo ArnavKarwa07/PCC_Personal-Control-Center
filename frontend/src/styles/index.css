@@ -292,6 +292,17 @@ a:hover { color: var(--color-accent-hover); }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
 
+select option {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+html[data-theme='dark'] select option,
+html[data-theme='dark'] select optgroup {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--color-bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--color-surface); border-radius: var(--radius-full); }

@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from app.models.calendar_event import CalendarEvent, CalendarEventType
 from app.models.contact import Contact
-from app.models.finance import BillingCycle, FinanceItem, FinanceItemType, Subscription
 from app.models.goal import Goal, GoalStatus
 from app.models.idea import Idea, IdeaStatus
 from app.models.note import Note
@@ -19,7 +18,7 @@ from app.models.user import User
 
 
 def _seed_all_entities(db: Session, user: User, keyword: str = "Quantum"):
-    """Helper to populate test records across all 9 supported entity types."""
+    """Helper to populate test records across all 8 supported entity types."""
     # 1. Task
     task = Task(
         user_id=user.id,
@@ -91,30 +90,7 @@ def _seed_all_entities(db: Session, user: User, keyword: str = "Quantum"):
     )
     db.add(goal)
 
-    # 8. Finance Item & Subscription
-    finance_item = FinanceItem(
-        user_id=user.id,
-        type=FinanceItemType.EXPENSE,
-        amount=Decimal("15000.00"),
-        currency="INR",
-        category="Hardware",
-        date=datetime(2026, 8, 1).date(),
-        description=f"{keyword} Server Cluster Lease",
-    )
-    db.add(finance_item)
-
-    subscription = Subscription(
-        user_id=user.id,
-        name=f"{keyword} Cloud Pro",
-        amount=Decimal("2999.00"),
-        currency="INR",
-        billing_cycle=BillingCycle.MONTHLY,
-        category="Software",
-        is_active=True,
-    )
-    db.add(subscription)
-
-    # 9. Reminder
+    # 8. Reminder
     reminder = Reminder(
         user_id=user.id,
         title=f"Review {keyword} whitepaper draft",
@@ -128,7 +104,7 @@ def _seed_all_entities(db: Session, user: User, keyword: str = "Quantum"):
 
 
 def test_search_across_all_entity_types(client: TestClient, auth_headers: dict, db_session: Session, test_user: User):
-    """Verify that search returns results across all 9 supported entity categories."""
+    """Verify that search returns results across all supported entity categories."""
     _seed_all_entities(db_session, test_user, keyword="Quantum")
 
     response = client.get("/api/v1/search?q=Quantum", headers=auth_headers)
@@ -139,7 +115,7 @@ def test_search_across_all_entity_types(client: TestClient, auth_headers: dict, 
     meta = res_data["meta"]
 
     assert meta["query"] == "Quantum"
-    assert meta["total"] >= 9
+    assert meta["total"] >= 8
 
     found_types = {item["entity_type"] for item in data}
     expected_types = {
@@ -150,7 +126,6 @@ def test_search_across_all_entity_types(client: TestClient, auth_headers: dict, 
         "calendar_event",
         "contact",
         "goal",
-        "finance",
         "reminder",
     }
     assert expected_types.issubset(found_types)

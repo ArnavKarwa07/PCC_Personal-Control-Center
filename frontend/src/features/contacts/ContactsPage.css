@@ -5,6 +5,12 @@
   width: 100%;
 }
 
+.pcc-contacts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 .pcc-contacts-title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
@@ -34,25 +40,79 @@
 .pcc-contacts-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
+.pcc-contacts-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  padding: var(--space-6);
+}
+
+/* Simplified Contact Card */
 .pcc-contact-card {
+  position: relative;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  transition: transform var(--transition-fast);
+  gap: 10px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pcc-contact-card .pcc-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .pcc-contact-card:hover {
   transform: translateY(-2px);
 }
 
-.pcc-contact-card__header {
+/* Delete Button */
+.pcc-contact-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.15s ease, background-color 0.15s ease;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  color: var(--color-text-tertiary, #94a3b8);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  z-index: 2;
+}
+
+.pcc-contact-delete-btn:hover {
+  color: var(--color-danger, #ef4444);
+  background: var(--color-danger-subtle, rgba(239, 68, 68, 0.12));
+}
+
+.pcc-contact-delete-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--color-danger, #ef4444);
+  outline-offset: 1px;
+}
+
+.pcc-contact-card:hover .pcc-contact-delete-btn {
+  opacity: 1;
+}
+
+/* First Row: Left (Avatar + Name + Role/Org), Right (Status badge) */
+.pcc-contact-card__first-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
+  padding-right: 20px; /* Room for delete button */
 }
 
 .pcc-contact-card__user-info {
@@ -64,8 +124,8 @@
 }
 
 .pcc-contact-card__avatar {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-full);
   background: var(--color-accent-subtle, rgba(79, 70, 229, 0.1));
   color: var(--color-accent, #4f46e5);
@@ -74,7 +134,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs, 0.75rem);
   border: 1px solid rgba(79, 70, 229, 0.2);
 }
 
@@ -85,75 +145,145 @@
 }
 
 .pcc-contact-card__name {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base, 1rem);
   font-weight: var(--font-weight-bold);
   margin: 0;
   color: var(--color-text-primary);
   word-break: break-word;
   overflow-wrap: anywhere;
+  line-height: 1.3;
 }
 
 .pcc-contact-card__role {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs, 0.75rem);
   color: var(--color-text-secondary);
   word-break: break-word;
+  margin-top: 1px;
+}
+
+.pcc-contact-card__badge-wrapper {
+  flex-shrink: 0;
 }
 
 .pcc-contact-card__badge {
   flex-shrink: 0;
   white-space: nowrap;
-  align-self: flex-start;
 }
 
-.pcc-contact-card__details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+/* Second Row: Contact info + compact Log Catch-Up button */
+.pcc-contact-card__second-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
   padding-top: var(--space-2);
   border-top: 1px solid var(--color-border);
 }
 
-.pcc-contact-card__details span {
-  font-weight: var(--font-weight-medium);
+.pcc-contact-card__contact-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs, 0.75rem);
   color: var(--color-text-secondary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.pcc-contact-card__info-item {
+  color: var(--color-text-secondary);
+}
+
+.pcc-contact-card__divider {
+  color: var(--color-text-tertiary);
+}
+
+.pcc-contact-card__empty-info {
+  color: var(--color-text-tertiary);
+  font-style: italic;
 }
 
 .pcc-contact-card__actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
-@media (max-width: 600px) {
-  .pcc-contact-card__header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2);
-  }
-
-  .pcc-contact-card__user-info {
-    width: 100%;
-  }
-
-  .pcc-contact-card__actions {
-    justify-content: stretch;
-    width: 100%;
-  }
-
-  .pcc-contact-card__actions button {
-    width: 100%;
-  }
-
-  .pcc-contact-card__details {
-    grid-template-columns: 1fr;
-  }
+.pcc-contact-card__catchup-btn {
+  font-size: var(--font-size-xs, 0.75rem) !important;
+  padding: 4px 10px !important;
+  height: 28px !important;
 }
 
+/* Add Contact Form */
 .pcc-add-contact-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   margin-top: var(--space-4);
+}
+
+/* Delete Confirmation Modal */
+.pcc-delete-modal-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.pcc-delete-modal-text {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pcc-delete-confirm-btn {
+  background: var(--color-danger, #ef4444);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  font-size: var(--font-size-sm, 0.875rem);
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.pcc-delete-confirm-btn:hover {
+  background: var(--color-danger-hover, #dc2626);
+}
+
+.pcc-delete-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .pcc-contact-card__first-row {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pcc-contact-card__second-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .pcc-contact-card__contact-info {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .pcc-contact-card__actions {
+    width: 100%;
+  }
+
+  .pcc-contact-card__catchup-btn {
+    width: 100%;
+  }
 }

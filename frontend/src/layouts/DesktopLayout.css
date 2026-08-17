@@ -71,16 +71,6 @@
   -webkit-text-fill-color: transparent;
 }
 
-.pcc-sidebar__logo-badge {
-  font-size: 0.625rem;
-  font-weight: var(--font-weight-bold);
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-hover);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-}
-
 .pcc-sidebar__nav {
   flex: 1;
   padding: var(--space-4) var(--space-2);

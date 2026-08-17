@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
     # Daily briefing
-    res = client.get("/api/v1/ai/assistant/briefing", headers=auth_headers)
+    res = client.get("/api/v1/assistant/briefing", headers=auth_headers)
     assert res.status_code == 200
     briefing = res.json()
     assert "greeting" in briefing
@@ -13,9 +13,9 @@ def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
 
     # Dispatch task creation query
     res = client.post(
-        "/api/v1/ai/assistant/query",
+        "/api/v1/assistant/query",
         headers=auth_headers,
-        json={"query": "remind me to review Q3 financial projections"},
+        json={"query": "remind me to review Q3 roadmap projections"},
     )
     assert res.status_code == 200
     resp = res.json()
@@ -24,7 +24,7 @@ def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
 
     # Dispatch general info query
     res = client.post(
-        "/api/v1/ai/assistant/query",
+        "/api/v1/assistant/query",
         headers=auth_headers,
         json={"query": "give me a status update on my productivity"},
     )

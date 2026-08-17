@@ -350,7 +350,7 @@ def test_notifications_crud_and_read_all(client, auth_headers, second_auth_heade
     assert res_other.status_code == 404
 
     # Mark all as read
-    all_read_res = client.post("/api/v1/notifications/read-all", headers=auth_headers)
+    all_read_res = client.patch("/api/v1/notifications/read-all", headers=auth_headers)
     assert all_read_res.status_code == 200
     assert all_read_res.json()["data"]["count"] >= 1
 
