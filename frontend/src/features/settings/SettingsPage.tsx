@@ -14,6 +14,7 @@ import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
 import { apiClient } from '../../services/api';
+import { validateAndCleanImportData, executeDataImport } from '../../services/jsonImportService';
 import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
 
@@ -207,6 +208,35 @@ export const SettingsPage: React.FC = () => {
     URL.revokeObjectURL(url);
 
     toast.success('PCC backup JSON downloaded successfully');
+  };
+
+  const handleImportJSONFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = (event.target?.result as string) || '';
+        const result = validateAndCleanImportData(text);
+        if (!result.success) {
+          const firstErr = result.issues.find((i) => i.level === 'error')?.message || 'Invalid backup JSON file schema.';
+          toast.error(firstErr);
+          return;
+        }
+
+        executeDataImport(result.payload);
+        soundEffects.playChime();
+        const s = result.stats;
+        toast.success(
+          `Imported ${s.tasks} tasks, ${s.projects} projects, ${s.notes} notes, ${s.ideas} ideas, ${s.calendarEvents} events, ${s.reminders} reminders successfully with 0 errors!`
+        );
+        setTimeout(() => window.location.reload(), 600);
+      } catch (err: any) {
+        toast.error(`Failed to restore backup: ${err?.message || 'Unknown error'}`);
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -641,13 +671,15 @@ export const SettingsPage: React.FC = () => {
               <h3>Import & Restore Backup</h3>
               <p>Restore your system database from an existing PCC JSON archive backup file.</p>
               <div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => toast.info('Select a .json backup file to restore your workspace')}
-                >
-                  Choose Backup File
-                </Button>
+                <label className="pcc-upload-btn" style={{ cursor: 'pointer' }}>
+                  📂 Choose Backup File
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportJSONFile}
+                    style={{ display: 'none' }}
+                  />
+                </label>
               </div>
             </div>
 
