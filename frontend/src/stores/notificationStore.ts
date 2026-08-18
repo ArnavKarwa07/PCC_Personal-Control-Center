@@ -27,54 +27,34 @@ const STORAGE_KEY = 'pcc_notifications_store_v1';
 
 const INITIAL_NOTIFICATIONS: AppNotification[] = [
   {
-    id: 'notif-01',
-    title: 'Reminder: Review Sprint Velocity',
-    message: 'Scheduled reminder for 15:30 today in Work category.',
+    id: 'notif-dummy-01',
+    title: 'Reminder: Review Personal Control Center Architecture',
+    message: 'Scheduled deep-dive review on UI card spacing, theme tokens, and notifications stream.',
     read: false,
     type: 'reminder',
     priority: 'warning',
     link: '/reminders',
-    createdAt: '2026-08-15T15:00:00Z',
+    createdAt: new Date().toISOString(),
   },
   {
-    id: 'notif-02',
-    title: 'Task Completed: Implement Kanban Board',
-    message: 'High priority task was marked completed in Personal Control Center project.',
+    id: 'notif-dummy-02',
+    title: 'Task Completed: Implement Glassmorphism Cards',
+    message: 'High priority UI task was marked completed in Personal Control Center project.',
     read: false,
     type: 'task',
     priority: 'success',
     link: '/tasks',
-    createdAt: '2026-08-15T12:00:00Z',
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
   },
   {
-    id: 'notif-03',
-    title: 'Calendar Sync: Weekly Team Architecture Review',
+    id: 'notif-dummy-03',
+    title: 'Calendar Sync: Weekly Team Engineering Sync',
     message: 'Event starts in 1 hour on Google Calendar sync channel.',
-    read: false,
+    read: true,
     type: 'calendar',
     priority: 'info',
     link: '/calendar',
-    createdAt: '2026-08-15T10:00:00Z',
-  },
-  {
-    id: 'notif-04',
-    title: 'GitHub Integration Synced',
-    message: 'Successfully pulled 14 recent repository commits and 2 open pull requests.',
-    read: true,
-    type: 'integration',
-    priority: 'info',
-    link: '/settings',
-    createdAt: '2026-08-15T08:30:00Z',
-  },
-  {
-    id: 'notif-05',
-    title: 'Sunrise Alarm Triggered',
-    message: 'Wakeup alarm at 06:30 completed successfully.',
-    read: true,
-    type: 'alarm',
-    priority: 'info',
-    link: '/alarms',
-    createdAt: '2026-08-15T06:30:00Z',
+    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
   },
 ];
 
@@ -82,7 +62,10 @@ const loadStoredNotifications = (): AppNotification[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Failed to load notifications from localStorage', err);
