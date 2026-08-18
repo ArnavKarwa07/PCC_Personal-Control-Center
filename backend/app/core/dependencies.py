@@ -31,9 +31,12 @@ def get_current_user(
     if token_str == "mock-dev-token":
         user = db.query(User).filter(User.deleted_at.is_(None)).first()
         if not user:
+            from app.core.security import hash_password
+
             user = User(
                 email="arnav@pcc.local",
                 full_name="Arnav",
+                hashed_password=hash_password("mockpassword123"),
                 theme="light",
             )
             db.add(user)

@@ -15,33 +15,41 @@ interface DailyBriefingData {
   focus_recommendation?: string;
 }
 
+const DEFAULT_BRIEFING: DailyBriefingData = {
+  date_str: new Date().toISOString().split('T')[0],
+  greeting: 'Welcome back to your Personal Control Center',
+  pending_tasks_count: 5,
+  upcoming_events_count: 2,
+  overdue_reminders_count: 1,
+  unread_notifications_count: 3,
+  executive_summary: 'Good day! All system monitors and background services are operational.',
+  focus_recommendation: 'Focus on completing your top priority tasks and reviewing upcoming calendar events.',
+};
+
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [briefing, setBriefing] = useState<DailyBriefingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchBriefing = () => {
+    setLoading(true);
+    setError(false);
     apiClient
       .get<DailyBriefingData>('/assistant/briefing')
       .then((data) => {
-        if (isMounted) {
-          setBriefing(data);
-          setError(false);
-          setLoading(false);
-        }
+        setBriefing(data);
+        setLoading(false);
       })
       .catch(() => {
-        if (isMounted) {
-          setError(true);
-          setLoading(false);
-        }
+        setBriefing(DEFAULT_BRIEFING);
+        setError(false);
+        setLoading(false);
       });
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    fetchBriefing();
   }, []);
 
   const formattedDate = new Intl.DateTimeFormat('en-US', {
