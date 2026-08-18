@@ -282,7 +282,6 @@ export function validateAndCleanImportData(input: string | Record<string, any>):
         endDate: item.endDate,
         allDay: Boolean(item.isAllDay || item.allDay),
         location: item.location || '',
-        category: item.category,
         createdAt: item.createdAt || new Date().toISOString(),
         updatedAt: item.updatedAt || new Date().toISOString(),
       };
