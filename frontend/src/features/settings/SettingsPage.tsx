@@ -682,26 +682,6 @@ export const SettingsPage: React.FC = () => {
                 </label>
               </div>
             </div>
-
-            <div className="pcc-backup-action-card">
-              <h3>Reset Database</h3>
-              <p>
-                Restore all default demo datasets across tasks, kanban boards, reminders, and sample
-                markdown documents.
-              </p>
-              <div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => {
-                    soundEffects.playPip();
-                    toast.info('Database reset to factory demo values');
-                  }}
-                >
-                  Reset to Demo State
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       )}
