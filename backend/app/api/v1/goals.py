@@ -46,6 +46,19 @@ def create_goal(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
+@router.get("/{goal_id}", operation_id="getGoalById", summary="Get Goal")
+def get_goal(
+    goal_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieve a single goal by ID."""
+    goal = goal_service.get_goal(db=db, user_id=current_user.id, goal_id=goal_id)
+    if not goal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Goal not found")
+    return {"data": GoalRead.model_validate(goal).model_dump()}
+
+
 @router.patch("/{goal_id}", operation_id="updateGoalById", summary="Update Goal")
 def update_goal(
     goal_id: uuid.UUID,

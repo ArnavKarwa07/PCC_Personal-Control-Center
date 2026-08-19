@@ -397,7 +397,7 @@ def test_reminders_alarms_timers_negative_missing_payload_fields(client, auth_he
     assert res_a.json()["error"]["code"] == "VALIDATION_ERROR"
 
     # Timer invalid duration_seconds type
-    res_t = client.post("/api/v1/timers", json={"duration_seconds": "invalid_number_type"}, headers=auth_headers)
+    res_t = client.post("/api/v1/timers", json={"duration_seconds": ["invalid", "list"]}, headers=auth_headers)
     assert res_t.status_code == 422
     assert res_t.json()["error"]["code"] == "VALIDATION_ERROR"
 

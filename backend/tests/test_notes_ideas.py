@@ -185,8 +185,8 @@ def test_notes_ideas_negative_missing_payload_fields(client, auth_headers):
     """Test 422 validation error format when creating notes/ideas with invalid field types."""
     import uuid
 
-    # Note with invalid boolean type for is_pinned
-    res_note = client.post("/api/v1/notes", json={"is_pinned": "invalid_type_value_string"}, headers=auth_headers)
+    # Note with invalid type for is_pinned
+    res_note = client.post("/api/v1/notes", json={"is_pinned": ["invalid", "list"]}, headers=auth_headers)
     assert res_note.status_code == 422
     err_note = res_note.json()["error"]
     assert err_note["code"] == "VALIDATION_ERROR"

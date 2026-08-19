@@ -15,8 +15,8 @@ class TimerBase(BaseModel):
 
     label: Optional[str] = Field(None, max_length=255, description="Timer label")
     timer_type: TimerType = Field(TimerType.COUNTDOWN, description="Timer type: countdown, stopwatch, pomodoro")
-    duration_seconds: Optional[int] = Field(None, ge=0, description="Total duration in seconds")
-    remaining_seconds: Optional[int] = Field(None, ge=0, description="Remaining seconds left")
+    duration_seconds: Optional[int] = Field(None, ge=0, strict=True, description="Total duration in seconds")
+    remaining_seconds: Optional[int] = Field(None, ge=0, strict=True, description="Remaining seconds left")
     preset_name: Optional[str] = Field(None, max_length=100, description="Preset configuration label")
 
 

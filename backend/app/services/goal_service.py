@@ -74,6 +74,9 @@ class GoalService:
         db.refresh(goal)
         return goal
 
+    def get_goal(self, db: Session, user_id: uuid.UUID, goal_id: uuid.UUID) -> Optional[Goal]:
+        return db.query(Goal).filter(Goal.id == goal_id, Goal.user_id == user_id).first()
+
     def delete_goal(self, db: Session, user_id: uuid.UUID, goal_id: uuid.UUID) -> bool:
         goal = db.query(Goal).filter(Goal.id == goal_id, Goal.user_id == user_id).first()
         if not goal:
