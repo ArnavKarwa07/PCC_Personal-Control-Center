@@ -8,7 +8,7 @@ def test_register_user(client):
         "password": "SecurePassword123!",
         "full_name": "New User",
     }
-    response = client.post("/api/v1/auth/register", json=payload)
+    response = client.post("/api/v1/auth/register_user", json=payload)
     assert response.status_code == 201
     data = response.json()["data"]
     assert "access_token" in data
@@ -24,7 +24,7 @@ def test_register_duplicate_email(client, test_user):
         "password": "Password123!",
         "full_name": "Duplicate User",
     }
-    response = client.post("/api/v1/auth/register", json=payload)
+    response = client.post("/api/v1/auth/register_user", json=payload)
     assert response.status_code == 409
     error = response.json()["error"]
     assert error["code"] == "EMAIL_ALREADY_EXISTS"
@@ -37,7 +37,7 @@ def test_register_short_password(client):
         "password": "short",
         "full_name": "Short Pwd",
     }
-    response = client.post("/api/v1/auth/register", json=payload)
+    response = client.post("/api/v1/auth/register_user", json=payload)
     assert response.status_code == 422
     assert "error" in response.json()
 
@@ -48,7 +48,7 @@ def test_login_user(client, test_user):
         "email": "test@example.com",
         "password": "password123",
     }
-    response = client.post("/api/v1/auth/login", json=payload)
+    response = client.post("/api/v1/auth/login_user", json=payload)
     assert response.status_code == 200
     data = response.json()["data"]
     assert "access_token" in data
@@ -61,7 +61,7 @@ def test_login_invalid_password(client, test_user):
         "email": "test@example.com",
         "password": "wrongpassword",
     }
-    response = client.post("/api/v1/auth/login", json=payload)
+    response = client.post("/api/v1/auth/login_user", json=payload)
     assert response.status_code == 401
     error = response.json()["error"]
     assert error["code"] == "INVALID_CREDENTIALS"
@@ -73,8 +73,9 @@ def test_login_nonexistent_user(client):
         "email": "nonexistent@example.com",
         "password": "somepassword",
     }
-    response = client.post("/api/v1/auth/login", json=payload)
+    response = client.post("/api/v1/auth/login_user", json=payload)
     assert response.status_code == 401
+
 
 
 def test_get_me_authenticated(client, auth_headers, test_user):
