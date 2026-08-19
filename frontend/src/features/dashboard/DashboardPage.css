@@ -36,21 +36,46 @@
 
   .pcc-metric-card {
     padding: var(--space-3) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .pcc-metric-card__header {
+    gap: var(--space-1);
+    margin-bottom: var(--space-1);
   }
 
   .pcc-metric-card__val {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin-bottom: var(--space-1);
   }
 
   .pcc-metric-card__lbl {
-    font-size: 0.65rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 @media (max-width: 480px) {
   .pcc-dashboard-metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+  }
+
+  .pcc-metric-card {
+    padding: var(--space-2.5, 0.625rem) !important;
+  }
+
+  .pcc-metric-card__val {
+    font-size: 1.25rem;
+  }
+
+  .pcc-metric-card__lbl {
+    font-size: 0.6rem;
   }
 }
 
@@ -64,12 +89,16 @@
   }
 
   .pcc-dashboard-metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-2);
   }
 
   .pcc-metric-card {
     padding: var(--space-2) !important;
+  }
+
+  .pcc-metric-card__val {
+    font-size: 1.15rem;
   }
 
   .pcc-daily-briefing__bullet-item {
