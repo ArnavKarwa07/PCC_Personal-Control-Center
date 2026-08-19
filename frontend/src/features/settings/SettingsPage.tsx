@@ -418,13 +418,13 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label" htmlFor="settings-tz">
+                <div className="pcc-settings-field-row">
+                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-tz">
                     Primary Timezone
                   </label>
                   <select
                     id="settings-tz"
-                    className="pcc-reminder-form__select"
+                    className="pcc-reminder-form__select pcc-settings-select"
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                   >
@@ -436,13 +436,13 @@ export const SettingsPage: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label" htmlFor="settings-date-format">
+                <div className="pcc-settings-field-row">
+                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-date-format">
                     Date Display Format
                   </label>
                   <select
                     id="settings-date-format"
-                    className="pcc-reminder-form__select"
+                    className="pcc-reminder-form__select pcc-settings-select"
                     value={dateFormat}
                     onChange={(e) => setDateFormat(e.target.value)}
                   >

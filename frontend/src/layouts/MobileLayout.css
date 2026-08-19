@@ -94,8 +94,8 @@
 /* Floating Action Button (FAB) */
 .pcc-mobile-fab {
   position: fixed;
-  right: var(--space-5);
-  bottom: calc(var(--bottom-nav-height) + 16px + env(safe-area-inset-bottom, 0px));
+  right: 16px;
+  bottom: 72px;
   width: 54px;
   height: 54px;
   border-radius: var(--radius-full);

@@ -114,6 +114,32 @@
   color: var(--color-accent);
 }
 
+.pcc-settings-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6, 24px);
+  padding: var(--space-2) 0;
+  width: 100%;
+}
+
+.pcc-settings-field-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  min-width: 160px;
+  margin-right: var(--space-4, 16px);
+}
+
+.pcc-settings-select {
+  height: 36px !important;
+  max-width: 250px;
+  padding: 0 var(--space-3) !important;
+  font-size: var(--font-size-xs) !important;
+  border-radius: var(--radius-md) !important;
+}
+
 /* Integrations Grid */
 .pcc-integrations-grid {
   display: grid;

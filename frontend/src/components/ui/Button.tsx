@@ -10,6 +10,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
+  loadingText?: string;
   icon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
@@ -22,6 +23,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'primary',
       size = 'md',
       loading = false,
+      loadingText,
       disabled = false,
       icon,
       rightIcon,
@@ -60,11 +62,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             className="pcc-button__spinner"
           />
         ) : (
-          icon && <span className="pcc-button__icon-left">{icon}</span>
-        )}
-        {children && <span className="pcc-button__content">{children}</span>}
-        {!loading && rightIcon && (
-          <span className="pcc-button__icon-right">{rightIcon}</span>
+          <>
+            {icon && <span className="pcc-button__icon-left">{icon}</span>}
+            {children && <span className="pcc-button__content">{children}</span>}
+            {rightIcon && <span className="pcc-button__icon-right">{rightIcon}</span>}
+          </>
         )}
       </button>
     );

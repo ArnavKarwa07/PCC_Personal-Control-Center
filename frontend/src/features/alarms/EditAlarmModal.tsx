@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Input } from '../../components/ui';
 import { useAlarmStore } from '../../stores/alarmStore';
 import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
+import type { Alarm } from '../../types';
 
-interface AddAlarmModalProps {
+interface EditAlarmModalProps {
   isOpen: boolean;
   onClose: () => void;
+  alarm: Alarm | null;
 }
 
 const DAY_LABELS = [
@@ -19,17 +21,29 @@ const DAY_LABELS = [
   { day: 0, label: 'S', name: 'Sun' },
 ];
 
-export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose }) => {
-  const { addAlarm, previewAlarmSound } = useAlarmStore();
+export const EditAlarmModal: React.FC<EditAlarmModalProps> = ({ isOpen, onClose, alarm }) => {
+  const { editAlarm, previewAlarmSound } = useAlarmStore();
   const { toast } = useToast();
 
   const [hours, setHours] = useState('07');
   const [minutes, setMinutes] = useState('00');
   const [label, setLabel] = useState('');
-  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]); // Mon-Fri
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [sound, setSound] = useState('radiant');
   const [snoozeMinutes, setSnoozeMinutes] = useState(10);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (alarm) {
+      const [h, m] = alarm.time.split(':');
+      setHours(h || '07');
+      setMinutes(m || '00');
+      setLabel(alarm.label || '');
+      setSelectedDays(alarm.days || [1, 2, 3, 4, 5]);
+      setSound(alarm.sound || 'radiant');
+      setSnoozeMinutes(alarm.snoozeMinutes || 10);
+    }
+  }, [alarm]);
 
   const toggleDay = (day: number) => {
     soundEffects.playPip();
@@ -53,6 +67,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!alarm) return;
 
     const formattedHours = hours.padStart(2, '0');
     const formattedMins = minutes.padStart(2, '0');
@@ -60,25 +75,18 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
 
     setIsSubmitting(true);
     try {
-      await addAlarm({
+      await editAlarm(alarm.id, {
         time: timeStr,
         label: label.trim() || 'Scheduled Alarm',
-        enabled: true,
         days: selectedDays,
         sound,
         snoozeMinutes,
       });
 
-      toast.success(`Alarm set for ${timeStr}`);
+      toast.success(`Alarm updated for ${timeStr}`);
       onClose();
-      // Reset
-      setHours('07');
-      setMinutes('00');
-      setLabel('');
-      setSelectedDays([1, 2, 3, 4, 5]);
-      setSound('radiant');
     } catch {
-      toast.error('Failed to create alarm');
+      toast.error('Failed to update alarm');
     } finally {
       setIsSubmitting(false);
     }
@@ -99,7 +107,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add New Alarm" size="md" id="add-alarm-modal">
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Alarm" size="md" id="edit-alarm-modal">
       <form onSubmit={handleSubmit} className="pcc-alarm-form">
         {/* Big Time Selector with Top & Bottom Centered Stepper Arrows */}
         <div className="pcc-alarm-time-inputs">
@@ -116,7 +124,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
               </svg>
             </button>
             <input
-              id="alarm-hours-input"
+              id="edit-alarm-hours-input"
               className="pcc-alarm-time-digit"
               type="number"
               min="0"
@@ -157,7 +165,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
               </svg>
             </button>
             <input
-              id="alarm-minutes-input"
+              id="edit-alarm-minutes-input"
               className="pcc-alarm-time-digit"
               type="number"
               min="0"
@@ -186,7 +194,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
 
         {/* Label */}
         <Input
-          id="alarm-label-input"
+          id="edit-alarm-label-input"
           label="Alarm Label"
           placeholder="e.g. Morning Routine, Deep Work Session"
           value={label}
@@ -244,7 +252,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
         <div className="pcc-reminder-form__row">
           <div className="pcc-reminder-form__group">
             <div className="pcc-reminder-form__label-header">
-              <label className="pcc-reminder-form__label" htmlFor="alarm-sound">
+              <label className="pcc-reminder-form__label" htmlFor="edit-alarm-sound">
                 Alarm Tone
               </label>
               <button
@@ -255,15 +263,21 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
                   color: 'var(--color-accent-hover)',
                   fontSize: '11px',
                   cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
                   fontWeight: 600,
                 }}
                 onClick={() => previewAlarmSound(sound)}
               >
-                ▶ Test Tone
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Test Tone
               </button>
             </div>
             <select
-              id="alarm-sound"
+              id="edit-alarm-sound"
               className="pcc-reminder-form__select"
               value={sound}
               onChange={(e) => setSound(e.target.value)}
@@ -276,12 +290,12 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
 
           <div className="pcc-reminder-form__group">
             <div className="pcc-reminder-form__label-header">
-              <label className="pcc-reminder-form__label" htmlFor="alarm-snooze">
+              <label className="pcc-reminder-form__label" htmlFor="edit-alarm-snooze">
                 Snooze Duration
               </label>
             </div>
             <select
-              id="alarm-snooze"
+              id="edit-alarm-snooze"
               className="pcc-reminder-form__select"
               value={snoozeMinutes}
               onChange={(e) => setSnoozeMinutes(Number(e.target.value))}
@@ -299,7 +313,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
             Cancel
           </Button>
           <Button variant="primary" type="submit" loading={isSubmitting}>
-            Set Alarm
+            Save Changes
           </Button>
         </div>
       </form>

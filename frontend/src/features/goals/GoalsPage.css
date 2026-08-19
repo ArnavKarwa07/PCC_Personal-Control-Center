@@ -38,6 +38,8 @@
   flex-direction: column;
   gap: var(--space-3);
   transition: transform var(--transition-fast);
+  min-width: 0;
+  width: 100%;
 }
 
 .pcc-goal-card:hover {
@@ -48,6 +50,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  min-width: 0;
+  width: 100%;
 }
 
 @media (max-width: 600px) {
@@ -62,6 +66,7 @@
   flex-direction: column;
   gap: var(--space-2);
   flex: 1;
+  min-width: 0;
   width: 100%;
 }
 
@@ -70,29 +75,89 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.pcc-goal-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcc-goal-action-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-goal-action-btn:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
+}
+
+.pcc-goal-action-btn--delete:hover {
+  color: var(--color-danger, #ef4444);
+  border-color: var(--color-danger, #ef4444);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.pcc-goal-card__header > div:first-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .pcc-goal-card__title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme='light'] .pcc-goal-card__title,
+:root:not([data-theme]) .pcc-goal-card__title {
+  color: #0f172a;
 }
 
 .pcc-goal-card__period {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
   display: block;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .pcc-goal-card__velocity-status {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   background: var(--color-bg-tertiary);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+html[data-theme='light'] .pcc-goal-card__velocity-status,
+:root:not([data-theme]) .pcc-goal-card__velocity-status {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
 }
 
 .pcc-goal-card__status-tag {
@@ -110,6 +175,7 @@ html[data-theme='light'] .pcc-goal-card__status-tag,
   align-items: center;
   gap: 4px;
   color: #16a34a;
+  font-weight: var(--font-weight-bold);
 }
 
 html[data-theme='light'] .pcc-goal-achieved-badge,
@@ -123,6 +189,7 @@ html[data-theme='light'] .pcc-goal-achieved-badge,
   color: var(--color-text-secondary);
   padding-top: var(--space-2);
   border-top: 1px solid var(--color-border);
+  min-width: 0;
 }
 
 .pcc-milestones-label {
@@ -132,10 +199,16 @@ html[data-theme='light'] .pcc-goal-achieved-badge,
   margin-bottom: var(--space-2);
 }
 
+html[data-theme='light'] .pcc-milestones-label,
+:root:not([data-theme]) .pcc-milestones-label {
+  color: #0f172a;
+}
+
 .pcc-key-results-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .pcc-key-result-item {
@@ -147,6 +220,12 @@ html[data-theme='light'] .pcc-goal-achieved-badge,
   cursor: pointer;
   line-height: 1.45;
   transition: color var(--transition-fast);
+  min-width: 0;
+}
+
+html[data-theme='light'] .pcc-key-result-item,
+:root:not([data-theme]) .pcc-key-result-item {
+  color: #334155;
 }
 
 .pcc-key-result-item:hover {
@@ -166,11 +245,23 @@ html[data-theme='light'] .pcc-goal-achieved-badge,
   flex: 1;
   min-width: 0;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+}
+
+html[data-theme='light'] .pcc-key-result-text,
+:root:not([data-theme]) .pcc-key-result-text {
+  color: #1e293b;
 }
 
 .pcc-key-result-text--completed {
   text-decoration: line-through;
   color: var(--color-text-tertiary);
+}
+
+html[data-theme='light'] .pcc-key-result-text--completed,
+:root:not([data-theme]) .pcc-key-result-text--completed {
+  color: #64748b;
 }
 
 .pcc-goals-sidebar {
@@ -267,4 +358,20 @@ html[data-theme='light'] .pcc-goal-achieved-badge,
   background-color: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   border-color: var(--color-border-hover);
+}
+
+@media (max-width: 640px) {
+  .pcc-goals-page {
+    gap: var(--space-4);
+  }
+
+  .pcc-goal-card {
+    padding: var(--space-4) !important;
+  }
+
+  .pcc-goal-card__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
 }

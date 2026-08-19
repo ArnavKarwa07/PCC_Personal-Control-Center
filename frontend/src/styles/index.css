@@ -234,7 +234,7 @@ html[data-theme='dark'][data-accent='amber'] {
 
   /* Layout dimensions */
   --sidebar-width-expanded: 260px;
-  --sidebar-width-collapsed: 72px;
+  --sidebar-width-collapsed: 64px;
   --header-height: 64px;
   --bottom-nav-height: 64px;
 
@@ -295,17 +295,61 @@ a { color: var(--color-accent); text-decoration: none; transition: color var(--t
 a:hover { color: var(--color-accent-hover); }
 
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
-input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 
-select option {
-  background-color: var(--color-bg-primary);
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) 32px var(--space-2) var(--space-3) !important;
+  outline: none;
+  color-scheme: light dark;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 12px !important;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+html[data-theme='dark'] select {
+  color-scheme: dark;
+  background-color: #1e1e2e;
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.18);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+html[data-theme='light'] select {
+  color-scheme: light;
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+select option,
+select optgroup {
+  background-color: var(--color-bg-elevated);
   color: var(--color-text-primary);
 }
 
 html[data-theme='dark'] select option,
 html[data-theme='dark'] select optgroup {
-  background-color: var(--color-bg-elevated);
-  color: var(--color-text-primary);
+  background-color: #181825;
+  color: #f8fafc;
+}
+
+html[data-theme='light'] select option,
+html[data-theme='light'] select optgroup {
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }

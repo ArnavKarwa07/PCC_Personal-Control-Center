@@ -1,4 +1,4 @@
-# PCC — Personal Control Center
+# PCC - Personal Control Center
 
 ## Technical Requirements Document (TRD)
 
@@ -24,6 +24,14 @@ Build PCC as a production-quality, modular application that:
 * Can eventually be packaged as a native mobile application
 
 The architecture must allow new modules to be added without rewriting the core platform.
+
+## Core Technical & System Standards
+* **Default Location Standard**: Pune, India (IN) for default weather telemetry and location context.
+* **Currency Standard**: ₹ (INR - Indian Rupee) default across financial and transaction fields.
+* **Theme Priority**: Light Theme by default (`html[data-theme='light']`), backed by toggleable dark glassmorphism.
+* **UI Components & Icons**: Monochromatic SVG icons (`stroke="currentColor"`) matching modern design system tokens.
+* **Active Modules**: Tasks (with Kanban Board), Projects, Calendar, Goals (with clean progress wheels), Notes, Ideas, Contacts, Reminders, Alarms, Timers, Weather (Pune default), Settings (Integrations & JSON Onboarding Loader).
+* **Deprecated / Removed Modules**: Life Management, Periodic Reviews, World Clocks Planner, and Career & Growth.
 
 ---
 
@@ -132,13 +140,7 @@ src/
     notes/
     ideas/
     career/
-    learning/
-    knowledge/
-    finance/
-    fitness/
     contacts/
-    documents/
-    reviews/
     notifications/
   hooks/
   services/

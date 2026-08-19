@@ -11,10 +11,7 @@ const ProjectsPage = lazy(() => import('../features/projects'));
 const ProjectDetailPage = lazy(() => import('../features/projects/ProjectDetailPage'));
 const CalendarPage = lazy(() => import('../features/calendar'));
 const GoalsPage = lazy(() => import('../features/goals'));
-const CareerPage = lazy(() => import('../features/career'));
-const LifePage = lazy(() => import('../features/life'));
 const ContactsPage = lazy(() => import('../features/contacts/ContactsPage'));
-const ReviewsPage = lazy(() => import('../features/reviews'));
 const SettingsPage = lazy(() => import('../features/settings'));
 const RemindersPage = lazy(() => import('../features/reminders'));
 const NotesPage = lazy(() => import('../features/notes'));
@@ -23,8 +20,6 @@ const NotificationsPage = lazy(() => import('../features/notifications'));
 const AlarmsPage = lazy(() => import('../features/alarms'));
 const TimersPage = lazy(() => import('../features/timers'));
 const WeatherPage = lazy(() => import('../features/weather'));
-const ClocksPage = lazy(() => import('../features/clocks'));
-const SearchPage = lazy(() => import('../features/search'));
 
 // Auth Pages (outside AppShell)
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
@@ -132,30 +127,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      {
-        path: 'career',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <CareerPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'life',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <LifePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'reviews',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <ReviewsPage />
-          </Suspense>
-        ),
-      },
+
       {
         path: 'settings',
         element: (
@@ -217,22 +189,6 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageFallback />}>
             <WeatherPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'clocks',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <ClocksPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'search',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <SearchPage />
           </Suspense>
         ),
       },

@@ -45,7 +45,8 @@ def create_contact(
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
-@router.patch("/{contact_id}", summary="Update Contact")
+@router.put("/{contact_id}", summary="Update Contact (PUT)")
+@router.patch("/{contact_id}", summary="Update Contact (PATCH)")
 def update_contact(
     contact_id: uuid.UUID,
     data: ContactUpdate,

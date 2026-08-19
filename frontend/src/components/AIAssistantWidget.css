@@ -263,16 +263,18 @@ html[data-theme='dark'] .pcc-ai-chat-messages {
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .pcc-ai-bubble {
-    bottom: 76px;
-    right: 16px;
+    bottom: 72px;
+    left: 16px;
+    right: auto;
   }
 
   .pcc-ai-chat-panel {
     width: calc(100vw - 32px);
-    right: 16px;
-    bottom: 132px;
-    max-height: calc(100vh - 160px);
+    left: 16px;
+    right: auto;
+    bottom: 136px;
+    max-height: calc(100vh - 150px);
   }
 }

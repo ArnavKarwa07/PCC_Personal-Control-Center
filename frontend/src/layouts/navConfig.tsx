@@ -9,11 +9,8 @@ export interface NavItemConfig {
     | 'tasks'
     | 'projects'
     | 'calendar'
-    | 'career'
-    | 'life'
     | 'more'
     | 'goals'
-    | 'reviews'
     | 'settings'
     | 'contacts'
     | 'reminders'
@@ -23,7 +20,6 @@ export interface NavItemConfig {
     | 'alarms'
     | 'timers'
     | 'weather'
-    | 'clocks'
     | 'search'
     | 'login'
     | 'register';
@@ -47,6 +43,48 @@ export const MOBILE_NAV_ITEMS: NavItemConfig[] = [
   { id: 'mob-more', label: 'More', path: '#more', iconName: 'more' },
 ];
 
+export const DESKTOP_NAV_CATEGORIES = [
+  {
+    category: 'Core',
+    items: [
+      { id: 'page-home', label: 'Home', path: '/', iconName: 'home' as const },
+      { id: 'page-tasks', label: 'Tasks', path: '/tasks', iconName: 'tasks' as const },
+      { id: 'page-projects', label: 'Projects', path: '/projects', iconName: 'projects' as const },
+      { id: 'page-calendar', label: 'Calendar', path: '/calendar', iconName: 'calendar' as const },
+    ],
+  },
+  {
+    category: 'Productivity',
+    items: [
+      { id: 'page-goals', label: 'Goals', path: '/goals', iconName: 'goals' as const },
+    ],
+  },
+  {
+    category: 'Personal',
+    items: [
+      { id: 'page-contacts', label: 'Contacts', path: '/contacts', iconName: 'contacts' as const },
+    ],
+  },
+  {
+    category: 'Utilities',
+    items: [
+      { id: 'page-reminders', label: 'Reminders', path: '/reminders', iconName: 'reminders' as const },
+      { id: 'page-notes', label: 'Notes', path: '/notes', iconName: 'notes' as const },
+      { id: 'page-ideas', label: 'Idea Inbox', path: '/ideas', iconName: 'ideas' as const },
+      { id: 'page-notifications', label: 'Notifications', path: '/notifications', iconName: 'notifications' as const },
+      { id: 'page-alarms', label: 'Alarms', path: '/alarms', iconName: 'alarms' as const },
+      { id: 'page-timers', label: 'Timers', path: '/timers', iconName: 'timers' as const },
+      { id: 'page-weather', label: 'Weather', path: '/weather', iconName: 'weather' as const },
+    ],
+  },
+  {
+    category: 'System',
+    items: [
+      { id: 'page-settings', label: 'Settings', path: '/settings', iconName: 'settings' as const },
+    ],
+  },
+];
+
 export const ALL_PCC_PAGES: NavItemConfig[] = [
   { id: 'page-home', label: 'Home Dashboard', path: '/', iconName: 'home', category: 'Core' },
   { id: 'page-tasks', label: 'Tasks', path: '/tasks', iconName: 'tasks', category: 'Core' },
@@ -54,9 +92,6 @@ export const ALL_PCC_PAGES: NavItemConfig[] = [
   { id: 'page-calendar', label: 'Calendar', path: '/calendar', iconName: 'calendar', category: 'Core' },
   { id: 'page-contacts', label: 'Contacts', path: '/contacts', iconName: 'contacts', category: 'Personal' },
   { id: 'page-goals', label: 'Goals & Targets', path: '/goals', iconName: 'goals', category: 'Productivity' },
-  { id: 'page-career', label: 'Career & Growth', path: '/career', iconName: 'career', category: 'Productivity' },
-  { id: 'page-life', label: 'Life Management', path: '/life', iconName: 'life', category: 'Personal' },
-  { id: 'page-reviews', label: 'Periodic Reviews', path: '/reviews', iconName: 'reviews', category: 'Productivity' },
   { id: 'page-reminders', label: 'Reminders', path: '/reminders', iconName: 'reminders', category: 'Utilities' },
   { id: 'page-notes', label: 'Notes', path: '/notes', iconName: 'notes', category: 'Utilities' },
   { id: 'page-ideas', label: 'Idea Inbox', path: '/ideas', iconName: 'ideas', category: 'Utilities' },
@@ -64,12 +99,9 @@ export const ALL_PCC_PAGES: NavItemConfig[] = [
   { id: 'page-alarms', label: 'Alarms', path: '/alarms', iconName: 'alarms', category: 'Utilities' },
   { id: 'page-timers', label: 'Timers', path: '/timers', iconName: 'timers', category: 'Utilities' },
   { id: 'page-weather', label: 'Weather', path: '/weather', iconName: 'weather', category: 'Utilities' },
-  { id: 'page-clocks', label: 'World Clocks', path: '/clocks', iconName: 'clocks', category: 'Utilities' },
-  { id: 'page-search', label: 'Global Search', path: '/search', iconName: 'search', category: 'Utilities' },
   { id: 'page-settings', label: 'Settings', path: '/settings', iconName: 'settings', category: 'System' },
-  { id: 'page-login', label: 'Sign In', path: '/login', iconName: 'login', category: 'System' },
-  { id: 'page-register', label: 'Register', path: '/register', iconName: 'register', category: 'System' },
 ];
+
 
 export const renderNavIcon = (name: NavItemConfig['iconName']): React.ReactElement => {
   switch (name) {
@@ -119,25 +151,7 @@ export const renderNavIcon = (name: NavItemConfig['iconName']): React.ReactEleme
           <circle cx="12" cy="12" r="2" />
         </svg>
       );
-    case 'career':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-        </svg>
-      );
-    case 'life':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-        </svg>
-      );
-    case 'reviews':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      );
+
     case 'reminders':
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -192,13 +206,6 @@ export const renderNavIcon = (name: NavItemConfig['iconName']): React.ReactEleme
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" />
-        </svg>
-      );
-    case 'clocks':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
         </svg>
       );
     case 'search':

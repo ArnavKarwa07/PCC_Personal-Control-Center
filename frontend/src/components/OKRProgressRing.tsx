@@ -19,7 +19,9 @@ export const OKRProgressRing: React.FC<OKRProgressRingProps> = ({
   className = '',
 }) => {
   const normalizedProgress = Math.min(100, Math.max(0, progress));
-  const radius = (size - strokeWidth) / 2;
+  // Keep stroke and linecaps safely inside container bounds
+  const padding = 2; 
+  const radius = (size - strokeWidth - padding * 2) / 2;
   const center = size / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (normalizedProgress / 100) * circumference;
@@ -88,7 +90,6 @@ export const OKRProgressRing: React.FC<OKRProgressRingProps> = ({
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           className="pcc-okr-ring__fill"
-          transform={`rotate(-90 ${center} ${center})`}
         />
 
         {/* Center Percentage Display */}

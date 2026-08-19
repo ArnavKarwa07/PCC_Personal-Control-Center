@@ -123,9 +123,9 @@ class WeatherService:
     @classmethod
     def get_current_weather(
         cls,
-        latitude: float = 40.7128,
-        longitude: float = -74.0060,
-        city: Optional[str] = None,
+        latitude: float = 18.5204,
+        longitude: float = 73.8567,
+        city: Optional[str] = "Pune, India",
         units: str = "metric",
     ) -> WeatherCurrentResponse:
         """Fetch current weather for coordinates or fallback to mock."""
@@ -174,9 +174,9 @@ class WeatherService:
     @classmethod
     def get_weather_forecast(
         cls,
-        latitude: float = 40.7128,
-        longitude: float = -74.0060,
-        city: Optional[str] = None,
+        latitude: float = 18.5204,
+        longitude: float = 73.8567,
+        city: Optional[str] = "Pune, India",
         days: int = 5,
         units: str = "metric",
     ) -> WeatherForecastResponse:

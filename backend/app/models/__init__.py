@@ -10,13 +10,6 @@ from app.models.automation import Automation, AutomationRun, AutomationRunStatus
 from app.models.base import BaseModel
 from app.models.board import Board, BoardCard, BoardColumn
 from app.models.calendar_event import CalendarEvent, CalendarEventType
-from app.models.career import (
-    Achievement,
-    Certification,
-    Experience,
-    ResumeVersion,
-    Skill,
-)
 from app.models.contact import Contact
 from app.models.document import Document
 from app.models.goal import Goal, GoalMilestone, GoalStatus
@@ -42,7 +35,6 @@ from app.models.project import (
     ProjectTag,
 )
 from app.models.reminder import Reminder, ReminderStatus
-from app.models.review import Review, ReviewEntry, ReviewSection, ReviewStatus
 from app.models.tag import Tag
 from app.models.task import (
     RecurrencePattern,
@@ -90,15 +82,6 @@ __all__ = [
     "Note",
     "Idea",
     "IdeaStatus",
-    "Review",
-    "ReviewEntry",
-    "ReviewSection",
-    "ReviewStatus",
-    "Achievement",
-    "ResumeVersion",
-    "Skill",
-    "Certification",
-    "Experience",
     "Document",
     "Notification",
     "NotificationChannel",

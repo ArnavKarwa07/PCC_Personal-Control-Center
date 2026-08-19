@@ -29,6 +29,9 @@ class DailyBriefingRead(BaseModel):
     pending_tasks_count: int
     upcoming_events_count: int
     overdue_reminders_count: int
+    active_projects_count: int = 0
     unread_notifications_count: int
     executive_summary: str
     focus_recommendation: str
+    bullet_points: List[str] = Field(default_factory=list)
+

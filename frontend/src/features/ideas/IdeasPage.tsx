@@ -271,9 +271,12 @@ export const IdeasPage: React.FC = () => {
                               Promote &rarr;
                             </Button>
                           ) : (
-                            <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 'var(--font-weight-medium)' }}>
-                              &check; Active in Workflow
-                            </span>
+                             <span style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 'var(--font-weight-medium)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                 <polyline points="20 6 9 17 4 12" />
+                               </svg>
+                               Active in Workflow
+                             </span>
                           )}
 
                           <Dropdown

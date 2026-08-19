@@ -84,9 +84,9 @@ export const NotesWorkspace: React.FC = () => {
 
   const handleCreateNewNote = async () => {
     await addNote({
-      title: 'Untitled Note',
+      title: '',
       category: selectedCategory !== 'All' ? selectedCategory : 'General',
-      content: '# Untitled Note\n\nStart capturing thoughts...',
+      content: '',
     });
     addToast({
       type: 'success',
@@ -151,7 +151,7 @@ export const NotesWorkspace: React.FC = () => {
       {/* Left Pane: Notes Navigation */}
       <div className={cn('pcc-notes-list-pane', !isMobileListOpen && 'pcc-notes-list-pane--mobile-collapsed')}>
         <div className="pcc-notes-list__header">
-          <h2 className="pcc-notes-list__title">Notes & Knowledge</h2>
+          <h2 className="pcc-notes-list__title">Notes</h2>
           <Button
             variant="primary"
             size="sm"
@@ -371,7 +371,7 @@ export const NotesWorkspace: React.FC = () => {
             <div className="pcc-notes-editor__content-area">
               <input
                 className="pcc-notes-editor__title-input"
-                placeholder="Note Title..."
+                placeholder="Untitled Note"
                 value={localTitle}
                 onChange={(e) => handleTitleChange(e.target.value)}
               />
@@ -386,7 +386,7 @@ export const NotesWorkspace: React.FC = () => {
                 {(viewMode === 'edit' || viewMode === 'split') && (
                   <textarea
                     className="pcc-notes-editor__textarea"
-                    placeholder="Write markdown here... (# Heading, **bold**, - list, `code`)"
+                    placeholder="Start capturing thoughts..."
                     value={localContent}
                     onChange={(e) => handleContentChange(e.target.value)}
                   />
@@ -430,7 +430,7 @@ export const NotesWorkspace: React.FC = () => {
         }}
       >
         <div className="pcc-note-item-card__header">
-          <h4 className="pcc-note-item-card__title">{note.title}</h4>
+          <h4 className="pcc-note-item-card__title">{note.title.trim() || 'Untitled Note'}</h4>
           {note.pinned && (
             <svg viewBox="0 0 24 24" width="12" height="12" fill="var(--color-accent)" style={{ flexShrink: 0 }}>
               <path d="M16 4v2H8V4h8m1-2H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v7l-2 2v2h5v5h2v-5h5v-2l-2-2v-7h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
@@ -438,7 +438,7 @@ export const NotesWorkspace: React.FC = () => {
           )}
         </div>
 
-        <p className="pcc-note-item-card__snippet">{snippet || 'Empty note...'}</p>
+        <p className="pcc-note-item-card__snippet">{snippet.trim() || 'Start capturing thoughts...'}</p>
 
         <div className="pcc-note-item-card__footer">
           <Badge variant="default" size="sm">{note.category}</Badge>

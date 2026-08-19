@@ -139,6 +139,7 @@ export interface CalendarEvent {
   color?: string;
   priority?: Priority;
   location?: string;
+  category?: string;
   relatedId?: string;
   completed?: boolean;
   createdAt: string;
@@ -495,83 +496,5 @@ export interface WellnessTrendDay {
   workoutDone: boolean;
   habitsCompleted: number;
   habitsTotal: number;
-}
-
-/* ==========================================================================
-   Career & Professional Growth Types
-   ========================================================================== */
-
-export interface Achievement {
-  id: string;
-  user_id?: string;
-  title: string;
-  description?: string;
-  date?: string; // YYYY-MM-DD
-  category?: string;
-  project_id?: string;
-  evidence?: string;
-  resume_relevant: boolean;
-  linkedin_relevant: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface ResumeVersion {
-  id: string;
-  user_id?: string;
-  version_name: string;
-  target_role?: string;
-  content?: string;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export type SkillProficiency = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Master';
-
-export interface Skill {
-  id: string;
-  user_id?: string;
-  name: string;
-  category?: string;
-  proficiency?: SkillProficiency | string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface Certification {
-  id: string;
-  user_id?: string;
-  name: string;
-  issuer?: string;
-  date_obtained?: string; // YYYY-MM-DD
-  expiry_date?: string; // YYYY-MM-DD
-  credential_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface Experience {
-  id: string;
-  user_id?: string;
-  company: string;
-  role: string;
-  start_date?: string; // YYYY-MM-DD
-  end_date?: string; // YYYY-MM-DD
-  description?: string;
-  is_current: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface CareerSummary {
-  achievements_count: number;
-  resume_relevant_achievements: number;
-  skills_count: number;
-  certifications_count: number;
-  experiences_count: number;
-  resume_versions_count: number;
-  recent_achievements: Achievement[];
-  current_experiences: Experience[];
 }
 

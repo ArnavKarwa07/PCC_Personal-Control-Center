@@ -1,4 +1,4 @@
-# PCC Phase D Summary — Calendar, Reminders, Alarms & Background Workers
+# PCC Phase D Summary - Calendar, Reminders, Alarms & Background Workers
 
 ## Overview
 

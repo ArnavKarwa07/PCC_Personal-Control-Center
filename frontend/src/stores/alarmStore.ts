@@ -13,6 +13,7 @@ interface AlarmStore {
   fetchAlarms: () => Promise<void>;
   addAlarm: (alarm: Omit<Alarm, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Alarm>;
   updateAlarm: (id: string, updates: Partial<Alarm>) => Promise<void>;
+  editAlarm: (id: string, updates: Partial<Alarm>) => Promise<void>;
   deleteAlarm: (id: string) => Promise<void>;
   toggleAlarm: (id: string) => Promise<void>;
   duplicateAlarm: (id: string) => Promise<Alarm | undefined>;
@@ -157,6 +158,10 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
       saveAlarms(updated);
       return { alarms: updated };
     });
+  },
+
+  editAlarm: async (id, updates) => {
+    return get().updateAlarm(id, updates);
   },
 
   deleteAlarm: async (id) => {

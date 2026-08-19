@@ -169,6 +169,31 @@ export const ContactsPage: React.FC = () => {
     setDeleteTarget(null);
   };
 
+  const handleLogCatchUp = async (contactId: string, contactName: string) => {
+    try {
+      await apiClient.put(`/contacts/${contactId}`, {
+        last_interaction: new Date().toISOString(),
+        next_followup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+    } catch (err) {
+      console.warn('Backend catch-up update failed, updating local state:', err);
+    }
+
+    setContacts((prev) =>
+      prev.map((c) =>
+        c.id === contactId
+          ? {
+              ...c,
+              status: 'Up to date',
+              lastContact: 'Just now',
+            }
+          : c
+      )
+    );
+
+    toast.success(`Logged catch-up with ${contactName}`);
+  };
+
   const filtered = contacts.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -289,7 +314,7 @@ export const ContactsPage: React.FC = () => {
                         size="sm"
                         variant="outline"
                         className="pcc-contact-card__catchup-btn"
-                        onClick={() => toast.info(`Logged catch-up with ${c.name}`)}
+                        onClick={() => handleLogCatchUp(c.id, c.name)}
                       >
                         Log Catch-Up
                       </Button>

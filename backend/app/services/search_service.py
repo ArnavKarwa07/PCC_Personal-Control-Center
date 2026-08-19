@@ -26,8 +26,6 @@ SUPPORTED_ENTITY_TYPES = {
     "contacts",
     "goals",
     "reminders",
-    "career",
-    "reviews",
 }
 
 # Type aliases mapping for flexible query parameters
@@ -50,11 +48,6 @@ TYPE_ALIASES = {
     "goals": "goals",
     "reminder": "reminders",
     "reminders": "reminders",
-    "career": "career",
-    "achievements": "career",
-    "skills": "career",
-    "review": "reviews",
-    "reviews": "reviews",
 }
 
 

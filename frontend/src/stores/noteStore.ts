@@ -41,10 +41,10 @@ The **Personal Control Center** is built as an ultra-responsive, offline-first p
 ### Component Structure
 - \`Projects\`: High-level initiatives and milestones
 - \`Kanban Board\`: Column-based workflow progression
-- \`Notes & Knowledge\`: Bi-directional markdown repository
+- \`Notes\`: Bi-directional markdown repository
 - \`Calendar\`: Time-blocked schedule and deadline synchronization
 
-> "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
+> "Simplicity is prerequisite for reliability." - Edsger W. Dijkstra
 `,
     category: 'Engineering',
     pinned: true,
@@ -174,8 +174,8 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     const now = new Date().toISOString();
     const newNote: Note = {
       id: generateId('note'),
-      title: initial?.title || 'Untitled Note',
-      content: initial?.content || '# Untitled Note\n\nStart writing your thoughts here...',
+      title: initial?.title !== undefined ? initial.title : '',
+      content: initial?.content !== undefined ? initial.content : '',
       category: initial?.category || (get().selectedCategory !== 'All' ? get().selectedCategory : 'General'),
       pinned: initial?.pinned || false,
       tags: initial?.tags || [],

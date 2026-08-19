@@ -6,7 +6,7 @@ import { useNotificationStore } from '../stores/notificationStore';
 import { Avatar, Badge, Button, Dropdown, Modal, Input } from '../components/ui';
 import { useToast } from '../hooks/useToast';
 import { OnboardingModal } from '../features/onboarding/OnboardingModal';
-import { MAIN_NAV_ITEMS, renderNavIcon } from './navConfig';
+import { DESKTOP_NAV_CATEGORIES, renderNavIcon } from './navConfig';
 import { cn } from '../utils';
 import './DesktopLayout.css';
 
@@ -114,21 +114,29 @@ export const DesktopLayout: React.FC = () => {
 
         {/* Navigation Items */}
         <nav className="pcc-sidebar__nav">
-          {MAIN_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              id={item.id}
-              className={({ isActive }) =>
-                cn('pcc-sidebar__nav-item', isActive && 'pcc-sidebar__nav-item--active')
-              }
-              title={sidebarCollapsed ? item.label : undefined}
-            >
-              <span className="pcc-sidebar__nav-icon">{renderNavIcon(item.iconName)}</span>
-              {!sidebarCollapsed && <span className="pcc-sidebar__nav-label">{item.label}</span>}
-            </NavLink>
+          {DESKTOP_NAV_CATEGORIES.map((catGroup) => (
+            <div key={catGroup.category} className="pcc-sidebar__section">
+              {!sidebarCollapsed && (
+                <div className="pcc-sidebar__category-label">{catGroup.category}</div>
+              )}
+              {catGroup.items.map((item) => (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  id={item.id}
+                  className={({ isActive }) =>
+                    cn('pcc-sidebar__nav-item', isActive && 'pcc-sidebar__nav-item--active')
+                  }
+                  title={sidebarCollapsed ? item.label : undefined}
+                >
+                  <span className="pcc-sidebar__nav-icon">{renderNavIcon(item.iconName)}</span>
+                  {!sidebarCollapsed && <span className="pcc-sidebar__nav-label">{item.label}</span>}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
+
 
         {/* User Profile & Collapse Toggle Section */}
         <div className="pcc-sidebar__footer">

@@ -7,6 +7,7 @@ import { Task, Priority } from '../../types';
 import { Badge, Button, Input, EmptyState, Dropdown } from '../../components/ui';
 import { TaskDetailModal } from './TaskDetailModal';
 import { CreateTaskModal } from './CreateTaskModal';
+import { KanbanBoard } from '../projects/KanbanBoard';
 import { formatDate, cn } from '../../utils';
 import './Tasks.css';
 
@@ -388,7 +389,7 @@ export const TasksPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onClear={() => setSearchQuery('')}
-            style={{ width: '220px' }}
+            style={{ width: '180px' }}
             icon={
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
@@ -448,6 +449,16 @@ export const TasksPage: React.FC = () => {
               type="button"
               className={cn(
                 'pcc-tasks-view-btn',
+                viewMode === 'kanban' && 'pcc-tasks-view-btn--active'
+              )}
+              onClick={() => setViewMode('kanban')}
+            >
+              Kanban Board
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'pcc-tasks-view-btn',
                 viewMode === 'project' && 'pcc-tasks-view-btn--active'
               )}
               onClick={() => setViewMode('project')}
@@ -481,6 +492,8 @@ export const TasksPage: React.FC = () => {
           actionLabel="Create Task"
           onAction={() => setIsCreateModalOpen(true)}
         />
+      ) : viewMode === 'kanban' ? (
+        <KanbanBoard globalMode onCardClick={handleOpenDetail} />
       ) : viewMode === 'project' ? (
         renderGroupByProject()
       ) : viewMode === 'priority' ? (

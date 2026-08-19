@@ -1,4 +1,4 @@
-# PCC Phase C Summary — Knowledge Base & Idea Promotion Workflow
+# PCC Phase C Summary - Knowledge Base & Idea Promotion Workflow
 
 ## Overview
 

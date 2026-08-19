@@ -13,9 +13,9 @@ router = APIRouter(prefix="/weather", tags=["Weather"])
 
 @router.get("/current")
 def get_current_weather(
-    lat: float = Query(40.7128, description="Latitude coordinates"),
-    lon: float = Query(-74.0060, description="Longitude coordinates"),
-    city: Optional[str] = Query(None, description="City / location name override"),
+    lat: float = Query(18.5204, description="Latitude coordinates"),
+    lon: float = Query(73.8567, description="Longitude coordinates"),
+    city: Optional[str] = Query("Pune, India", description="City / location name override"),
     units: str = Query("metric", description="Unit system: metric or imperial"),
     current_user: User = Depends(get_current_user),
 ):
@@ -33,9 +33,9 @@ def get_current_weather(
 
 @router.get("/forecast")
 def get_weather_forecast(
-    lat: float = Query(40.7128, description="Latitude coordinates"),
-    lon: float = Query(-74.0060, description="Longitude coordinates"),
-    city: Optional[str] = Query(None, description="City / location name override"),
+    lat: float = Query(18.5204, description="Latitude coordinates"),
+    lon: float = Query(73.8567, description="Longitude coordinates"),
+    city: Optional[str] = Query("Pune, India", description="City / location name override"),
     days: int = Query(5, ge=1, le=7, description="Forecast days (1 to 7)"),
     units: str = Query("metric", description="Unit system: metric or imperial"),
     current_user: User = Depends(get_current_user),

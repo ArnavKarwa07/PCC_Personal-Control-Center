@@ -1,4 +1,4 @@
-# PCC Phase A Summary — Architecture Foundation & Shell Systems
+# PCC Phase A Summary - Architecture Foundation & Shell Systems
 
 ## Overview
 

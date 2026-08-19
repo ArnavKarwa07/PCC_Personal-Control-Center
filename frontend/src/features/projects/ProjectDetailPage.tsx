@@ -5,7 +5,6 @@ import { useTaskStore } from '../../stores/taskStore';
 import { useToast } from '../../hooks/useToast';
 import { ProjectStatus, Priority } from '../../types';
 import { Card, Badge, Button, Tabs, EmptyState, Input, Modal } from '../../components/ui';
-import { KanbanBoard } from './KanbanBoard';
 import { formatDate } from '../../utils';
 import './ProjectDetailPage.css';
 
@@ -57,7 +56,6 @@ export const ProjectDetailPage: React.FC = () => {
   const tabsConfig = [
     { id: 'overview', label: 'Overview' },
     { id: 'tasks', label: 'Tasks', count: totalTasks },
-    { id: 'kanban', label: 'Kanban Board' },
   ];
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -313,8 +311,8 @@ export const ProjectDetailPage: React.FC = () => {
               </div>
 
               <div style={{ marginTop: 'var(--space-4)', display: 'flex', gap: 'var(--space-2)' }}>
-                <Button variant="secondary" size="sm" onClick={() => setActiveTab('kanban')}>
-                  Open Kanban Board &rarr;
+                <Button variant="secondary" size="sm" onClick={() => navigate('/tasks')}>
+                  View Tasks &rarr;
                 </Button>
                 <Button variant="danger" size="sm" onClick={handleDeleteProject}>
                   Delete Project
@@ -400,10 +398,6 @@ export const ProjectDetailPage: React.FC = () => {
             </div>
           )}
         </div>
-      )}
-
-      {activeTab === 'kanban' && (
-        <KanbanBoard projectId={project.id} />
       )}
 
       {/* Edit Project Modal */}

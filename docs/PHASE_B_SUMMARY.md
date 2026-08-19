@@ -1,4 +1,4 @@
-# PCC Phase B Summary — Core Functional Domains & Task Engine
+# PCC Phase B Summary - Core Functional Domains & Task Engine
 
 ## Overview
 
