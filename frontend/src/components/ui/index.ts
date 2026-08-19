@@ -9,3 +9,5 @@ export * from './Avatar';
 export * from './Spinner';
 export * from './EmptyState';
 export * from './Dropdown';
+export * from './PageLoader';
+

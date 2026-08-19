@@ -206,35 +206,20 @@ export const CalendarPage: React.FC = () => {
           </div>
 
           {/* View Mode Toggle */}
-          <div style={{ display: 'flex', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', padding: '2px', border: '1px solid var(--color-border)' }}>
-            <button
-              type="button"
-              style={{
-                padding: '5px 12px',
-                fontSize: 'var(--font-size-xs)',
-                fontWeight: 'var(--font-weight-medium)',
-                borderRadius: 'var(--radius-sm)',
-                background: activeView === 'month' ? 'var(--color-surface)' : 'transparent',
-                color: activeView === 'month' ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-              }}
-              onClick={() => setActiveView('month')}
-            >
-              Month
-            </button>
-            <button
-              type="button"
-              style={{
-                padding: '5px 12px',
-                fontSize: 'var(--font-size-xs)',
-                fontWeight: 'var(--font-weight-medium)',
-                borderRadius: 'var(--radius-sm)',
-                background: activeView === 'week' ? 'var(--color-surface)' : 'transparent',
-                color: activeView === 'week' ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-              }}
-              onClick={() => setActiveView('week')}
-            >
-              Week
-            </button>
+          <div className="pcc-calendar-view-toggle">
+            {(['month', 'week', 'day', 'agenda'] as const).map((view) => (
+              <button
+                key={view}
+                type="button"
+                className={cn(
+                  'pcc-calendar-view-btn',
+                  activeView === view && 'pcc-calendar-view-btn--active'
+                )}
+                onClick={() => setActiveView(view)}
+              >
+                {view.charAt(0).toUpperCase() + view.slice(1)}
+              </button>
+            ))}
           </div>
 
           <Button
@@ -258,7 +243,7 @@ export const CalendarPage: React.FC = () => {
       </div>
 
       {/* Month View Grid */}
-      {activeView === 'month' ? (
+      {activeView === 'month' && (
         <div className="pcc-calendar-grid-container" id="calendar-month-container">
           {/* Weekday Header */}
           <div className="pcc-calendar-weekday-header">
@@ -309,7 +294,7 @@ export const CalendarPage: React.FC = () => {
                         onClick={(e) => handleEventClick(evt, e)}
                         title={`${evt.title} (${evt.type})`}
                       >
-                        <span>{evt.title}</span>
+                        <span className="pcc-calendar-event-title">{evt.title}</span>
                       </div>
                     ))}
                   </div>
@@ -318,8 +303,10 @@ export const CalendarPage: React.FC = () => {
             })}
           </div>
         </div>
-      ) : (
-        /* Week View Grid */
+      )}
+
+      {/* Week View Grid */}
+      {activeView === 'week' && (
         <div className="pcc-calendar-week-grid" id="calendar-week-container">
           {weekDays.map((wd) => {
             const dayEvents = getEventsForDay(wd.dateStr);
@@ -363,9 +350,9 @@ export const CalendarPage: React.FC = () => {
                         )}
                         onClick={(e) => handleEventClick(evt, e)}
                       >
-                        <strong style={{ fontSize: 'var(--font-size-xs)' }}>{evt.title}</strong>
+                        <strong className="pcc-calendar-event-title" style={{ fontSize: 'var(--font-size-xs)' }}>{evt.title}</strong>
                         {evt.description && (
-                          <span style={{ fontSize: '11px', opacity: 0.8 }}>
+                          <span className="pcc-calendar-event-desc" style={{ fontSize: '11px', opacity: 0.8 }}>
                             {evt.description}
                           </span>
                         )}
@@ -376,6 +363,119 @@ export const CalendarPage: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Day View (Mobile Optimized) */}
+      {activeView === 'day' && (
+        <div className="pcc-calendar-day-view" id="calendar-day-container">
+          <div className="pcc-calendar-day-ribbon">
+            {weekDays.map((wd) => (
+              <button
+                key={wd.dateStr}
+                type="button"
+                className={cn(
+                  'pcc-calendar-ribbon-btn',
+                  clickedDate === wd.dateStr && 'pcc-calendar-ribbon-btn--active',
+                  wd.isToday && 'pcc-calendar-ribbon-btn--today'
+                )}
+                onClick={() => setClickedDate(wd.dateStr)}
+              >
+                <span className="pcc-calendar-ribbon-day">{wd.name}</span>
+                <span className="pcc-calendar-ribbon-num">{wd.dayNumber}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="pcc-calendar-day-details">
+            <div className="pcc-calendar-day-details-header">
+              <h3>Schedule for {clickedDate}</h3>
+              <Button size="sm" variant="secondary" onClick={() => setIsCreateModalOpen(true)}>
+                + Add for this Day
+              </Button>
+            </div>
+
+            <div className="pcc-calendar-day-events-list">
+              {getEventsForDay(clickedDate).length === 0 ? (
+                <div className="pcc-calendar-empty-day">
+                  No events or reminders scheduled for this date.
+                </div>
+              ) : (
+                getEventsForDay(clickedDate).map((evt) => (
+                  <div
+                    key={evt.id}
+                    className={cn(
+                      'pcc-calendar-agenda-item',
+                      `pcc-calendar-event-chip--${evt.type}`,
+                      evt.completed && 'pcc-calendar-event-chip--completed'
+                    )}
+                    onClick={(e) => handleEventClick(evt, e)}
+                  >
+                    <div className="pcc-calendar-agenda-item-header">
+                      <span className="pcc-calendar-agenda-badge">{evt.type}</span>
+                      <span className="pcc-calendar-event-title">{evt.title}</span>
+                    </div>
+                    {evt.description && (
+                      <p className="pcc-calendar-agenda-desc">{evt.description}</p>
+                    )}
+                    {evt.location && (
+                      <div className="pcc-calendar-agenda-loc">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span>{evt.location}</span>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Agenda View (Mobile / Compressed Screen View) */}
+      {activeView === 'agenda' && (
+        <div className="pcc-calendar-agenda-view" id="calendar-agenda-container">
+          <div className="pcc-calendar-agenda-list">
+            {filteredEvents.length === 0 ? (
+              <div className="pcc-calendar-empty-day">No upcoming items match active filters.</div>
+            ) : (
+              filteredEvents.map((evt) => (
+                <div
+                  key={evt.id}
+                  className={cn(
+                    'pcc-calendar-agenda-card',
+                    `pcc-calendar-event-chip--${evt.type}`,
+                    evt.completed && 'pcc-calendar-event-chip--completed'
+                  )}
+                  onClick={(e) => handleEventClick(evt, e)}
+                >
+                  <div className="pcc-calendar-agenda-date-badge">
+                    {evt.startDate.split('T')[0]}
+                  </div>
+                  <div className="pcc-calendar-agenda-main">
+                    <div className="pcc-calendar-agenda-title-row">
+                      <span className="pcc-calendar-agenda-type-dot" />
+                      <span className="pcc-calendar-event-title">{evt.title}</span>
+                    </div>
+                    {evt.description && <p className="pcc-calendar-agenda-desc">{evt.description}</p>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 

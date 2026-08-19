@@ -4,12 +4,13 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--space-12) var(--space-6);
+  padding: var(--space-12) var(--space-8);
   border-radius: var(--radius-xl);
   border: 1px dashed var(--color-border);
-  background-color: rgba(18, 18, 26, 0.4);
+  background-color: transparent;
   max-width: 520px;
   margin: var(--space-6) auto;
+  width: 100%;
 }
 
 .pcc-empty-state__icon {
@@ -21,8 +22,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
   color: var(--color-accent-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .pcc-empty-state__icon svg {
@@ -40,11 +42,15 @@
 .pcc-empty-state__description {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
-  max-width: 360px;
+  max-width: 380px;
   line-height: var(--line-height-relaxed);
+  margin-bottom: 0;
+}
+
+.pcc-empty-state__description:not(:last-child) {
   margin-bottom: var(--space-5);
 }
 
 .pcc-empty-state__action {
-  margin-top: var(--space-2);
+  margin-top: var(--space-4);
 }

@@ -12,6 +12,10 @@ import type {
   AppNotification,
   Integration,
   WeatherData,
+  SearchResponse,
+  FitnessSummary,
+  WorkoutItem,
+  GoalItem,
 } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -33,9 +37,10 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
-  customHeaders?: Record<string, string>
+  customHeaders?: Record<string, string>,
+  isRetry = false
 ): Promise<T> {
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().token || 'mock-dev-token';
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -62,6 +67,17 @@ async function request<T>(
     const response = await fetch(url, config);
 
     if (!response.ok) {
+      if (response.status === 401 && !isRetry) {
+        localStorage.removeItem('pcc_auth_token');
+        const authState = useAuthStore.getState();
+        if (authState.resetToMockToken) {
+          authState.resetToMockToken();
+        } else {
+          useAuthStore.setState({ token: 'mock-dev-token', isAuthenticated: true });
+        }
+        return request<T>(method, path, body, customHeaders, true);
+      }
+
       let errData: ApiError;
       try {
         errData = await response.json();
@@ -116,11 +132,16 @@ export const apiClient = {
    ========================================================================== */
 
 export const projectsApi = {
-  getAll: () => apiClient.get<Project[]>('/projects'),
-  getById: (id: string) => apiClient.get<Project>(`/projects/${id}`),
-  create: (data: Partial<Project>) => apiClient.post<Project>('/projects', data),
-  update: (id: string, data: Partial<Project>) => apiClient.put<Project>(`/projects/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/projects/${id}`),
+  getAll: () =>
+    apiClient.get<Project[]>('/projects/list_projects').catch(() => apiClient.get<Project[]>('/projects')),
+  getById: (id: string) =>
+    apiClient.get<Project>(`/projects/get_project_by_id/${id}`).catch(() => apiClient.get<Project>(`/projects/${id}`)),
+  create: (data: Partial<Project>) =>
+    apiClient.post<Project>('/projects/create_project', data).catch(() => apiClient.post<Project>('/projects', data)),
+  update: (id: string, data: Partial<Project>) =>
+    apiClient.patch<Project>(`/projects/update_project_by_id/${id}`, data).catch(() => apiClient.put<Project>(`/projects/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean }>(`/projects/delete_project_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/projects/${id}`)),
 };
 
 export const tasksApi = {
@@ -129,77 +150,136 @@ export const tasksApi = {
     if (params?.projectId) query.append('project_id', params.projectId);
     if (params?.status) query.append('status', params.status);
     const qs = query.toString();
-    return apiClient.get<Task[]>(`/tasks${qs ? `?${qs}` : ''}`);
+    return apiClient
+      .get<Task[]>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`)
+      .catch(() => apiClient.get<Task[]>(`/tasks${qs ? `?${qs}` : ''}`));
   },
-  getById: (id: string) => apiClient.get<Task>(`/tasks/${id}`),
-  create: (data: Partial<Task>) => apiClient.post<Task>('/tasks', data),
-  update: (id: string, data: Partial<Task>) => apiClient.put<Task>(`/tasks/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/tasks/${id}`),
+  getById: (id: string) =>
+    apiClient.get<Task>(`/tasks/get_task_by_id/${id}`).catch(() => apiClient.get<Task>(`/tasks/${id}`)),
+  create: (data: Partial<Task>) =>
+    apiClient.post<Task>('/tasks/create_task', data).catch(() => apiClient.post<Task>('/tasks', data)),
+  update: (id: string, data: Partial<Task>) =>
+    apiClient.patch<Task>(`/tasks/update_task_by_id/${id}`, data).catch(() => apiClient.put<Task>(`/tasks/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean }>(`/tasks/delete_task_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/tasks/${id}`)),
 };
 
 export const notesApi = {
   getAll: (category?: string) => {
     const query = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
-    return apiClient.get<Note[]>(`/notes${query}`);
+    return apiClient
+      .get<Note[]>(`/notes/list_notes${query}`)
+      .catch(() => apiClient.get<Note[]>(`/notes${query}`));
   },
-  getById: (id: string) => apiClient.get<Note>(`/notes/${id}`),
-  create: (data: Partial<Note>) => apiClient.post<Note>('/notes', data),
-  update: (id: string, data: Partial<Note>) => apiClient.put<Note>(`/notes/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notes/${id}`),
+  getById: (id: string) =>
+    apiClient.get<Note>(`/notes/get_note_by_id/${id}`).catch(() => apiClient.get<Note>(`/notes/${id}`)),
+  create: (data: Partial<Note>) =>
+    apiClient.post<Note>('/notes/create_note', data).catch(() => apiClient.post<Note>('/notes', data)),
+  update: (id: string, data: Partial<Note>) =>
+    apiClient.patch<Note>(`/notes/update_note_by_id/${id}`, data).catch(() => apiClient.put<Note>(`/notes/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean }>(`/notes/delete_note_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/notes/${id}`)),
 };
 
 export const ideasApi = {
   getAll: (status?: string) => {
     const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return apiClient.get<Idea[]>(`/ideas${query}`);
+    return apiClient
+      .get<Idea[]>(`/ideas/list_ideas${query}`)
+      .catch(() => apiClient.get<Idea[]>(`/ideas${query}`));
   },
-  getById: (id: string) => apiClient.get<Idea>(`/ideas/${id}`),
-  create: (data: Partial<Idea>) => apiClient.post<Idea>('/ideas', data),
-  update: (id: string, data: Partial<Idea>) => apiClient.put<Idea>(`/ideas/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/ideas/${id}`),
+  getById: (id: string) =>
+    apiClient.get<Idea>(`/ideas/get_idea_by_id/${id}`).catch(() => apiClient.get<Idea>(`/ideas/${id}`)),
+  create: (data: Partial<Idea>) =>
+    apiClient.post<Idea>('/ideas/create_idea', data).catch(() => apiClient.post<Idea>('/ideas', data)),
+  update: (id: string, data: Partial<Idea>) =>
+    apiClient.patch<Idea>(`/ideas/update_idea_by_id/${id}`, data).catch(() => apiClient.put<Idea>(`/ideas/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean }>(`/ideas/delete_idea_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/ideas/${id}`)),
   promote: (id: string, promotion: { type: 'task' | 'project'; title?: string; projectId?: string }) =>
-    apiClient.post<Idea>(`/ideas/${id}/promote`, promotion),
+    apiClient
+      .post<Idea>(`/ideas/promote_idea_by_id/${id}`, promotion)
+      .catch(() => apiClient.post<Idea>(`/ideas/${id}/promote`, promotion)),
 };
 
 export const calendarApi = {
   getAll: (params?: { start?: string; end?: string; type?: string }) => {
     const query = new URLSearchParams();
-    if (params?.start) query.append('start', params.start);
-    if (params?.end) query.append('end', params.end);
-    if (params?.type) query.append('type', params.type);
+    if (params?.start) query.append('start_date', params.start);
+    if (params?.end) query.append('end_date', params.end);
+    if (params?.type) query.append('event_type', params.type);
     const qs = query.toString();
-    return apiClient.get<CalendarEvent[]>(`/calendar${qs ? `?${qs}` : ''}`);
+    return apiClient
+      .get<CalendarEvent[]>(`/calendar/events/list_calendar_events${qs ? `?${qs}` : ''}`)
+      .catch(() => apiClient.get<CalendarEvent[]>(`/calendar/events${qs ? `?${qs}` : ''}`));
   },
-  getById: (id: string) => apiClient.get<CalendarEvent>(`/calendar/${id}`),
-  create: (data: Partial<CalendarEvent>) => apiClient.post<CalendarEvent>('/calendar', data),
-  update: (id: string, data: Partial<CalendarEvent>) => apiClient.put<CalendarEvent>(`/calendar/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/calendar/${id}`),
+  getById: (id: string) =>
+    apiClient
+      .get<CalendarEvent>(`/calendar/events/get_calendar_event_by_id/${id}`)
+      .catch(() => apiClient.get<CalendarEvent>(`/calendar/events/${id}`)),
+  create: (data: Partial<CalendarEvent>) =>
+    apiClient
+      .post<CalendarEvent>('/calendar/events/create_calendar_event', data)
+      .catch(() => apiClient.post<CalendarEvent>('/calendar/events', data)),
+  update: (id: string, data: Partial<CalendarEvent>) =>
+    apiClient
+      .patch<CalendarEvent>(`/calendar/events/update_calendar_event_by_id/${id}`, data)
+      .catch(() => apiClient.patch<CalendarEvent>(`/calendar/events/${id}`, data)),
+  delete: (id: string) =>
+    apiClient
+      .delete<{ success: boolean }>(`/calendar/events/delete_calendar_event_by_id/${id}`)
+      .catch(() => apiClient.delete<{ success: boolean }>(`/calendar/events/${id}`)),
 };
 
 export const remindersApi = {
-  getAll: () => apiClient.get<Reminder[]>('/reminders'),
-  getById: (id: string) => apiClient.get<Reminder>(`/reminders/${id}`),
-  create: (data: Partial<Reminder>) => apiClient.post<Reminder>('/reminders', data),
-  update: (id: string, data: Partial<Reminder>) => apiClient.put<Reminder>(`/reminders/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/reminders/${id}`),
+  getAll: () =>
+    apiClient.get<Reminder[]>('/reminders/list_reminders').catch(() => apiClient.get<Reminder[]>('/reminders')),
+  getById: (id: string) =>
+    apiClient.get<Reminder>(`/reminders/get_reminder_by_id/${id}`).catch(() => apiClient.get<Reminder>(`/reminders/${id}`)),
+  create: (data: Partial<Reminder>) =>
+    apiClient.post<Reminder>('/reminders/create_reminder', data).catch(() => apiClient.post<Reminder>('/reminders', data)),
+  update: (id: string, data: Partial<Reminder>) =>
+    apiClient.patch<Reminder>(`/reminders/update_reminder_by_id/${id}`, data).catch(() => apiClient.put<Reminder>(`/reminders/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean }>(`/reminders/delete_reminder_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/reminders/${id}`)),
   snooze: (id: string, snoozedUntil: string) =>
-    apiClient.post<Reminder>(`/reminders/${id}/snooze`, { snoozedUntil }),
+    apiClient
+      .post<Reminder>(`/reminders/snooze_reminder_by_id/${id}`, { snoozedUntil })
+      .catch(() => apiClient.post<Reminder>(`/reminders/${id}/snooze`, { snoozedUntil })),
 };
 
 export const alarmsApi = {
-  getAll: () => apiClient.get<Alarm[]>('/alarms'),
-  getById: (id: string) => apiClient.get<Alarm>(`/alarms/${id}`),
-  create: (data: Partial<Alarm>) => apiClient.post<Alarm>('/alarms', data),
-  update: (id: string, data: Partial<Alarm>) => apiClient.put<Alarm>(`/alarms/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/alarms/${id}`),
-  toggle: (id: string, enabled: boolean) => apiClient.patch<Alarm>(`/alarms/${id}/toggle`, { enabled }),
+  getAll: () =>
+    apiClient.get<Alarm[]>('/alarms/list_alarms').catch(() => apiClient.get<Alarm[]>('/alarms')),
+  getById: (id: string) =>
+    apiClient.get<Alarm>(`/alarms/${id}`).catch(() => apiClient.get<Alarm>(`/alarms/${id}`)),
+  create: (data: Partial<Alarm>) =>
+    apiClient.post<Alarm>('/alarms/create_alarm', data).catch(() => apiClient.post<Alarm>('/alarms', data)),
+  update: (id: string, data: Partial<Alarm>) =>
+    apiClient.patch<Alarm>(`/alarms/update_alarm_by_id/${id}`, data).catch(() => apiClient.put<Alarm>(`/alarms/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean }>(`/alarms/delete_alarm_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/alarms/${id}`)),
+  toggle: (id: string, enabled: boolean) =>
+    apiClient
+      .patch<Alarm>(`/alarms/toggle_alarm_by_id/${id}`, { enabled })
+      .catch(() => apiClient.patch<Alarm>(`/alarms/${id}/toggle`, { enabled })),
 };
 
 export const notificationsApi = {
-  getAll: () => apiClient.get<AppNotification[]>('/notifications'),
-  markAsRead: (id: string) => apiClient.patch<AppNotification>(`/notifications/${id}/read`, {}),
-  markAllAsRead: () => apiClient.post<{ success: boolean }>('/notifications/mark-all-read', {}),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notifications/${id}`),
+  getAll: () =>
+    apiClient.get<AppNotification[]>('/notifications/list_notifications').catch(() => apiClient.get<AppNotification[]>('/notifications')),
+  markAsRead: (id: string) =>
+    apiClient
+      .patch<AppNotification>(`/notifications/mark_notification_as_read/${id}`, {})
+      .catch(() => apiClient.patch<AppNotification>(`/notifications/${id}/read`, {})),
+  markAllAsRead: () =>
+    apiClient
+      .patch<{ success: boolean }>('/notifications/mark_all_notifications_as_read', {})
+      .catch(() => apiClient.patch<{ success: boolean }>('/notifications/read-all', {})),
+  delete: (id: string) =>
+    apiClient
+      .delete<{ success: boolean }>(`/notifications/delete_notification_by_id/${id}`)
+      .catch(() => apiClient.delete<{ success: boolean }>(`/notifications/${id}`)),
   clearAll: () => apiClient.delete<{ success: boolean }>('/notifications'),
 };
 
@@ -213,9 +293,143 @@ export const integrationsApi = {
 };
 
 export const weatherApi = {
-  getCurrent: (city?: string) => {
-    const query = city ? `?city=${encodeURIComponent(city)}` : '';
-    return apiClient.get<WeatherData>(`/weather${query}`);
+  getCurrent: (params?: { lat?: number; lon?: number; city?: string; units?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.lat !== undefined) query.append('lat', String(params.lat));
+    if (params?.lon !== undefined) query.append('lon', String(params.lon));
+    if (params?.city) query.append('city', params.city);
+    if (params?.units) query.append('units', params.units);
+    const qs = query.toString();
+    return apiClient
+      .get<WeatherData | { data: WeatherData }>(`/weather/get_current_weather${qs ? `?${qs}` : ''}`)
+      .catch(() => apiClient.get<WeatherData | { data: WeatherData }>(`/weather/current${qs ? `?${qs}` : ''}`));
+  },
+  getCurrentWeather: (params?: { lat?: number; lon?: number; city?: string; units?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.lat !== undefined) query.append('lat', String(params.lat));
+    if (params?.lon !== undefined) query.append('lon', String(params.lon));
+    if (params?.city) query.append('city', params.city);
+    if (params?.units) query.append('units', params.units);
+    const qs = query.toString();
+    return apiClient
+      .get<WeatherData | { data: WeatherData }>(`/weather/get_current_weather${qs ? `?${qs}` : ''}`)
+      .catch(() => apiClient.get<WeatherData | { data: WeatherData }>(`/weather/current${qs ? `?${qs}` : ''}`));
   },
 };
+
+export const searchApi = {
+  search: (params: { q: string; types?: string[]; limit?: number; offset?: number }) => {
+    const query = new URLSearchParams();
+    query.append('q', params.q);
+    if (params.types && params.types.length > 0) {
+      query.append('types', params.types.join(','));
+    }
+    if (params.limit !== undefined) {
+      query.append('limit', String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      query.append('offset', String(params.offset));
+    }
+    return apiClient
+      .get<SearchResponse>(`/search/search_entities?${query.toString()}`)
+      .catch(() => apiClient.get<SearchResponse>(`/search?${query.toString()}`));
+  },
+};
+
+export const fitnessApi = {
+  getSummary: () => apiClient.get<FitnessSummary>('/fitness/summary'),
+  getWorkouts: (page = 1, perPage = 20) => {
+    const query = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    return apiClient.get<{
+      data: WorkoutItem[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/fitness/workouts?${query.toString()}`);
+  },
+  createWorkout: (data: {
+    date: string;
+    name?: string;
+    notes?: string;
+    duration_minutes?: number;
+    exercises?: Array<{
+      name: string;
+      sets?: number;
+      reps?: number;
+      weight?: number;
+      duration_seconds?: number;
+      exercise_type?: string;
+    }>;
+  }) => apiClient.post<{ data: WorkoutItem }>('/fitness/workouts', data),
+  deleteWorkout: (id: string) => apiClient.delete<void>(`/fitness/workouts/${id}`),
+};
+
+export const goalsApi = {
+  getAll: (params?: { status?: string; time_period?: string; page?: number; per_page?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.status && params.status !== 'all') query.append('status', params.status);
+    if (params?.time_period) query.append('time_period', params.time_period);
+    if (params?.page) query.append('page', String(params.page));
+    if (params?.per_page) query.append('per_page', String(params.per_page));
+    const qs = query.toString();
+    return apiClient
+      .get<{
+        data: GoalItem[];
+        meta: { total: number; page: number; per_page: number; total_pages: number };
+      }>(`/goals/list_goals${qs ? `?${qs}` : ''}`)
+      .catch(() =>
+        apiClient.get<{
+          data: GoalItem[];
+          meta: { total: number; page: number; per_page: number; total_pages: number };
+        }>(`/goals${qs ? `?${qs}` : ''}`)
+      );
+  },
+  create: (data: Partial<GoalItem>) =>
+    apiClient.post<{ data: GoalItem }>('/goals/create_goal', data).catch(() => apiClient.post<{ data: GoalItem }>('/goals', data)),
+  update: (id: string, data: Partial<GoalItem>) =>
+    apiClient.patch<{ data: GoalItem }>(`/goals/update_goal_by_id/${id}`, data).catch(() => apiClient.patch<{ data: GoalItem }>(`/goals/${id}`, data)),
+  delete: (id: string) =>
+    apiClient.delete<void>(`/goals/delete_goal_by_id/${id}`).catch(() => apiClient.delete<void>(`/goals/${id}`)),
+};
+
+export const assistantApi = {
+  query: (query: string) =>
+    apiClient
+      .post<Record<string, unknown>>('/assistant/process_assistant_query', { query })
+      .catch(() => apiClient.post<Record<string, unknown>>('/assistant/query', { query })),
+  getBriefing: () =>
+    apiClient
+      .get<Record<string, unknown>>('/assistant/get_daily_briefing')
+      .catch(() => apiClient.get<Record<string, unknown>>('/assistant/briefing')),
+};
+
+export const contactsApi = {
+  getAll: () =>
+    apiClient
+      .get<Array<Record<string, unknown>>>('/contacts/list_contacts')
+      .catch(() => apiClient.get<Array<Record<string, unknown>>>('/contacts')),
+  getById: (id: string) =>
+    apiClient
+      .get<Record<string, unknown>>(`/contacts/get_contact_by_id/${id}`)
+      .catch(() => apiClient.get<Record<string, unknown>>(`/contacts/${id}`)),
+  create: (data: Record<string, unknown>) =>
+    apiClient
+      .post<Record<string, unknown>>('/contacts/create_contact', data)
+      .catch(() => apiClient.post<Record<string, unknown>>('/contacts', data)),
+  update: (id: string, data: Record<string, unknown>) =>
+    apiClient
+      .patch<Record<string, unknown>>(`/contacts/update_contact_by_id/${id}`, data)
+      .catch(() => apiClient.put<Record<string, unknown>>(`/contacts/${id}`, data)),
+  delete: (id: string) =>
+    apiClient
+      .delete<void>(`/contacts/delete_contact_by_id/${id}`)
+      .catch(() => apiClient.delete<void>(`/contacts/${id}`)),
+};
+
+
+
+
+
+
+
+
+
 

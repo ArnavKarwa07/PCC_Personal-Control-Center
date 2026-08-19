@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-reset frontend-dev backend-dev db-migrate db-revision test-frontend test-backend test lint
+.PHONY: dev-up dev-down dev-reset frontend-dev backend-dev db-migrate db-revision test-frontend test-backend test lint init-db reset-db
 
 dev-up:
 	docker-compose up -d
@@ -35,3 +35,10 @@ test:
 lint:
 	cd backend && python -m ruff check .
 	cd frontend && npm run lint
+
+init-db:
+	cd backend && alembic upgrade head
+
+reset-db:
+	cd backend && del /f pcc.db 2>nul & alembic upgrade head
+

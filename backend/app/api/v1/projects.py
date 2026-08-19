@@ -20,7 +20,7 @@ from app.services.project_service import project_service
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get("", summary="List Projects")
+@router.get("/list_projects", operation_id="list_projects", summary="List Projects")
 def list_projects(
     status: Optional[ProjectStatus] = None,
     priority: Optional[ProjectPriority] = None,
@@ -51,7 +51,7 @@ def list_projects(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Project")
+@router.post("/create_project", operation_id="create_project", status_code=status.HTTP_201_CREATED, summary="Create Project")
 def create_project(
     data: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -64,8 +64,8 @@ def create_project(
     }
 
 
-@router.get("/{project_id}")
-def get_project(
+@router.get("/get_project_by_id/{project_id}", operation_id="get_project_by_id", summary="Get Project By Id")
+def get_project_by_id(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -77,8 +77,8 @@ def get_project(
     }
 
 
-@router.patch("/{project_id}")
-def update_project(
+@router.patch("/update_project_by_id/{project_id}", operation_id="update_project_by_id", summary="Update Project By Id")
+def update_project_by_id(
     project_id: uuid.UUID,
     data: ProjectUpdate,
     current_user: User = Depends(get_current_user),
@@ -96,8 +96,8 @@ def update_project(
     }
 
 
-@router.delete("/{project_id}")
-def delete_project(
+@router.delete("/delete_project_by_id/{project_id}", operation_id="delete_project_by_id", summary="Delete Project By Id")
+def delete_project_by_id(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -111,7 +111,7 @@ def delete_project(
     }
 
 
-@router.get("/{project_id}/board")
+@router.get("/{project_id}/board", operation_id="getProjectBoard")
 def get_project_board(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -124,7 +124,7 @@ def get_project_board(
     }
 
 
-@router.post("/{project_id}/members", status_code=status.HTTP_201_CREATED)
+@router.post("/{project_id}/members", operation_id="addProjectMember", status_code=status.HTTP_201_CREATED)
 def add_project_member(
     project_id: uuid.UUID,
     data: ProjectMemberCreate,
@@ -143,7 +143,7 @@ def add_project_member(
     }
 
 
-@router.delete("/{project_id}/members/{member_id}")
+@router.delete("/{project_id}/members/{member_id}", operation_id="removeProjectMember")
 def remove_project_member(
     project_id: uuid.UUID,
     member_id: uuid.UUID,

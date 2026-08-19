@@ -15,7 +15,7 @@ class NoteBase(BaseModel):
     title: Optional[str] = Field(None, max_length=500)
     content: Optional[str] = None
     category: Optional[str] = Field(None, max_length=100)
-    is_pinned: Optional[bool] = False
+    is_pinned: Optional[bool] = Field(False, strict=True)
 
 
 class NoteCreate(BaseModel):
@@ -24,7 +24,7 @@ class NoteCreate(BaseModel):
     title: Optional[str] = Field(None, max_length=500)
     content: Optional[str] = None
     category: Optional[str] = Field(None, max_length=100)
-    is_pinned: Optional[bool] = False
+    is_pinned: Optional[bool] = Field(False, strict=True)
 
 
 class NoteUpdate(BaseModel):

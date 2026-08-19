@@ -1,55 +1,19 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: pcc_postgres
-    environment:
-      POSTGRES_USER: pcc
-      POSTGRES_PASSWORD: pcc_password
-      POSTGRES_DB: pcc
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U pcc -d pcc']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: pcc_redis
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis_data:/var/lib/redis/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pcc_backend
     environment:
-      DATABASE_URL: postgresql://pcc:pcc_password@postgres:5432/pcc
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: sqlite:///./data/pcc.db
       SECRET_KEY: super-secret-production-pcc-key-change-me
       CORS_ORIGINS: http://localhost:5173,http://localhost:80
     ports:
       - '8000:8000'
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
 
   worker:
@@ -59,16 +23,9 @@ services:
     container_name: pcc_worker
     command: python -m worker.main
     environment:
-      DATABASE_URL: postgresql://pcc:pcc_password@postgres:5432/pcc
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: sqlite:///./data/pcc.db
       SECRET_KEY: super-secret-production-pcc-key-change-me
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
 
-volumes:
-  postgres_data:
-  redis_data:

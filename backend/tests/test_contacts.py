@@ -1,6 +1,7 @@
 """Tests for Personal CRM & Contacts endpoints."""
 
 from datetime import date
+
 from fastapi.testclient import TestClient
 
 

@@ -15,7 +15,7 @@ from app.services.contact_service import contact_service
 router = APIRouter(prefix="/contacts", tags=["Contacts"])
 
 
-@router.get("", summary="List Contacts")
+@router.get("", operation_id="listContacts", summary="List Contacts")
 def list_contacts(
     search: Optional[str] = None,
     overdue_only: bool = False,
@@ -34,7 +34,7 @@ def list_contacts(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Contact")
+@router.post("", operation_id="createContact", status_code=status.HTTP_201_CREATED, summary="Create Contact")
 def create_contact(
     data: ContactCreate,
     current_user: User = Depends(get_current_user),
@@ -45,7 +45,8 @@ def create_contact(
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
-@router.patch("/{contact_id}", summary="Update Contact")
+@router.put("/{contact_id}", operation_id="updateContactByIdPut", summary="Update Contact (PUT)")
+@router.patch("/{contact_id}", operation_id="updateContactById", summary="Update Contact (PATCH)")
 def update_contact(
     contact_id: uuid.UUID,
     data: ContactUpdate,
@@ -59,7 +60,7 @@ def update_contact(
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
-@router.delete("/{contact_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Contact")
+@router.delete("/{contact_id}", operation_id="deleteContactById", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Contact")
 def delete_contact(
     contact_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

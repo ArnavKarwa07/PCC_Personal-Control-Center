@@ -21,7 +21,7 @@ from app.services.reminder_service import reminder_service
 router = APIRouter(prefix="/reminders", tags=["Reminders"])
 
 
-@router.get("")
+@router.get("", operation_id="listReminders")
 def list_reminders(
     status: Optional[ReminderStatus] = None,
     is_recurring: Optional[bool] = None,
@@ -54,7 +54,7 @@ def list_reminders(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", operation_id="createReminder", status_code=status.HTTP_201_CREATED)
 def create_reminder(
     data: ReminderCreate,
     current_user: User = Depends(get_current_user),
@@ -67,7 +67,7 @@ def create_reminder(
     }
 
 
-@router.get("/{reminder_id}")
+@router.get("/{reminder_id}", operation_id="getReminderById")
 def get_reminder(
     reminder_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -80,7 +80,7 @@ def get_reminder(
     }
 
 
-@router.patch("/{reminder_id}")
+@router.patch("/{reminder_id}", operation_id="updateReminderById")
 def update_reminder(
     reminder_id: uuid.UUID,
     data: ReminderUpdate,
@@ -99,7 +99,7 @@ def update_reminder(
     }
 
 
-@router.post("/{reminder_id}/snooze")
+@router.post("/{reminder_id}/snooze", operation_id="snoozeReminderById")
 def snooze_reminder(
     reminder_id: uuid.UUID,
     data: Optional[ReminderSnoozeRequest] = None,
@@ -121,7 +121,7 @@ def snooze_reminder(
     }
 
 
-@router.delete("/{reminder_id}")
+@router.delete("/{reminder_id}", operation_id="deleteReminderById")
 def delete_reminder(
     reminder_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

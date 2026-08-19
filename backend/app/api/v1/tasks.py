@@ -17,7 +17,7 @@ from app.services.task_service import task_service
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
-@router.get("", summary="List Tasks")
+@router.get("/list_tasks", operation_id="list_tasks", summary="List Tasks")
 def list_tasks(
     status: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
@@ -52,7 +52,7 @@ def list_tasks(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Task")
+@router.post("/create_task", operation_id="create_task", status_code=status.HTTP_201_CREATED, summary="Create Task")
 def create_task(
     data: TaskCreate,
     current_user: User = Depends(get_current_user),
@@ -65,8 +65,8 @@ def create_task(
     }
 
 
-@router.get("/{task_id}")
-def get_task(
+@router.get("/get_task_by_id/{task_id}", operation_id="get_task_by_id", summary="Get Task By Id")
+def get_task_by_id(
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -78,8 +78,8 @@ def get_task(
     }
 
 
-@router.patch("/{task_id}")
-def update_task(
+@router.patch("/update_task_by_id/{task_id}", operation_id="update_task_by_id", summary="Update Task By Id")
+def update_task_by_id(
     task_id: uuid.UUID,
     data: TaskUpdate,
     current_user: User = Depends(get_current_user),
@@ -97,8 +97,8 @@ def update_task(
     }
 
 
-@router.delete("/{task_id}")
-def delete_task(
+@router.delete("/delete_task_by_id/{task_id}", operation_id="delete_task_by_id", summary="Delete Task By Id")
+def delete_task_by_id(
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

@@ -6,7 +6,7 @@ import { generateId } from '../utils';
 interface TaskStore {
   tasks: Task[];
   activeTaskId: string | null;
-  viewMode: 'list' | 'project' | 'priority';
+  viewMode: 'list' | 'kanban' | 'project' | 'priority';
   filterStatus: string;
   filterPriority: string;
   filterDueDate: string;
@@ -25,7 +25,7 @@ interface TaskStore {
   toggleSubtask: (taskId: string, subtaskId: string) => void;
   deleteSubtask: (taskId: string, subtaskId: string) => void;
   setActiveTaskId: (id: string | null) => void;
-  setViewMode: (mode: 'list' | 'project' | 'priority') => void;
+  setViewMode: (mode: 'list' | 'kanban' | 'project' | 'priority') => void;
   setFilterStatus: (status: string) => void;
   setFilterPriority: (priority: string) => void;
   setFilterDueDate: (dueDate: string) => void;

@@ -74,6 +74,11 @@ from app.schemas.reminder import (
     ReminderSnoozeRequest,
     ReminderUpdate,
 )
+from app.schemas.search import (
+    SearchMeta,
+    SearchResponse,
+    SearchResultItem,
+)
 from app.schemas.task import (
     TaskCreate,
     TaskListResponse,
@@ -171,4 +176,7 @@ __all__ = [
     "WeatherCurrentResponse",
     "WeatherForecastDay",
     "WeatherForecastResponse",
+    "SearchMeta",
+    "SearchResponse",
+    "SearchResultItem",
 ]

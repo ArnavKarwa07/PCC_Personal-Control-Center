@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../layouts/AppShell';
-import { Spinner } from '../components/ui/Spinner';
+import { PageLoader } from '../components/ui/PageLoader';
 
 // Route Lazy Loading
 const DashboardPage = lazy(() => import('../features/dashboard'));
@@ -10,14 +10,8 @@ const TaskDetailPage = lazy(() => import('../features/tasks/TaskDetailPage'));
 const ProjectsPage = lazy(() => import('../features/projects'));
 const ProjectDetailPage = lazy(() => import('../features/projects/ProjectDetailPage'));
 const CalendarPage = lazy(() => import('../features/calendar'));
-const KnowledgePage = lazy(() => import('../features/knowledge'));
-const CareerPage = lazy(() => import('../features/career'));
-const LifePage = lazy(() => import('../features/life'));
 const GoalsPage = lazy(() => import('../features/goals'));
-const FinancesPage = lazy(() => import('../features/finances/FinancesPage'));
-const FitnessPage = lazy(() => import('../features/fitness/FitnessPage'));
 const ContactsPage = lazy(() => import('../features/contacts/ContactsPage'));
-const ReviewsPage = lazy(() => import('../features/reviews'));
 const SettingsPage = lazy(() => import('../features/settings'));
 const RemindersPage = lazy(() => import('../features/reminders'));
 const NotesPage = lazy(() => import('../features/notes'));
@@ -26,25 +20,14 @@ const NotificationsPage = lazy(() => import('../features/notifications'));
 const AlarmsPage = lazy(() => import('../features/alarms'));
 const TimersPage = lazy(() => import('../features/timers'));
 const WeatherPage = lazy(() => import('../features/weather'));
-const ClocksPage = lazy(() => import('../features/clocks'));
-const SearchPage = lazy(() => import('../features/search'));
 
 // Auth Pages (outside AppShell)
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
 const RegisterPage = lazy(() => import('../features/auth/RegisterPage'));
 
-const PageFallback: React.FC = () => (
-  <div
-    style={{
-      display: 'flex',
-      minHeight: '300px',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-    }}
-  >
-    <Spinner size="lg" />
-  </div>
+const PageFallback: React.FC = () => <PageLoader message="Loading module..." />;
+const AuthFallback: React.FC = () => (
+  <PageLoader message="Initializing Personal Control Center..." fullScreen />
 );
 
 export const router = createBrowserRouter([
@@ -52,7 +35,7 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: (
-      <Suspense fallback={<PageFallback />}>
+      <Suspense fallback={<AuthFallback />}>
         <LoginPage />
       </Suspense>
     ),
@@ -60,7 +43,7 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: (
-      <Suspense fallback={<PageFallback />}>
+      <Suspense fallback={<AuthFallback />}>
         <RegisterPage />
       </Suspense>
     ),
@@ -120,22 +103,6 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'finances',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <FinancesPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'fitness',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <FitnessPage />
-          </Suspense>
-        ),
-      },
-      {
         path: 'contacts',
         element: (
           <Suspense fallback={<PageFallback />}>
@@ -151,38 +118,7 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      {
-        path: 'knowledge',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <KnowledgePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'career',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <CareerPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'life',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <LifePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'reviews',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <ReviewsPage />
-          </Suspense>
-        ),
-      },
+
       {
         path: 'settings',
         element: (
@@ -244,22 +180,6 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageFallback />}>
             <WeatherPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'clocks',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <ClocksPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'search',
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <SearchPage />
           </Suspense>
         ),
       },

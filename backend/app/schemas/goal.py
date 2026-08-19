@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.goal import GoalStatus
 
@@ -19,12 +19,11 @@ class MilestoneCreate(MilestoneBase):
 
 
 class MilestoneRead(MilestoneBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     goal_id: uuid.UUID
     completed_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 class GoalBase(BaseModel):
@@ -50,9 +49,8 @@ class GoalUpdate(BaseModel):
 
 
 class GoalRead(GoalBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     milestones: List[MilestoneRead] = Field(default_factory=list)
-
-    class Config:
-        from_attributes = True

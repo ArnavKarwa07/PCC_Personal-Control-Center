@@ -175,13 +175,9 @@ export const CommandPalette: React.FC = () => {
       { name: 'Alarms & Schedules', path: '/alarms' },
       { name: 'Focus Timers & Pomodoro', path: '/timers' },
       { name: 'Weather & Environment', path: '/weather' },
-      { name: 'Notes & Workspace', path: '/notes' },
+      { name: 'Notes', path: '/notes' },
       { name: 'Idea Capture & Brainstorming', path: '/ideas' },
-      { name: 'Knowledge Graph & Docs', path: '/knowledge' },
-      { name: 'Career & Executive Portfolio', path: '/career' },
-      { name: 'Life & Longevity Tracking', path: '/life' },
       { name: 'Goals & OKR Tracking', path: '/goals' },
-      { name: 'Weekly Retrospective Reviews', path: '/reviews' },
       { name: 'Notifications Center', path: '/notifications' },
       { name: 'System Settings & Integrations', path: '/settings' },
     ];
@@ -446,7 +442,15 @@ export const CommandPalette: React.FC = () => {
                             {cmd.badge.label}
                           </Badge>
                         )}
-                        {isSelected && <span className="pcc-command-item__action-hint">↵ Select</span>}
+                        {isSelected && (
+                          <span className="pcc-command-item__action-hint">
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }}>
+                              <polyline points="9 10 4 15 9 20" />
+                              <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                            </svg>
+                            Select
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -463,7 +467,7 @@ export const CommandPalette: React.FC = () => {
               <kbd>↑</kbd> <kbd>↓</kbd> Navigate
             </span>
             <span className="pcc-command-dialog__shortcut-item">
-              <kbd>↵</kbd> Select
+              <kbd>Enter</kbd> Select
             </span>
             <span className="pcc-command-dialog__shortcut-item">
               <kbd>ESC</kbd> Close

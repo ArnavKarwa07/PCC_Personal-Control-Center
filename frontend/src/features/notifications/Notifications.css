@@ -51,6 +51,34 @@
   backdrop-filter: var(--glass-blur);
 }
 
+@media (max-width: 640px) {
+  .pcc-notifications-page {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .pcc-notifications-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .pcc-notifications-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pcc-notifications-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .pcc-notification-item {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
 .pcc-notifications-tab {
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
@@ -101,13 +129,13 @@
 
 .pcc-notification-item:hover {
   border-color: var(--color-border-hover);
-  background: rgba(26, 26, 46, 0.7);
+  background: var(--color-bg-elevated);
   box-shadow: var(--shadow-md);
 }
 
 .pcc-notification-item--unread {
   border-left: 4px solid var(--color-accent);
-  background: rgba(30, 30, 52, 0.7);
+  background: var(--color-accent-subtle);
 }
 
 .pcc-notification-item__left {

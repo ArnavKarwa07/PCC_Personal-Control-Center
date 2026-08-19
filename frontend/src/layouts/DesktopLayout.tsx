@@ -5,7 +5,8 @@ import { useAuthStore } from '../stores/authStore';
 import { useNotificationStore } from '../stores/notificationStore';
 import { Avatar, Badge, Button, Dropdown, Modal, Input } from '../components/ui';
 import { useToast } from '../hooks/useToast';
-import { MAIN_NAV_ITEMS, renderNavIcon } from './navConfig';
+import { OnboardingModal } from '../features/onboarding/OnboardingModal';
+import { DESKTOP_NAV_CATEGORIES, renderNavIcon } from './navConfig';
 import { cn } from '../utils';
 import './DesktopLayout.css';
 
@@ -19,6 +20,7 @@ export const DesktopLayout: React.FC = () => {
   const unreadCount = getUnreadCount();
 
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [quickTitle, setQuickTitle] = useState('');
   const [quickType, setQuickType] = useState<'task' | 'project' | 'note'>('task');
 
@@ -44,18 +46,32 @@ export const DesktopLayout: React.FC = () => {
     },
     {
       id: 'theme',
-      label: theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '8px' }}>
+          <span>Theme</span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2px 6px',
+              borderRadius: '6px',
+              backgroundColor: 'var(--color-bg-tertiary)',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            {theme === 'dark' ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            )}
+          </span>
+        </div>
+      ) as unknown as string,
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a10 10 0 0 0 0 20z" fill="currentColor" opacity="0.3"></path>
         </svg>
       ),
       onClick: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
@@ -91,7 +107,6 @@ export const DesktopLayout: React.FC = () => {
             {!sidebarCollapsed && (
               <div className="pcc-sidebar__logo-text">
                 <span className="pcc-sidebar__logo-title">PCC</span>
-                <span className="pcc-sidebar__logo-badge">PRO</span>
               </div>
             )}
           </div>
@@ -99,21 +114,29 @@ export const DesktopLayout: React.FC = () => {
 
         {/* Navigation Items */}
         <nav className="pcc-sidebar__nav">
-          {MAIN_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              id={item.id}
-              className={({ isActive }) =>
-                cn('pcc-sidebar__nav-item', isActive && 'pcc-sidebar__nav-item--active')
-              }
-              title={sidebarCollapsed ? item.label : undefined}
-            >
-              <span className="pcc-sidebar__nav-icon">{renderNavIcon(item.iconName)}</span>
-              {!sidebarCollapsed && <span className="pcc-sidebar__nav-label">{item.label}</span>}
-            </NavLink>
+          {DESKTOP_NAV_CATEGORIES.map((catGroup) => (
+            <div key={catGroup.category} className="pcc-sidebar__section">
+              {!sidebarCollapsed && (
+                <div className="pcc-sidebar__category-label">{catGroup.category}</div>
+              )}
+              {catGroup.items.map((item) => (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  id={item.id}
+                  className={({ isActive }) =>
+                    cn('pcc-sidebar__nav-item', isActive && 'pcc-sidebar__nav-item--active')
+                  }
+                  title={sidebarCollapsed ? item.label : undefined}
+                >
+                  <span className="pcc-sidebar__nav-icon">{renderNavIcon(item.iconName)}</span>
+                  {!sidebarCollapsed && <span className="pcc-sidebar__nav-label">{item.label}</span>}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
+
 
         {/* User Profile & Collapse Toggle Section */}
         <div className="pcc-sidebar__footer">
@@ -170,6 +193,23 @@ export const DesktopLayout: React.FC = () => {
           </div>
 
           <div className="pcc-desktop-header__actions">
+            {/* JSON Data Onboarding Loader Button */}
+            <Button
+              id="header-load-json"
+              variant="outline"
+              size="sm"
+              icon={
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              }
+              onClick={() => setIsOnboardingOpen(true)}
+            >
+              Load Data JSON
+            </Button>
+
             {/* Quick Add Button */}
             <Button
               id="header-quick-add"
@@ -261,6 +301,8 @@ export const DesktopLayout: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <OnboardingModal isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
     </div>
   );
 };

@@ -19,7 +19,7 @@ from app.services.notification_service import notification_service
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 
-@router.get("")
+@router.get("", operation_id="listNotifications")
 def list_notifications(
     status: Optional[NotificationDeliveryStatus] = None,
     type: Optional[NotificationType] = None,
@@ -52,7 +52,7 @@ def list_notifications(
     }
 
 
-@router.patch("/{notification_id}/read")
+@router.patch("/{notification_id}/read", operation_id="markNotificationAsRead")
 def mark_notification_read(
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -69,7 +69,7 @@ def mark_notification_read(
     }
 
 
-@router.post("/read-all")
+@router.patch("/read-all", operation_id="markAllNotificationsAsRead")
 def mark_all_notifications_read(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -87,7 +87,7 @@ def mark_all_notifications_read(
     }
 
 
-@router.delete("/{notification_id}")
+@router.delete("/{notification_id}", operation_id="deleteNotificationById")
 def delete_notification(
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

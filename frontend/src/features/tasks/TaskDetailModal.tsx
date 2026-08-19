@@ -27,6 +27,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [projectId, setProjectId] = useState<string>('');
   const [dueDate, setDueDate] = useState('');
   const [recurrence, setRecurrence] = useState<RecurrenceType>('none');
+  const [tagsInput, setTagsInput] = useState('');
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setProjectId(task.projectId || '');
       setDueDate(task.dueDate || '');
       setRecurrence(task.recurrence || 'none');
+      setTagsInput(task.tags?.join(', ') || '');
     }
   }, [task]);
 
@@ -48,6 +50,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     if (!title.trim()) return;
 
     const selectedProj = projects.find((p) => p.id === projectId);
+    const tags = tagsInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
 
     await updateTask(task.id, {
       title: title.trim(),
@@ -58,6 +64,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       projectName: selectedProj?.title,
       dueDate: dueDate || undefined,
       recurrence,
+      tags,
     });
 
     addToast({
@@ -129,8 +136,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           </label>
           <textarea
             id="task-desc-input"
-            className="pcc-input__field"
-            rows={2}
+            className="pcc-input__field pcc-textarea-field"
+            rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Key notes, URLs, or sub-deliverables..."
@@ -213,6 +220,27 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
         />
+
+        {/* Tags input & tags list */}
+        <div className="pcc-input-wrapper">
+          <Input
+            id="task-tags-input"
+            label="Tags (comma separated)"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            onClear={() => setTagsInput('')}
+            placeholder="e.g. Frontend, Review, UI"
+          />
+          {tagsInput.trim() && (
+            <div className="pcc-task-tags-list">
+              {tagsInput.split(',').map((t) => t.trim()).filter(Boolean).map((tag, idx) => (
+                <span key={idx} className="pcc-project-card__tag" style={{ background: 'var(--color-accent-subtle)', color: 'var(--color-accent)', fontWeight: 'var(--font-weight-medium)' }}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Subtasks Checklist Section */}
         <div className="pcc-subtasks-section">

@@ -28,6 +28,13 @@
   overflow: hidden;
 }
 
+html[data-theme='light'] .pcc-alarms-clock-hero,
+:root:not([data-theme]) .pcc-alarms-clock-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
 .pcc-alarms-clock-hero::after {
   content: '';
   position: absolute;
@@ -62,6 +69,12 @@
   line-height: 1;
 }
 
+html[data-theme='light'] .pcc-alarms-digital-clock__time,
+:root:not([data-theme]) .pcc-alarms-digital-clock__time {
+  color: #0f172a;
+  text-shadow: none;
+}
+
 .pcc-alarms-digital-clock__seconds {
   font-size: var(--font-size-2xl);
   color: var(--color-accent-hover);
@@ -78,6 +91,11 @@
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+html[data-theme='light'] .pcc-alarms-clock-hero__date,
+:root:not([data-theme]) .pcc-alarms-clock-hero__date {
+  color: #475569;
 }
 
 .pcc-alarms-clock-hero__right {
@@ -127,9 +145,15 @@
 
 .pcc-alarm-card:hover {
   border-color: var(--color-border-hover);
-  background: rgba(26, 26, 46, 0.7);
+  background: var(--color-bg-hover, rgba(255, 255, 255, 0.05));
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+html[data-theme='light'] .pcc-alarm-card:hover,
+:root:not([data-theme]) .pcc-alarm-card:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
 }
 
 .pcc-alarm-card--disabled {
@@ -315,23 +339,74 @@
   border: 1px solid var(--color-border);
 }
 
+.pcc-alarm-time-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pcc-alarm-time-stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 24px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-alarm-time-stepper-btn:hover {
+  background: var(--color-accent);
+  color: #ffffff;
+  border-color: var(--color-accent);
+}
+
+html[data-theme='dark'] .pcc-alarm-time-stepper-btn {
+  background: #1e1e2e;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+}
+
+html[data-theme='dark'] .pcc-alarm-time-stepper-btn:hover {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
 .pcc-alarm-time-digit {
-  width: 70px;
-  height: 60px;
+  width: 72px;
+  height: 54px;
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-family: var(--font-family-mono);
   font-weight: var(--font-weight-bold);
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pcc-alarm-time-digit::-webkit-inner-spin-button,
+.pcc-alarm-time-digit::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .pcc-alarm-time-colon {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: var(--font-weight-bold);
   color: var(--color-text-secondary);
+  align-self: center;
 }
 
 .pcc-alarm-day-selector {
@@ -365,8 +440,11 @@
 
 .pcc-alarm-quick-day-presets {
   display: flex;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
   margin-top: var(--space-2);
 }
 
@@ -383,4 +461,50 @@
 .pcc-alarm-preset-pill:hover {
   background: var(--color-surface);
   color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+  .pcc-alarms-page {
+    padding: var(--space-3);
+  }
+
+  .pcc-alarms-clock-hero {
+    padding: var(--space-5);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pcc-alarms-clock-hero__right {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .pcc-alarms-digital-clock__time {
+    font-size: 2.4rem;
+  }
+
+  .pcc-alarms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pcc-alarm-day-toggle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
+  }
+
+  .pcc-alarm-day-selector {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .pcc-alarm-time-inputs {
+    padding: var(--space-3);
+  }
+
+  .pcc-alarm-time-digit {
+    width: 60px;
+    height: 52px;
+    font-size: 1.6rem;
+  }
 }

@@ -1,0 +1,95 @@
+.pcc-okr-ring-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.pcc-okr-ring-svg {
+  transform: rotate(0deg);
+  overflow: visible;
+  display: block;
+}
+
+.pcc-okr-ring__track {
+  fill: none;
+  stroke: var(--color-border);
+  opacity: 0.5;
+}
+
+html[data-theme='light'] .pcc-okr-ring__track,
+:root:not([data-theme]) .pcc-okr-ring__track {
+  stroke: #e2e8f0;
+  opacity: 0.9;
+}
+
+html[data-theme='dark'] .pcc-okr-ring__track {
+  stroke: rgba(255, 255, 255, 0.12);
+  opacity: 0.8;
+}
+
+.pcc-okr-ring__fill {
+  fill: none;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* High contrast variant color strokes */
+.okr-ring--completed .pcc-okr-ring__fill {
+  stroke: #16a34a;
+}
+
+html[data-theme='light'] .okr-ring--completed .pcc-okr-ring__fill,
+:root:not([data-theme]) .okr-ring--completed .pcc-okr-ring__fill {
+  stroke: #15803d; /* Darker green for crisp light mode contrast */
+}
+
+.okr-ring--high .pcc-okr-ring__fill {
+  stroke: #4f46e5;
+}
+
+html[data-theme='light'] .okr-ring--high .pcc-okr-ring__fill,
+:root:not([data-theme]) .okr-ring--high .pcc-okr-ring__fill {
+  stroke: #4338ca;
+}
+
+.okr-ring--medium .pcc-okr-ring__fill {
+  stroke: #0284c7;
+}
+
+html[data-theme='light'] .okr-ring--medium .pcc-okr-ring__fill,
+:root:not([data-theme]) .okr-ring--medium .pcc-okr-ring__fill {
+  stroke: #0369a1;
+}
+
+.okr-ring--low .pcc-okr-ring__fill {
+  stroke: #d97706;
+}
+
+html[data-theme='light'] .okr-ring--low .pcc-okr-ring__fill,
+:root:not([data-theme]) .okr-ring--low .pcc-okr-ring__fill {
+  stroke: #b45309;
+}
+
+/* Center Percentage Text */
+.pcc-okr-ring__text {
+  font-family: var(--font-family-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: 15px;
+  font-weight: var(--font-weight-bold, 700);
+  fill: var(--color-text-primary, #ffffff);
+  pointer-events: none;
+  user-select: none;
+}
+
+html[data-theme='light'] .pcc-okr-ring__text,
+:root:not([data-theme]) .pcc-okr-ring__text {
+  fill: #0f172a; /* Maximum crisp contrast in light mode */
+}
+
+html[data-theme='dark'] .pcc-okr-ring__text {
+  fill: #f8fafc;
+}

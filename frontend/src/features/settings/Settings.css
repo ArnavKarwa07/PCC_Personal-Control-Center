@@ -114,6 +114,32 @@
   color: var(--color-accent);
 }
 
+.pcc-settings-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6, 24px);
+  padding: var(--space-2) 0;
+  width: 100%;
+}
+
+.pcc-settings-field-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  min-width: 160px;
+  margin-right: var(--space-4, 16px);
+}
+
+.pcc-settings-select {
+  height: 36px !important;
+  max-width: 250px;
+  padding: 0 var(--space-3) !important;
+  font-size: var(--font-size-xs) !important;
+  border-radius: var(--radius-md) !important;
+}
+
 /* Integrations Grid */
 .pcc-integrations-grid {
   display: grid;
@@ -131,13 +157,13 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   backdrop-filter: var(--glass-blur);
-  transition: all var(--transition-base);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .pcc-integration-card:hover {
   border-color: var(--color-border-hover);
-  background: rgba(26, 26, 46, 0.7);
-  box-shadow: var(--shadow-md);
+  background-color: var(--color-bg-elevated);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .pcc-integration-card--connected {
@@ -276,4 +302,147 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   flex: 1;
+}
+
+/* Theme Toggle Buttons Group & Mobile Responsiveness */
+.pcc-theme-toggle-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Accent Color Swatches */
+.pcc-accent-swatches {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pcc-accent-swatch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-tertiary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pcc-accent-swatch:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-hover);
+}
+
+.pcc-accent-swatch--active {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.pcc-accent-swatch__preview {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.pcc-accent-swatch__label {
+  font-size: var(--font-size-xs);
+}
+
+.pcc-accent-swatch__check {
+  color: var(--color-accent);
+  margin-left: 2px;
+}
+
+@media (max-width: 640px) {
+  .pcc-settings-page {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .pcc-settings-grid,
+  .pcc-integrations-grid,
+  .pcc-data-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .pcc-settings-card,
+  .pcc-integration-card,
+  .pcc-backup-action-card {
+    padding: var(--space-4);
+  }
+
+  .pcc-theme-toggle-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .pcc-theme-toggle-group button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pcc-accent-swatches {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+
+  .pcc-accent-swatch {
+    justify-content: center;
+  }
+}
+
+/* Connect Modal */
+.pcc-connect-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pcc-connect-modal-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.pcc-connect-modal-field input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle, var(--color-border));
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.pcc-connect-modal-field input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.pcc-connect-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pcc-connect-modal-error {
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-danger, #ef4444);
+  border-radius: 8px;
+  color: var(--color-danger, #ef4444);
+  font-size: 0.8rem;
 }

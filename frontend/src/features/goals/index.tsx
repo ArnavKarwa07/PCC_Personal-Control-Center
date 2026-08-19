@@ -1,154 +1,193 @@
 import React, { useState } from 'react';
-import { Card, Button, Badge, Input } from '../../components/ui';
+import { Card, Button, Badge } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
+import { OKRProgressRing } from '../../components/OKRProgressRing';
+import { EditGoalModal, Goal } from './EditGoalModal';
 import './GoalsPage.css';
 
 export const GoalsPage: React.FC = () => {
   const { toast } = useToast();
-  const [goals, setGoals] = useState([
+  const [goals, setGoals] = useState<Goal[]>([
     {
       id: '1',
       title: 'Architect Personal Control Center OS',
-      period: 'Q3 2026',
-      progress: 85,
+      period: '2026-09-30',
+      progress: 67,
       status: 'In Progress',
-      milestones: ['Design Glassmorphic Token System', 'FastAPI Deduplication', 'Stitch UI Redesign'],
+      milestones: [
+        { id: '1-1', text: 'Design Glassmorphic Token System', completed: true },
+        { id: '1-2', text: 'FastAPI Deduplication', completed: true },
+        { id: '1-3', text: 'Stitch UI Redesign', completed: false },
+      ],
     },
     {
       id: '2',
       title: 'Master Distributed Consensus & Raft Protocols',
-      period: 'Q4 2026',
-      progress: 40,
+      period: '2026-12-31',
+      progress: 50,
       status: 'In Progress',
-      milestones: ['Implement Raft Leader Election', 'Log Replication Engine'],
+      milestones: [
+        { id: '2-1', text: 'Implement Raft Leader Election', completed: true },
+        { id: '2-2', text: 'Log Replication Engine', completed: false },
+      ],
     },
   ]);
 
-  const [newTitle, setNewTitle] = useState('');
-  const [newPeriod, setNewPeriod] = useState('Q3 2026');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
-  const handleAddGoal = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle) return;
-
-    const newG = {
-      id: String(Date.now()),
-      title: newTitle,
-      period: newPeriod,
-      progress: 0,
-      status: 'In Progress',
-      milestones: ['Initial Objective Setup'],
-    };
-
-    setGoals([newG, ...goals]);
-    toast.success(`Created OKR Goal: "${newTitle}"`);
-    setNewTitle('');
+  const handleOpenAddModal = () => {
+    setEditingGoal(null);
+    setIsModalOpen(true);
   };
 
-  const handleUpdateProgress = (id: string, delta: number) => {
-    setGoals(
-      goals.map((g) => {
-        if (g.id === id) {
-          const next = Math.min(100, Math.max(0, g.progress + delta));
-          return { ...g, progress: next, status: next === 100 ? 'Completed' : 'In Progress' };
-        }
-        return g;
+  const handleOpenEditModal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingGoal(null);
+  };
+
+  const handleSaveGoal = (savedGoal: Goal) => {
+    setGoals((prev) => {
+      const exists = prev.some((g) => g.id === savedGoal.id);
+      if (exists) {
+        toast.success(`Updated Goal: "${savedGoal.title}"`);
+        return prev.map((g) => (g.id === savedGoal.id ? savedGoal : g));
+      } else {
+        toast.success(`Created OKR Goal: "${savedGoal.title}"`);
+        return [savedGoal, ...prev];
+      }
+    });
+    handleCloseModal();
+  };
+
+  const handleDeleteGoal = (goalId: string, title: string) => {
+    setGoals((prev) => prev.filter((g) => g.id !== goalId));
+    toast.info(`Deleted Goal: "${title}"`);
+  };
+
+  const handleToggleMilestone = (goalId: string, milestoneId: string) => {
+    setGoals((prev) =>
+      prev.map((g) => {
+        if (g.id !== goalId) return g;
+        const updatedMilestones = g.milestones.map((m) =>
+          m.id === milestoneId ? { ...m, completed: !m.completed } : m
+        );
+        const totalMilestones = updatedMilestones.length;
+        const completedMilestones = updatedMilestones.filter((m) => m.completed).length;
+        const progress = totalMilestones === 0 ? 0 : Math.round((completedMilestones / totalMilestones) * 100);
+        const status: 'In Progress' | 'Completed' = progress === 100 ? 'Completed' : 'In Progress';
+        return {
+          ...g,
+          milestones: updatedMilestones,
+          progress,
+          status,
+        };
       })
     );
-    toast.info(`Updated goal progress`);
+    toast.info('Updated milestone status');
   };
 
   return (
     <div className="pcc-goals-page">
       <div className="pcc-goals-header">
-        <div>
+        <div className="pcc-goals-header__main">
           <h1 className="pcc-goals-title">Goals & OKRs Matrix</h1>
-          <p className="pcc-goals-subtitle">Strategic objectives, key results, milestone trees, and skill progression</p>
         </div>
+        <Button
+          variant="primary"
+          className="pcc-add-objective-btn"
+          onClick={handleOpenAddModal}
+          icon={
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          }
+        >
+          Add Objective
+        </Button>
       </div>
 
       <div className="pcc-goals-grid">
         <div className="pcc-goals-list">
           {goals.map((g) => (
             <Card key={g.id} glass padding="lg" className="pcc-goal-card">
-              <div className="pcc-goal-card__header">
-                <div>
-                  <h3 className="pcc-goal-card__title">{g.title}</h3>
-                  <span className="pcc-goal-card__period">{g.period} Objective</span>
+              <div className="pcc-goal-card__top">
+                <OKRProgressRing progress={g.progress} status={g.status} size={88} strokeWidth={8} />
+                <div className="pcc-goal-card__meta">
+                  <div className="pcc-goal-card__header">
+                    <div>
+                      <h3 className="pcc-goal-card__title">{g.title}</h3>
+                      <span className="pcc-goal-card__period">Target: {g.period}</span>
+                    </div>
+                    <div className="pcc-goal-card__actions">
+                      <Badge variant={g.status === 'Completed' ? 'success' : 'primary'}>{g.status}</Badge>
+                      <button
+                        type="button"
+                        className="pcc-goal-action-btn"
+                        onClick={() => handleOpenEditModal(g)}
+                        title="Edit Goal"
+                        aria-label="Edit Goal"
+                      >
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className="pcc-goal-action-btn pcc-goal-action-btn--delete"
+                        onClick={() => handleDeleteGoal(g.id, g.title)}
+                        title="Delete Goal"
+                        aria-label="Delete Goal"
+                      >
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <Badge variant={g.status === 'Completed' ? 'success' : 'primary'}>{g.status}</Badge>
               </div>
 
-              <div className="pcc-goal-card__progress">
-                <div className="pcc-goal-card__progress-info">
-                  <span>Target Completion:</span>
-                  <strong>{g.progress}%</strong>
-                </div>
-                <div className="pcc-progress-bar">
-                  <div className="pcc-progress-bar__fill" style={{ width: `${g.progress}%` }} />
-                </div>
-              </div>
-
-              <div className="pcc-goal-card__milestones">
-                <span className="pcc-milestones-label">Milestones Checkpoints:</span>
-                <ul>
-                  {g.milestones.map((m, idx) => (
-                    <li key={idx}>✓ {m}</li>
+              <div className="pcc-goal-card__key-results">
+                <span className="pcc-milestones-label">Key Results & Checkpoints:</span>
+                <div className="pcc-key-results-list">
+                  {g.milestones.map((m) => (
+                    <label key={m.id} className="pcc-key-result-item">
+                      <input
+                        type="checkbox"
+                        className="pcc-key-result-checkbox"
+                        checked={m.completed}
+                        onChange={() => handleToggleMilestone(g.id, m.id)}
+                      />
+                      <span className={`pcc-key-result-text ${m.completed ? 'pcc-key-result-text--completed' : ''}`}>
+                        {m.text}
+                      </span>
+                    </label>
                   ))}
-                </ul>
-              </div>
-
-              <div className="pcc-goal-card__actions">
-                <Button size="sm" variant="outline" onClick={() => handleUpdateProgress(g.id, -10)}>-10%</Button>
-                <Button size="sm" variant="outline" onClick={() => handleUpdateProgress(g.id, 10)}>+10% Progress</Button>
+                </div>
               </div>
             </Card>
           ))}
         </div>
-
-        <div className="pcc-goals-sidebar">
-          <Card glass padding="lg" className="pcc-add-goal-card">
-            <h2>Add Objective / OKR</h2>
-            <form onSubmit={handleAddGoal} className="pcc-add-goal-form">
-              <Input
-                id="goal-title"
-                label="Objective Name"
-                placeholder="e.g. Master Rust Concurrency"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                required
-              />
-              <Input
-                id="goal-period"
-                label="Target Time Period"
-                value={newPeriod}
-                onChange={(e) => setNewPeriod(e.target.value)}
-              />
-              <Button type="submit" variant="primary">Create Objective</Button>
-            </form>
-          </Card>
-
-          <Card glass padding="lg" className="pcc-skills-matrix-card">
-            <h2>Skill Trees Matrix</h2>
-            <div className="pcc-skills-list">
-              <div className="pcc-skill-item">
-                <span>FastAPI & Python 3.12</span>
-                <Badge variant="success">Expert</Badge>
-              </div>
-              <div className="pcc-skill-item">
-                <span>React 18 & TypeScript</span>
-                <Badge variant="success">Master</Badge>
-              </div>
-              <div className="pcc-skill-item">
-                <span>Glassmorphic Micro-Interactions</span>
-                <Badge variant="primary">Advanced</Badge>
-              </div>
-            </div>
-          </Card>
-        </div>
       </div>
+
+      <EditGoalModal
+        isOpen={isModalOpen}
+        goal={editingGoal}
+        onClose={handleCloseModal}
+        onSave={handleSaveGoal}
+      />
     </div>
   );
 };
 
 export default GoalsPage;
+

@@ -1,4 +1,4 @@
-# PCC — Personal Control Center
+# PCC - Personal Control Center
 
 ## Technical Requirements Document (TRD)
 
@@ -6,7 +6,7 @@
 **Version:** 1.0
 **Architecture:** Web + PWA + API
 **Primary deployment:** Cloud-hosted application
-**Primary database:** PostgreSQL
+**Primary database:** SQLite 3
 
 ---
 
@@ -24,6 +24,14 @@ Build PCC as a production-quality, modular application that:
 * Can eventually be packaged as a native mobile application
 
 The architecture must allow new modules to be added without rewriting the core platform.
+
+## Core Technical & System Standards
+* **Default Location Standard**: Pune, India (IN) for default weather telemetry and location context.
+* **Currency Standard**: ₹ (INR - Indian Rupee) default across financial and transaction fields.
+* **Theme Priority**: Light Theme by default (`html[data-theme='light']`), backed by toggleable dark glassmorphism.
+* **UI Components & Icons**: Monochromatic SVG icons (`stroke="currentColor"`) matching modern design system tokens.
+* **Active Modules**: Tasks (with Kanban Board), Projects, Calendar, Goals (with clean progress wheels), Notes, Ideas, Contacts, Reminders, Alarms, Timers, Weather (Pune default), Settings (Integrations & JSON Onboarding Loader).
+* **Deprecated / Removed Modules**: Life Management, Periodic Reviews, World Clocks Planner, and Career & Growth.
 
 ---
 
@@ -49,7 +57,7 @@ The architecture must allow new modules to be added without rewriting the core p
 
 ## Database
 
-* PostgreSQL
+* SQLite 3
 
 ## Background Processing
 
@@ -97,7 +105,7 @@ Object storage for:
        |                    |                    |
        +--------------------+--------------------+
                             |
-                       PostgreSQL
+                          SQLite
                             |
               +-------------+-------------+
               |                           |
@@ -132,13 +140,7 @@ src/
     notes/
     ideas/
     career/
-    learning/
-    knowledge/
-    finance/
-    fitness/
     contacts/
-    documents/
-    reviews/
     notifications/
   hooks/
   services/
@@ -781,7 +783,7 @@ Future versions can use field-level merges.
 
 # 33. Search Architecture
 
-Initial search can use PostgreSQL full-text search.
+Initial search can use SQLite full-text search (FTS5).
 
 Searchable fields:
 
@@ -795,7 +797,7 @@ Searchable fields:
 
 Later, introduce:
 
-* PostgreSQL `tsvector`
+* SQLite FTS5 index optimizations
 * Vector embeddings
 * Semantic search
 
@@ -856,7 +858,7 @@ High-risk actions require explicit confirmation.
 
 # 36. File Storage
 
-Documents should be stored outside PostgreSQL.
+Documents should be stored outside SQLite.
 
 Database stores:
 
@@ -1360,7 +1362,7 @@ The first production-capable PCC build should include:
 * FastAPI
 * Authentication
 * REST API
-* PostgreSQL
+* SQLite 3
 * Background jobs
 * Notifications
 
@@ -1412,9 +1414,9 @@ The final PCC architecture should evolve into:
         │               │              Weather           │
         └───────────────┴───────┬────────┴───────────────┘
                                 │
-                         Personal Data Layer
+                          Personal Data Layer
                                 │
-                           PostgreSQL
+                              SQLite
                                 │
                       ┌─────────┴─────────┐
                       │                   │

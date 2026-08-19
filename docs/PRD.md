@@ -1,4 +1,4 @@
-# PCC — Personal Control Center
+# PCC - Personal Control Center
 
 ## Product Requirements Document (PRD)
 
@@ -206,18 +206,25 @@ Top-level navigation:
 * Tasks
 * Projects
 * Calendar
-* Knowledge
+* Goals
+* Contacts
 * Career
-* Life
 * More
 
 Global controls:
 
-* Search
+* Command Palette (Ctrl/Cmd + K - Global Search & Actions)
 * Quick Add
 * Notifications
 * Profile/settings
-* Command Palette
+
+## Core Platform Standards
+
+* **Default Location**: Pune, India (IN) with ₹ (INR) currency standard.
+* **Theme Priority**: Light Theme by default (`html[data-theme='light']`), with dark glassmorphism as toggleable option.
+* **Unified Naming**: Unified "Notes" module for knowledge notes & docs.
+* **Iconography**: Clean, monochromatic SVG icons (`stroke="currentColor"`).
+* **Deprecated/Removed Features**: Life Management, Periodic Reviews, World Clocks Planner, and Career & Growth features have been removed to maintain focus and zero clutter.
 
 ---
 

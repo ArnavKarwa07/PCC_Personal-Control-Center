@@ -85,7 +85,12 @@ export const RemindersPage: React.FC = () => {
     {
       id: 'snooze-10m',
       label: 'Snooze for 10 minutes',
-      icon: <span>⏱</span>,
+      icon: (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      ),
       onClick: () => {
         snoozeReminder(reminderId, 10);
         toast.info('Snoozed for 10 minutes');
@@ -94,7 +99,14 @@ export const RemindersPage: React.FC = () => {
     {
       id: 'snooze-1h',
       label: 'Snooze for 1 hour',
-      icon: <span>⏳</span>,
+      icon: (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M5 22h14" />
+          <path d="M5 2h14" />
+          <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" />
+          <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+        </svg>
+      ),
       onClick: () => {
         snoozeReminder(reminderId, 60);
         toast.info('Snoozed for 1 hour');
@@ -103,7 +115,19 @@ export const RemindersPage: React.FC = () => {
     {
       id: 'snooze-tomorrow',
       label: 'Snooze until tomorrow morning (09:00)',
-      icon: <span>🌅</span>,
+      icon: (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="M4.93 4.93l1.41 1.41" />
+          <path d="M17.66 17.66l1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="M6.34 17.66l-1.41 1.41" />
+          <path d="M19.07 4.93l-1.41 1.41" />
+        </svg>
+      ),
       onClick: () => {
         snoozeReminder(reminderId, 14 * 60);
         toast.info('Snoozed until tomorrow');
@@ -117,7 +141,6 @@ export const RemindersPage: React.FC = () => {
       <header className="pcc-reminders-header">
         <div className="pcc-reminders-header__titles">
           <h1>Reminders & Scheduled Nudges</h1>
-          <p>Time-critical alerts, recurring routines, and context-aware nudges.</p>
         </div>
 
         <div className="pcc-reminders-header__actions">
@@ -357,7 +380,11 @@ export const RemindersPage: React.FC = () => {
                     <Dropdown
                       trigger={
                         <button type="button" className="pcc-reminder-snooze-btn">
-                          <span>💤 Snooze</span>
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="13" r="8" />
+                            <polyline points="12 9 12 13 15 13" />
+                          </svg>
+                          <span>Snooze</span>
                         </button>
                       }
                       items={getSnoozeDropdownItems(reminder.id)}

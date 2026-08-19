@@ -20,10 +20,74 @@
   height: 100%;
 }
 
+.pcc-notes-mobile-toggle-bar {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .pcc-notes-workspace {
     grid-template-columns: 1fr;
     height: auto;
+  }
+
+  .pcc-notes-mobile-toggle-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--glass-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .pcc-notes-mobile-active-note {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .pcc-notes-list-pane--mobile-collapsed {
+    display: none !important;
+  }
+
+  .pcc-notes-editor__body-container--split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .pcc-notes-page {
+    height: auto;
+    min-height: auto;
+  }
+
+  .pcc-notes-view-mode-btn--split {
+    display: none !important;
+  }
+
+  .pcc-notes-editor__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .pcc-notes-editor__toolbar-left {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pcc-notes-editor__toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 }
 
@@ -56,10 +120,14 @@
 
 .pcc-notes-list__categories {
   display: flex;
+  flex-wrap: nowrap;
   gap: var(--space-1);
   overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: var(--space-2);
   scrollbar-width: none;
+  max-width: 100%;
 }
 
 .pcc-notes-list__categories::-webkit-scrollbar {
@@ -67,6 +135,7 @@
 }
 
 .pcc-notes-category-chip {
+  flex-shrink: 0;
   padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 11px;
@@ -249,7 +318,7 @@
   outline: none;
   width: 100%;
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .pcc-notes-editor__title-input::placeholder {
@@ -345,7 +414,8 @@
   border-radius: var(--radius-md);
   padding: var(--space-3);
   overflow-x: auto;
-  margin-bottom: var(--space-4);
+  margin-bottom: 0;
+  max-width: 100%;
 }
 
 .pcc-notes-preview code {
@@ -360,5 +430,43 @@
 .pcc-notes-preview pre code {
   background: transparent;
   padding: 0;
+  color: var(--color-text-primary);
+}
+
+/* Markdown Code & Table Overflow Wrappers */
+.pcc-markdown-code-wrapper,
+.pcc-markdown-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.pcc-markdown-code-wrapper pre {
+  margin: 0;
+  white-space: pre;
+  word-break: normal;
+}
+
+.pcc-markdown-table {
+  width: 100%;
+  min-width: 400px;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.pcc-markdown-table th,
+.pcc-markdown-table td {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.pcc-markdown-table th {
+  background: var(--color-bg-tertiary);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }

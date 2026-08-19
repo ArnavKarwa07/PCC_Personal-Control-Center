@@ -1,13 +1,25 @@
-# PCC — Personal Control Center (Personal OS)
+# PCC - Personal Control Center (Personal OS)
 
 [![CI/CD Pipeline](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/actions/workflows/ci.yml/badge.svg)](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/actions)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57.svg)](https://www.sqlite.org/)
 [![React 18](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF.svg)](https://vitejs.dev/)
 
 PCC is a personal operating system built to integrate daily tasks, project management, knowledge bases, unified scheduling, environmental telemetry, and real-time reminders into a high-performance desktop web and mobile PWA application.
+
+---
+
+## Core Standards & Architectural Highlights
+
+- **Default Location & Currency**: Default location standard set to **Pune, India** with **₹ (INR)** currency format.
+- **Theme Priority**: Light Mode (`html[data-theme='light']`) prioritized by default, backed by a secondary dark glassmorphic mode toggle.
+- **Unified Knowledge System**: Unified **Notes** module combining markdown notes, documentation workspace, and knowledge base.
+- **Iconography**: Clean, crisp monochromatic SVG icons (`stroke="currentColor"`) matching modern design system tokens.
+- **Command Architecture**: Global `Ctrl+K` CommandPalette providing instant navigation and search (replacing standalone search pages).
+- **Streamlined Scope**: Deprecated legacy/redundant modules including Life Management, Periodic Reviews, World Clocks Planner, and Career & Growth.
 
 ---
 
@@ -18,7 +30,7 @@ PCC_Personal-Control-Center/
 ├── frontend/                 # React 18 + TypeScript + Vite 5 SPA
 │   ├── src/
 │   │   ├── components/       # Design System UI components & CommandPalette (Cmd+K)
-│   │   ├── features/         # Feature modules (Tasks, Projects, Notes, Ideas, Calendar, Reminders, Alarms, Timers, Weather, Settings)
+│   │   ├── features/         # Feature modules (Tasks, Projects, Notes, Ideas, Calendar, Goals, Contacts, Reminders, Alarms, Timers, Weather, Settings)
 │   │   ├── hooks/            # Custom React hooks (useTasks, useProjects, useToast, etc.)
 │   │   ├── layouts/          # AppShell, DesktopLayout, MobileLayout
 │   │   ├── services/         # Typed API clients (api.ts)
@@ -32,7 +44,7 @@ PCC_Personal-Control-Center/
 │   ├── app/
 │   │   ├── api/v1/           # REST endpoints (auth, tasks, projects, notes, ideas, calendar, reminders, alarms, timers, weather, integrations)
 │   │   ├── core/             # Configuration, database session, security, dependencies
-│   │   ├── models/           # 40 SQLAlchemy database entities (BaseModel with UUID & soft deletion)
+│   │   ├── models/           # SQLAlchemy database entities (BaseModel with UUID & soft deletion)
 │   │   ├── schemas/          # Pydantic v2 request/response envelopes
 │   │   └── services/         # Business logic layer
 │   ├── worker/               # Async background worker loop (main.py)
@@ -42,7 +54,7 @@ PCC_Personal-Control-Center/
 │
 ├── worker/                   # Root worker forwarder package
 ├── docs/                     # PRD v1.0 & TRD v1.0 baseline documentation
-├── docker-compose.yml        # PostgreSQL 16 + Redis 7 + FastAPI + Worker manifest
+├── docker-compose.yml        # SQLite 3 + FastAPI + Worker manifest
 ├── Makefile                  # Project orchestration commands
 └── README.md
 ```
@@ -54,15 +66,9 @@ PCC_Personal-Control-Center/
 ### Prerequisites
 - Node.js 18+ & npm
 - Python 3.12+
-- Docker & Docker Compose (optional, for containerized databases)
+- Docker & Docker Compose (optional)
 
-### 1. Database & Cache Setup (Docker Compose)
-Start PostgreSQL 16 and Redis 7 background services:
-```bash
-docker-compose up -d postgres redis
-```
-
-### 2. Backend Setup
+### 1. Backend & Database Setup
 ```bash
 cd backend
 
@@ -76,7 +82,7 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run database migrations
+# Run database migrations to initialize SQLite database
 alembic upgrade head
 
 # Start FastAPI development server (port 8000)
@@ -84,14 +90,14 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 Interactive OpenAPI documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### 3. Background Worker Engine
+### 2. Background Worker Engine
 In a separate terminal:
 ```bash
 cd backend
 python -m worker.main
 ```
 
-### 4. Frontend Setup
+### 3. Frontend Setup
 ```bash
 cd frontend
 
@@ -107,7 +113,7 @@ Access the application in your browser at [http://localhost:5173](http://localho
 
 ## Verification & Testing
 
-### Backend Unit & Integration Tests (59 tests pass)
+### Backend Unit & Integration Tests (71 tests pass)
 ```bash
 cd backend
 python -m pytest -v
@@ -137,3 +143,4 @@ docker-compose up -d --build
 ## License
 
 Copyright © 2026. All rights reserved.
+

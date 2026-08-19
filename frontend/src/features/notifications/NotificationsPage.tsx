@@ -16,11 +16,23 @@ export const NotificationsPage: React.FC = () => {
     markAllAsRead,
     deleteNotification,
     clearAll,
+    addNotification,
     getUnreadCount,
   } = useNotificationStore();
 
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleAddNotification = () => {
+    addNotification({
+      title: 'Sample Notification: Review Architecture & Layout',
+      message: 'This is a sample notification to inspect card padding, icon alignment, and action buttons.',
+      type: 'reminder',
+      priority: 'warning',
+      link: '/notifications',
+    });
+    toast.success('Notification added');
+  };
 
   const unreadCount = getUnreadCount();
 
@@ -123,10 +135,18 @@ export const NotificationsPage: React.FC = () => {
               </Badge>
             )}
           </h1>
-          <p>Aggregated updates from background jobs, reminders, alarms, and connected integrations.</p>
         </div>
 
         <div className="pcc-notifications-header__actions">
+          <Button
+            id="btn-add-notif"
+            variant="outline"
+            size="sm"
+            onClick={handleAddNotification}
+          >
+            + Add Notification
+          </Button>
+
           {unreadCount > 0 && (
             <Button
               id="btn-mark-all-read"
@@ -194,6 +214,8 @@ export const NotificationsPage: React.FC = () => {
                 ? 'No unread notifications at the moment.'
                 : 'No notification records match the current filter.'
             }
+            actionLabel="Add Notification"
+            onAction={handleAddNotification}
           />
         ) : (
           filteredNotifications.map((notif: AppNotification) => (

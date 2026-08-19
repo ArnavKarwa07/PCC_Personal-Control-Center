@@ -3,6 +3,7 @@ import { useAlarmStore } from '../../stores/alarmStore';
 import { useToast } from '../../hooks/useToast';
 import { Button, Badge, EmptyState } from '../../components/ui';
 import { AddAlarmModal } from './AddAlarmModal';
+import { EditAlarmModal } from './EditAlarmModal';
 import { cn } from '../../utils';
 import type { Alarm } from '../../types';
 import './Alarms.css';
@@ -15,6 +16,7 @@ export const AlarmsPage: React.FC = () => {
   const { toast } = useToast();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingAlarm, setEditingAlarm] = useState<Alarm | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Live ticking clock
@@ -150,11 +152,19 @@ export const AlarmsPage: React.FC = () => {
                 {/* Footer Controls */}
                 <div className="pcc-alarm-card__footer">
                   <div className="pcc-alarm-card__meta-tags">
-                    <Badge variant="default" size="sm">
-                      🎵 {alarm.sound}
+                    <Badge variant="default" size="sm" className="pcc-alarm-badge-icon">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 18V5l12-2v13" />
+                        <circle cx="6" cy="18" r="3" />
+                        <circle cx="18" cy="16" r="3" />
+                      </svg>
+                      <span>{alarm.sound}</span>
                     </Badge>
-                    <Badge variant="default" size="sm">
-                      💤 {alarm.snoozeMinutes}m
+                    <Badge variant="default" size="sm" className="pcc-alarm-badge-icon">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                      </svg>
+                      <span>{alarm.snoozeMinutes}m</span>
                     </Badge>
                   </div>
 
@@ -169,7 +179,21 @@ export const AlarmsPage: React.FC = () => {
                       title="Test Tone"
                       aria-label="Test Tone"
                     >
-                      <span>▶</span>
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="pcc-alarm-btn pcc-alarm-btn--edit"
+                      onClick={() => setEditingAlarm(alarm)}
+                      title="Edit Alarm"
+                      aria-label="Edit Alarm"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                      </svg>
                     </button>
 
                     <button
@@ -213,6 +237,13 @@ export const AlarmsPage: React.FC = () => {
 
       {/* Add Alarm Modal */}
       <AddAlarmModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+
+      {/* Edit Alarm Modal */}
+      <EditAlarmModal
+        isOpen={!!editingAlarm}
+        onClose={() => setEditingAlarm(null)}
+        alarm={editingAlarm}
+      />
     </div>
   );
 };

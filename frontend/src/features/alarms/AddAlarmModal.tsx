@@ -84,40 +84,104 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
     }
   };
 
+  const stepHours = (delta: number) => {
+    const current = parseInt(hours, 10) || 0;
+    const next = (current + delta + 24) % 24;
+    setHours(next.toString().padStart(2, '0'));
+    soundEffects.playPip();
+  };
+
+  const stepMinutes = (delta: number) => {
+    const current = parseInt(minutes, 10) || 0;
+    const next = (current + delta + 60) % 60;
+    setMinutes(next.toString().padStart(2, '0'));
+    soundEffects.playPip();
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Set New Alarm" size="md" id="add-alarm-modal">
+    <Modal isOpen={isOpen} onClose={onClose} title="Add New Alarm" size="md" id="add-alarm-modal">
       <form onSubmit={handleSubmit} className="pcc-alarm-form">
-        {/* Big Time Selector */}
+        {/* Big Time Selector with Top & Bottom Centered Stepper Arrows */}
         <div className="pcc-alarm-time-inputs">
-          <input
-            id="alarm-hours-input"
-            className="pcc-alarm-time-digit"
-            type="number"
-            min="0"
-            max="23"
-            value={hours}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val.length <= 2) setHours(val);
-            }}
-            onBlur={() => setHours(hours.padStart(2, '0'))}
-            required
-          />
+          <div className="pcc-alarm-time-spinner">
+            <button
+              type="button"
+              className="pcc-alarm-time-stepper-btn pcc-alarm-time-stepper-btn--up"
+              onClick={() => stepHours(1)}
+              aria-label="Increase Hours"
+              title="Increase Hours"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+            </button>
+            <input
+              id="alarm-hours-input"
+              className="pcc-alarm-time-digit"
+              type="number"
+              min="0"
+              max="23"
+              value={hours}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.length <= 2) setHours(val);
+              }}
+              onBlur={() => setHours(hours.padStart(2, '0'))}
+              required
+            />
+            <button
+              type="button"
+              className="pcc-alarm-time-stepper-btn pcc-alarm-time-stepper-btn--down"
+              onClick={() => stepHours(-1)}
+              aria-label="Decrease Hours"
+              title="Decrease Hours"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </div>
+
           <span className="pcc-alarm-time-colon">:</span>
-          <input
-            id="alarm-minutes-input"
-            className="pcc-alarm-time-digit"
-            type="number"
-            min="0"
-            max="59"
-            value={minutes}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val.length <= 2) setMinutes(val);
-            }}
-            onBlur={() => setMinutes(minutes.padStart(2, '0'))}
-            required
-          />
+
+          <div className="pcc-alarm-time-spinner">
+            <button
+              type="button"
+              className="pcc-alarm-time-stepper-btn pcc-alarm-time-stepper-btn--up"
+              onClick={() => stepMinutes(1)}
+              aria-label="Increase Minutes"
+              title="Increase Minutes"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+            </button>
+            <input
+              id="alarm-minutes-input"
+              className="pcc-alarm-time-digit"
+              type="number"
+              min="0"
+              max="59"
+              value={minutes}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.length <= 2) setMinutes(val);
+              }}
+              onBlur={() => setMinutes(minutes.padStart(2, '0'))}
+              required
+            />
+            <button
+              type="button"
+              className="pcc-alarm-time-stepper-btn pcc-alarm-time-stepper-btn--down"
+              onClick={() => stepMinutes(-1)}
+              aria-label="Decrease Minutes"
+              title="Decrease Minutes"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Label */}
@@ -179,7 +243,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
         {/* Sound and Snooze row */}
         <div className="pcc-reminder-form__row">
           <div className="pcc-reminder-form__group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="pcc-reminder-form__label-header">
               <label className="pcc-reminder-form__label" htmlFor="alarm-sound">
                 Alarm Tone
               </label>
@@ -191,6 +255,7 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
                   color: 'var(--color-accent-hover)',
                   fontSize: '11px',
                   cursor: 'pointer',
+                  fontWeight: 600,
                 }}
                 onClick={() => previewAlarmSound(sound)}
               >
@@ -210,9 +275,11 @@ export const AddAlarmModal: React.FC<AddAlarmModalProps> = ({ isOpen, onClose })
           </div>
 
           <div className="pcc-reminder-form__group">
-            <label className="pcc-reminder-form__label" htmlFor="alarm-snooze">
-              Snooze Duration
-            </label>
+            <div className="pcc-reminder-form__label-header">
+              <label className="pcc-reminder-form__label" htmlFor="alarm-snooze">
+                Snooze Duration
+              </label>
+            </div>
             <select
               id="alarm-snooze"
               className="pcc-reminder-form__select"

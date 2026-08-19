@@ -9,21 +9,62 @@ import { useIdeaStore } from '../../stores/ideaStore';
 import { useCalendarStore } from '../../stores/calendarStore';
 import { useReminderStore } from '../../stores/reminderStore';
 import { useAlarmStore } from '../../stores/alarmStore';
-import { Button, Input, Badge } from '../../components/ui';
+import { Button, Input, Badge, Modal } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
-import type { Integration, IntegrationService } from '../../types';
+import { apiClient } from '../../services/api';
+import { validateAndCleanImportData, executeDataImport } from '../../services/jsonImportService';
+import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
 
 type SettingsTab = 'general' | 'integrations' | 'audio' | 'data';
+
+const ACCENT_OPTIONS: { id: AccentColor; label: string; gradient: string }[] = [
+  { id: 'indigo', label: 'Indigo', gradient: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' },
+  { id: 'emerald', label: 'Emerald', gradient: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)' },
+  { id: 'violet', label: 'Violet', gradient: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)' },
+  { id: 'amber', label: 'Amber', gradient: 'linear-gradient(135deg, #d97706 0%, #ea580c 100%)' },
+];
+
+const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'text' | 'password' }[]> = {
+  github: [
+    { key: 'token', label: 'Personal Access Token', type: 'password' },
+    { key: 'repositories', label: 'Repositories (comma-separated)', type: 'text' },
+  ],
+  google_calendar: [
+    { key: 'account', label: 'Google Account', type: 'text' },
+    { key: 'calendars', label: 'Calendars', type: 'text' },
+  ],
+  telegram: [
+    { key: 'botToken', label: 'Bot Token', type: 'password' },
+    { key: 'chatId', label: 'Chat ID', type: 'text' },
+  ],
+  notion: [
+    { key: 'integrationToken', label: 'Integration Token', type: 'password' },
+    { key: 'workspaceId', label: 'Workspace ID', type: 'text' },
+  ],
+  discord: [
+    { key: 'webhookUrl', label: 'Webhook URL', type: 'text' },
+  ],
+  openweather: [
+    { key: 'apiKey', label: 'API Key', type: 'password' },
+    { key: 'defaultCity', label: 'Default City', type: 'text' },
+    { key: 'units', label: 'Units', type: 'text' },
+  ],
+  weather: [
+    { key: 'apiKey', label: 'API Key', type: 'password' },
+    { key: 'defaultCity', label: 'Default City', type: 'text' },
+    { key: 'units', label: 'Units', type: 'text' },
+  ],
+};
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
   const { user, setUser } = useAuthStore();
-  const { theme, setTheme } = useUIStore();
-  const { integrations, isSyncing, toggleConnect, updateConfig, syncIntegration, testConnection } =
+  const { theme, setTheme, accentColor, setAccentColor } = useUIStore();
+  const { integrations, isSyncing, toggleConnect, updateConfig, syncIntegration, testConnection, fetchIntegrations } =
     useIntegrationStore();
 
   const { tasks } = useTaskStore();
@@ -44,6 +85,40 @@ export const SettingsPage: React.FC = () => {
 
   // Audio tone setting
   const [selectedTone, setSelectedTone] = useState('radiant');
+
+  // Integration connect modal state
+  const [connectModal, setConnectModal] = useState<{ provider: string; name: string; id?: string } | null>(null);
+  const [connectConfig, setConnectConfig] = useState<Record<string, string>>({});
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+
+  const handleConnectIntegration = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!connectModal) return;
+
+    setIsConnecting(true);
+    setConnectError(null);
+    try {
+      await apiClient.post(`/integrations/${connectModal.provider}/connect`, connectConfig);
+      await fetchIntegrations();
+      const matching = integrations.find(
+        (i) => ((i as any).provider || i.service) === connectModal.provider || i.id === connectModal.id
+      );
+      if (matching && !matching.connected) {
+        await toggleConnect(matching.id, connectConfig);
+      }
+      soundEffects.playChime();
+      toast.success(`Connected to ${connectModal.name}`);
+      setConnectModal(null);
+      setConnectConfig({});
+    } catch (err: any) {
+      const message = err?.message || `Failed to connect to ${connectModal.name}`;
+      setConnectError(message);
+      toast.error(message);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,12 +210,40 @@ export const SettingsPage: React.FC = () => {
     toast.success('PCC backup JSON downloaded successfully');
   };
 
+  const handleImportJSONFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = (event.target?.result as string) || '';
+        const result = validateAndCleanImportData(text);
+        if (!result.success) {
+          const firstErr = result.issues.find((i) => i.level === 'error')?.message || 'Invalid backup JSON file schema.';
+          toast.error(firstErr);
+          return;
+        }
+
+        executeDataImport(result.payload);
+        soundEffects.playChime();
+        const s = result.stats;
+        toast.success(
+          `Imported ${s.tasks} tasks, ${s.projects} projects, ${s.notes} notes, ${s.ideas} ideas, ${s.calendarEvents} events, ${s.reminders} reminders successfully with 0 errors!`
+        );
+        setTimeout(() => window.location.reload(), 600);
+      } catch (err: any) {
+        toast.error(`Failed to restore backup: ${err?.message || 'Unknown error'}`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="pcc-settings-page">
       {/* Header */}
       <div className="pcc-settings-header">
         <h1>Settings & Integrations</h1>
-        <p>Manage system preferences, API integrations, notification tones, and backup archives.</p>
       </div>
 
       {/* Navigation Tabs */}
@@ -255,13 +358,13 @@ export const SettingsPage: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 <div className="pcc-reminder-form__group">
                   <label className="pcc-reminder-form__label">Theme Mode</label>
-                  <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <div className="pcc-theme-toggle-group">
                     <Button
                       variant={theme === 'dark' ? 'primary' : 'secondary'}
                       size="sm"
                       onClick={() => setTheme('dark')}
                     >
-                      Deep Dark Mode
+                      Dark Mode
                     </Button>
                     <Button
                       variant={theme === 'light' ? 'primary' : 'secondary'}
@@ -274,12 +377,53 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label" htmlFor="settings-tz">
+                  <label className="pcc-reminder-form__label">Accent Color Palette</label>
+                  <div className="pcc-accent-swatches">
+                    {ACCENT_OPTIONS.map((opt) => {
+                      const isSelected = accentColor === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          className={cn('pcc-accent-swatch', isSelected && 'pcc-accent-swatch--active')}
+                          onClick={() => {
+                            setAccentColor(opt.id);
+                            soundEffects.playPip();
+                            toast.success(`Accent color set to ${opt.label}`);
+                          }}
+                          title={`Select ${opt.label} accent color`}
+                        >
+                          <span
+                            className="pcc-accent-swatch__preview"
+                            style={{ background: opt.gradient }}
+                          />
+                          <span className="pcc-accent-swatch__label">{opt.label}</span>
+                          {isSelected && (
+                            <svg
+                              viewBox="0 0 24 24"
+                              width="14"
+                              height="14"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              className="pcc-accent-swatch__check"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="pcc-settings-field-row">
+                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-tz">
                     Primary Timezone
                   </label>
                   <select
                     id="settings-tz"
-                    className="pcc-reminder-form__select"
+                    className="pcc-reminder-form__select pcc-settings-select"
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
                   >
@@ -291,13 +435,13 @@ export const SettingsPage: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label" htmlFor="settings-date-format">
+                <div className="pcc-settings-field-row">
+                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-date-format">
                     Date Display Format
                   </label>
                   <select
                     id="settings-date-format"
-                    className="pcc-reminder-form__select"
+                    className="pcc-reminder-form__select pcc-settings-select"
                     value={dateFormat}
                     onChange={(e) => setDateFormat(e.target.value)}
                   >
@@ -415,8 +559,14 @@ export const SettingsPage: React.FC = () => {
                             variant="primary"
                             size="sm"
                             onClick={() => {
-                              toggleConnect(item.id);
-                              toast.success(`Connected to ${item.name}`);
+                              const provider = (item as any).provider || item.service;
+                              setConnectModal({
+                                provider,
+                                name: item.name,
+                                id: item.id,
+                              });
+                              setConnectConfig({});
+                              setConnectError(null);
                             }}
                           >
                             Connect
@@ -520,37 +670,80 @@ export const SettingsPage: React.FC = () => {
               <h3>Import & Restore Backup</h3>
               <p>Restore your system database from an existing PCC JSON archive backup file.</p>
               <div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => toast.info('Select a .json backup file to restore your workspace')}
-                >
-                  Choose Backup File
-                </Button>
-              </div>
-            </div>
-
-            <div className="pcc-backup-action-card">
-              <h3>Reset Database</h3>
-              <p>
-                Restore all default demo datasets across tasks, kanban boards, reminders, and sample
-                markdown documents.
-              </p>
-              <div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => {
-                    soundEffects.playPip();
-                    toast.info('Database reset to factory demo values');
-                  }}
-                >
-                  Reset to Demo State
-                </Button>
+                <label className="pcc-upload-btn" style={{ cursor: 'pointer' }}>
+                  📂 Choose Backup File
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportJSONFile}
+                    style={{ display: 'none' }}
+                  />
+                </label>
               </div>
             </div>
           </div>
         </div>
+      )}
+      {/* Connect Integration Modal */}
+      {connectModal && (
+        <Modal
+          isOpen={Boolean(connectModal)}
+          onClose={() => {
+            setConnectModal(null);
+            setConnectError(null);
+          }}
+          title={`Connect ${connectModal.name}`}
+          size="md"
+        >
+          <form onSubmit={handleConnectIntegration} className="pcc-connect-modal-form">
+            {connectError && (
+              <div className="pcc-connect-modal-error" role="alert">
+                {connectError}
+              </div>
+            )}
+
+            {(INTEGRATION_FIELDS[connectModal.provider] || []).map((field) => (
+              <div key={field.key} className="pcc-connect-modal-field">
+                <label htmlFor={`config-${field.key}`}>{field.label}</label>
+                <input
+                  id={`config-${field.key}`}
+                  type={field.type}
+                  value={connectConfig[field.key] || ''}
+                  onChange={(e) =>
+                    setConnectConfig((prev) => ({
+                      ...prev,
+                      [field.key]: e.target.value,
+                    }))
+                  }
+                  placeholder={`Enter ${field.label.toLowerCase()}`}
+                  autoComplete="off"
+                />
+              </div>
+            ))}
+
+            <div className="pcc-connect-modal-actions">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setConnectModal(null);
+                  setConnectError(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                loading={isConnecting}
+              >
+                Connect
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

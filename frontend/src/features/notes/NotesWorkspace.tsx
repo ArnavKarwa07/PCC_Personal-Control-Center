@@ -33,8 +33,25 @@ export const NotesWorkspace: React.FC = () => {
   const [localTitle, setLocalTitle] = useState(activeNote?.title || '');
   const [localContent, setLocalContent] = useState(activeNote?.content || '');
   const [localCategory, setLocalCategory] = useState(activeNote?.category || 'General');
-  const [viewMode, setViewMode] = useState<'split' | 'edit' | 'preview'>('split');
+  const [viewMode, setViewMode] = useState<'split' | 'edit' | 'preview'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      return 'edit';
+    }
+    return 'split';
+  });
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+
+  // Force single-pane view mode on narrow viewports
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setViewMode((prev) => (prev === 'split' ? 'edit' : prev));
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Debounced auto-save timer ref
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -84,9 +101,9 @@ export const NotesWorkspace: React.FC = () => {
 
   const handleCreateNewNote = async () => {
     await addNote({
-      title: 'Untitled Note',
+      title: '',
       category: selectedCategory !== 'All' ? selectedCategory : 'General',
-      content: '# Untitled Note\n\nStart capturing thoughts...',
+      content: '',
     });
     addToast({
       type: 'success',
@@ -128,12 +145,30 @@ export const NotesWorkspace: React.FC = () => {
   const wordCount = localContent.trim() ? localContent.trim().split(/\s+/).length : 0;
   const charCount = localContent.length;
 
+  const [isMobileListOpen, setIsMobileListOpen] = useState(false);
+
   return (
     <div className="pcc-notes-workspace" id="notes-workspace-root">
+      {/* Mobile Collapsible List Toggle Bar */}
+      <div className="pcc-notes-mobile-toggle-bar">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMobileListOpen(!isMobileListOpen)}
+        >
+          {isMobileListOpen ? '⬆️ Hide Notes List' : '📋 Show Notes List'} ({filteredNotes.length})
+        </Button>
+        {activeNote && !isMobileListOpen && (
+          <span className="pcc-notes-mobile-active-note">
+            Editing: <strong>{activeNote.title}</strong>
+          </span>
+        )}
+      </div>
+
       {/* Left Pane: Notes Navigation */}
-      <div className="pcc-notes-list-pane">
+      <div className={cn('pcc-notes-list-pane', !isMobileListOpen && 'pcc-notes-list-pane--mobile-collapsed')}>
         <div className="pcc-notes-list__header">
-          <h2 className="pcc-notes-list__title">Notes & Knowledge</h2>
+          <h2 className="pcc-notes-list__title">Notes</h2>
           <Button
             variant="primary"
             size="sm"
@@ -290,6 +325,7 @@ export const NotesWorkspace: React.FC = () => {
                   </button>
                   <button
                     type="button"
+                    className="pcc-notes-view-mode-btn--split"
                     style={{
                       padding: '3px 8px',
                       fontSize: '11px',
@@ -353,7 +389,7 @@ export const NotesWorkspace: React.FC = () => {
             <div className="pcc-notes-editor__content-area">
               <input
                 className="pcc-notes-editor__title-input"
-                placeholder="Note Title..."
+                placeholder="Untitled Note"
                 value={localTitle}
                 onChange={(e) => handleTitleChange(e.target.value)}
               />
@@ -368,7 +404,7 @@ export const NotesWorkspace: React.FC = () => {
                 {(viewMode === 'edit' || viewMode === 'split') && (
                   <textarea
                     className="pcc-notes-editor__textarea"
-                    placeholder="Write markdown here... (# Heading, **bold**, - list, `code`)"
+                    placeholder="Start capturing thoughts..."
                     value={localContent}
                     onChange={(e) => handleContentChange(e.target.value)}
                   />
@@ -406,10 +442,13 @@ export const NotesWorkspace: React.FC = () => {
           'pcc-note-item-card',
           isSelected && 'pcc-note-item-card--active'
         )}
-        onClick={() => setActiveNoteId(note.id)}
+        onClick={() => {
+          setActiveNoteId(note.id);
+          setIsMobileListOpen(false);
+        }}
       >
         <div className="pcc-note-item-card__header">
-          <h4 className="pcc-note-item-card__title">{note.title}</h4>
+          <h4 className="pcc-note-item-card__title">{note.title.trim() || 'Untitled Note'}</h4>
           {note.pinned && (
             <svg viewBox="0 0 24 24" width="12" height="12" fill="var(--color-accent)" style={{ flexShrink: 0 }}>
               <path d="M16 4v2H8V4h8m1-2H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v7l-2 2v2h5v5h2v-5h5v-2l-2-2v-7h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
@@ -417,7 +456,7 @@ export const NotesWorkspace: React.FC = () => {
           )}
         </div>
 
-        <p className="pcc-note-item-card__snippet">{snippet || 'Empty note...'}</p>
+        <p className="pcc-note-item-card__snippet">{snippet.trim() || 'Start capturing thoughts...'}</p>
 
         <div className="pcc-note-item-card__footer">
           <Badge variant="default" size="sm">{note.category}</Badge>

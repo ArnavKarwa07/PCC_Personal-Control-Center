@@ -90,7 +90,7 @@ def test_integration_multi_tenant_isolation(client, auth_headers, second_auth_he
 
 
 def test_get_current_weather(client, auth_headers):
-    """Test GET /api/v1/weather/current returns valid weather data."""
+    """Test GET /api/v1/weather/current returns valid weather data with default location Pune, India."""
     res = client.get("/api/v1/weather/current", headers=auth_headers)
     assert res.status_code == 200
     data = res.json()["data"]
@@ -98,6 +98,7 @@ def test_get_current_weather(client, auth_headers):
     assert "condition" in data
     assert "humidity" in data
     assert "wind_speed" in data
+    assert data["location"] == "Pune, India"
     assert data["temperature_unit"] in ["celsius", "fahrenheit"]
 
 

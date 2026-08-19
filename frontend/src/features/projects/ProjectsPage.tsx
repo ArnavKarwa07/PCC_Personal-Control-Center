@@ -35,7 +35,11 @@ export const ProjectsPage: React.FC = () => {
     { id: 'archived', label: 'Archived', count: archivedCount },
   ];
 
-  // Filtered projects
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
+  // Filtered projects for standard grid view
   const filteredProjects = projects.filter((p) => {
     // Status filter
     if (activeTab !== 'all' && p.status !== activeTab) {
@@ -123,7 +127,6 @@ export const ProjectsPage: React.FC = () => {
       <div className="pcc-projects__header">
         <div className="pcc-projects__title-group">
           <h1>Projects & Initiatives</h1>
-          <p>Organize high-leverage goals, track deliverables, and manage Kanban workflows.</p>
         </div>
         <Button
           variant="primary"
@@ -184,20 +187,23 @@ export const ProjectsPage: React.FC = () => {
 
       {/* Tabs & Search Controls */}
       <div className="pcc-projects__controls">
-        <Tabs
-          tabs={tabItems}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          id="projects-status-tabs"
-        />
+        <div className="pcc-projects__tabs-wrapper">
+          <Tabs
+            tabs={tabItems}
+            activeTab={activeTab}
+            onChange={handleTabChange}
+            id="projects-status-tabs"
+          />
+        </div>
 
-        <div className="pcc-projects__filters-left">
+        <div className="pcc-projects__filters-row">
           <Input
             id="projects-search-input"
             placeholder="Search projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '220px' }}
+            onClear={() => setSearchQuery('')}
+            className="pcc-projects__search-input"
             icon={
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
@@ -210,15 +216,7 @@ export const ProjectsPage: React.FC = () => {
             id="projects-priority-filter"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            style={{
-              background: 'var(--color-bg-elevated)',
-              color: 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--space-2) var(--space-3)',
-              fontSize: 'var(--font-size-xs)',
-              height: '38px',
-            }}
+            className="pcc-projects__priority-select"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>
@@ -304,7 +302,7 @@ export const ProjectsPage: React.FC = () => {
                 key={project.id}
                 id={`project-card-${project.id}`}
                 hoverable
-                padding="md"
+                padding="lg"
                 className="pcc-project-card"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
@@ -314,35 +312,19 @@ export const ProjectsPage: React.FC = () => {
                   style={{ background: project.color || 'var(--color-accent-gradient)' }}
                 />
 
-                {/* Card Header */}
+                {/* Top Row: Category label + Priority badge + Status badge (flex, space-between) */}
                 <div className="pcc-project-card__header">
-                  <div className="pcc-project-card__title-area">
-                    {project.category && (
-                      <span className="pcc-project-card__category">{project.category}</span>
-                    )}
-                    <h3 className="pcc-project-card__title">{project.title}</h3>
-                  </div>
+                  <span className="pcc-project-card__category">
+                    {project.category || 'Initiative'}
+                  </span>
                   <div className="pcc-project-card__badges">
                     {getPriorityBadge(project.priority)}
                     {getStatusBadge(project.status)}
                   </div>
                 </div>
 
-                {/* Description */}
-                <p className="pcc-project-card__description">
-                  {project.description || 'No description provided.'}
-                </p>
-
-                {/* Tags */}
-                {project.tags && project.tags.length > 0 && (
-                  <div className="pcc-project-card__tags">
-                    {project.tags.map((tag) => (
-                      <span key={tag} className="pcc-project-card__tag">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Project Title (prominent, font-weight 600) */}
+                <h3 className="pcc-project-card__title">{project.title}</h3>
 
                 {/* Progress bar */}
                 <div className="pcc-project-card__progress-container">
@@ -365,7 +347,7 @@ export const ProjectsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Card Footer */}
+                {/* Card Footer: Due date + 3-dot action menu */}
                 <div className="pcc-project-card__footer" onClick={(e) => e.stopPropagation()}>
                   <div className="pcc-project-card__deadline">
                     {project.dueDate ? (
@@ -383,23 +365,12 @@ export const ProjectsPage: React.FC = () => {
                   </div>
 
                   <div className="pcc-project-card__actions">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/projects/${project.id}`)}
-                    >
-                      Open
-                    </Button>
                     <Dropdown
                       id={`project-dropdown-${project.id}`}
                       trigger={
                         <button
                           type="button"
-                          style={{
-                            padding: '6px',
-                            color: 'var(--color-text-secondary)',
-                            borderRadius: 'var(--radius-sm)',
-                          }}
+                          className="pcc-project-card__action-btn"
                           aria-label="Project actions"
                         >
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
@@ -429,3 +400,4 @@ export const ProjectsPage: React.FC = () => {
 };
 
 export default ProjectsPage;
+

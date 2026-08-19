@@ -16,7 +16,6 @@ if BACKEND_DIR not in sys.path:
 
 from sqlalchemy.orm import Session  # noqa: E402
 
-from app.core.config import settings  # noqa: E402
 from app.core.database import SessionLocal  # noqa: E402
 from app.models.integration import Integration, IntegrationStatus  # noqa: E402
 from app.models.notification import (  # noqa: E402
@@ -233,19 +232,6 @@ def run_worker_iteration(db: Session) -> Dict[str, Any]:
     }
 
 
-async def init_redis():
-    """Attempt connecting to Redis queue backend with timeout."""
-    try:
-        import redis.asyncio as aioredis
-        r = aioredis.from_url(settings.REDIS_URL, decode_responses=True, socket_connect_timeout=1.0)
-        await asyncio.wait_for(r.ping(), timeout=1.0)
-        logger.info(f"Connected to Redis queue at {settings.REDIS_URL}")
-        return r
-    except Exception as e:
-        logger.warning(f"Redis unavailable ({e}). Running in standalone database polling mode.")
-        return None
-
-
 async def run_worker(
     poll_interval: float = 10.0,
     max_iterations: Optional[int] = None,
@@ -253,7 +239,6 @@ async def run_worker(
 ):
     """Async background worker main execution loop."""
     logger.info("Starting PCC Background Worker System...")
-    redis_client = await init_redis()
 
     iteration = 0
     while True:
@@ -291,11 +276,6 @@ async def run_worker(
         except asyncio.TimeoutError:
             pass
 
-    if redis_client:
-        try:
-            await redis_client.aclose()
-        except Exception:
-            pass
     logger.info("PCC Background Worker stopped cleanly.")
 
 

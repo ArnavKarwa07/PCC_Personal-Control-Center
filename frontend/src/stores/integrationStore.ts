@@ -58,7 +58,7 @@ const INITIAL_INTEGRATIONS: Integration[] = [
     category: 'environment',
     config: {
       apiKey: 'owm_********************************',
-      defaultCity: 'San Francisco',
+      defaultCity: 'Pune, India',
       units: 'metric',
     },
   },

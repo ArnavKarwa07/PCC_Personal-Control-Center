@@ -5,9 +5,15 @@ import { useToast } from '../../hooks/useToast';
 import './Weather.css';
 
 export const WeatherPage: React.FC = () => {
-  const { weather, unit, selectedCity, isRefreshing, setCity, toggleUnit, refreshWeather } =
+  const { weather, unit, isRefreshing, isGpsLocated, locationStatus, requestLocation, toggleUnit, refreshWeather } =
     useWeatherStore();
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (locationStatus === 'pending') {
+      requestLocation();
+    }
+  }, [locationStatus, requestLocation]);
 
   const convertTemp = (tempC: number) => {
     if (unit === 'F') {
@@ -15,6 +21,7 @@ export const WeatherPage: React.FC = () => {
     }
     return Math.round(tempC);
   };
+
 
   const renderWeatherIcon = (iconName: string) => {
     switch (iconName) {
@@ -80,33 +87,19 @@ export const WeatherPage: React.FC = () => {
     }
   };
 
-  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCity = e.target.value;
-    await setCity(newCity);
-    toast.info(`Updated weather location to ${newCity}`);
-  };
-
   return (
     <div className="pcc-weather-page">
       {/* Header Controls */}
       <header className="pcc-weather-header">
         <div className="pcc-weather-header__titles">
           <h1>Weather & Environmental Metrics</h1>
-          <p>Hyper-local weather telemetry, AQI indices, and multi-day meteorological forecasts.</p>
         </div>
 
         <div className="pcc-weather-header__controls">
-          <select
-            id="weather-city-select"
-            className="pcc-weather-city-select"
-            value={selectedCity}
-            onChange={handleCityChange}
-          >
-            <option value="San Francisco">San Francisco, US</option>
-            <option value="New York">New York, US</option>
-            <option value="London">London, UK</option>
-            <option value="Tokyo">Tokyo, JP</option>
-          </select>
+          <Badge variant={isGpsLocated ? 'success' : 'primary'} size="sm">
+            {isGpsLocated ? 'GPS Located' : 'Pune, IN (Default)'}
+          </Badge>
+
 
           <div className="pcc-weather-unit-toggle">
             <button
@@ -301,7 +294,18 @@ export const WeatherPage: React.FC = () => {
               <span className="pcc-weather-hourly-temp">
                 {convertTemp(hour.temp)}°{unit}
               </span>
-              <span className="pcc-weather-hourly-pop">{hour.pop > 0 ? `💧 ${hour.pop}%` : '—'}</span>
+              <span className="pcc-weather-hourly-pop">
+                {hour.pop > 0 ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                    </svg>
+                    {hour.pop}%
+                  </span>
+                ) : (
+                  '-'
+                )}
+              </span>
             </div>
           ))}
         </div>
@@ -341,7 +345,25 @@ export const WeatherPage: React.FC = () => {
 
               <div className="pcc-weather-daily-footer">
                 <span>{day.condition}</span>
-                <span>{day.pop > 0 ? `💧 ${day.pop}%` : '☀️ Dry'}</span>
+                <span>
+                  {day.pop > 0 ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                      </svg>
+                      {day.pop}%
+                    </span>
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                      </svg>
+                      Dry
+                    </span>
+                  )}
+                </span>
               </div>
             </div>
           ))}

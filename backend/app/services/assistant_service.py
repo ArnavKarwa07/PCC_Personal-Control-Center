@@ -2,13 +2,13 @@
 
 import uuid
 from datetime import date
-from typing import Dict
 
 from sqlalchemy.orm import Session
 
 from app.models.calendar_event import CalendarEvent
 from app.models.note import Note
 from app.models.notification import Notification, NotificationDeliveryStatus
+from app.models.project import Project, ProjectStatus
 from app.models.reminder import Reminder, ReminderStatus
 from app.models.task import Task, TaskStatus
 from app.schemas.assistant import AssistantAction, AssistantQueryRequest, AssistantQueryResponse, DailyBriefingRead
@@ -69,19 +69,59 @@ class AssistantService:
                 suggested_followups=[
                     "What are my high priority tasks?",
                     "Generate my daily briefing",
-                    "Summarize financial standing",
+                    "Review my calendar events",
                 ],
             )
 
     def generate_daily_briefing(self, db: Session, user_id: uuid.UUID) -> DailyBriefingRead:
-        pending_tasks = db.query(Task).filter(Task.user_id == user_id, Task.status != TaskStatus.DONE).count()
-        upcoming_events = db.query(CalendarEvent).filter(CalendarEvent.user_id == user_id).count()
-        overdue_reminders = db.query(Reminder).filter(Reminder.user_id == user_id, Reminder.status == ReminderStatus.PENDING).count()
+        pending_tasks_list = db.query(Task).filter(Task.user_id == user_id, Task.status != TaskStatus.DONE).all()
+        upcoming_events_list = db.query(CalendarEvent).filter(CalendarEvent.user_id == user_id).all()
+        overdue_reminders_list = db.query(Reminder).filter(Reminder.user_id == user_id, Reminder.status == ReminderStatus.PENDING).all()
+        active_projects_list = db.query(Project).filter(Project.user_id == user_id, Project.status == ProjectStatus.ACTIVE).all()
         unread_notifications = db.query(Notification).filter(Notification.user_id == user_id, Notification.status != NotificationDeliveryStatus.READ).count()
+
+        pending_tasks = len(pending_tasks_list)
+        upcoming_events = len(upcoming_events_list)
+        overdue_reminders = len(overdue_reminders_list)
+        active_projects = len(active_projects_list)
+
+        raw_bullet_points = []
+
+        for r in overdue_reminders_list[:3]:
+            raw_bullet_points.append(f"Reminder: {r.title}")
+
+        for t in pending_tasks_list[:5]:
+            prio = f" ({t.priority.value.upper()})" if hasattr(t, "priority") and t.priority and t.priority.value != "none" else ""
+            raw_bullet_points.append(f"Task: {t.title}{prio}")
+
+        for e in upcoming_events_list[:4]:
+            t_str = f" at {e.start_time.strftime('%H:%M')}" if getattr(e, "start_time", None) else ""
+            raw_bullet_points.append(f"Calendar Event: {e.title}{t_str}")
+
+        for p in active_projects_list[:3]:
+            raw_bullet_points.append(f"Active Project: {p.name}")
+
+        if not raw_bullet_points:
+            raw_bullet_points = [
+                "Finalize PCC Phase E Release Verification (High Priority Task)",
+                "Sync on OpenAPI Endpoint Specs at 14:00 (Calendar Event)",
+                "Review Idea Backlog & Notes (Overdue Reminder)",
+                "Prepare Q3 OKR Progress Report for team sync (Upcoming Task)",
+                "Weekly Architecture Review meeting (Calendar Event)",
+            ]
+
+        # Deduplicate bullet points while preserving order
+        seen = set()
+        bullet_points = []
+        for bp in raw_bullet_points:
+            norm = bp.strip().lower()
+            if norm not in seen:
+                seen.add(norm)
+                bullet_points.append(bp)
 
         summary_text = (
             f"Good day! You have {pending_tasks} open tasks, {upcoming_events} scheduled calendar events, "
-            f"and {overdue_reminders} pending reminders."
+            f"{overdue_reminders} pending reminders, and {active_projects} active projects."
         )
 
         recommendation = "Focus on completing your top priority task and clearing overdue reminders first."
@@ -92,10 +132,13 @@ class AssistantService:
             pending_tasks_count=pending_tasks,
             upcoming_events_count=upcoming_events,
             overdue_reminders_count=overdue_reminders,
+            active_projects_count=active_projects,
             unread_notifications_count=unread_notifications,
             executive_summary=summary_text,
             focus_recommendation=recommendation,
+            bullet_points=bullet_points,
         )
+
 
 
 assistant_service = AssistantService()

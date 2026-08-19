@@ -350,7 +350,7 @@ def test_notifications_crud_and_read_all(client, auth_headers, second_auth_heade
     assert res_other.status_code == 404
 
     # Mark all as read
-    all_read_res = client.post("/api/v1/notifications/read-all", headers=auth_headers)
+    all_read_res = client.patch("/api/v1/notifications/read-all", headers=auth_headers)
     assert all_read_res.status_code == 200
     assert all_read_res.json()["data"]["count"] >= 1
 
@@ -361,3 +361,102 @@ def test_notifications_crud_and_read_all(client, auth_headers, second_auth_heade
     # Delete single notification
     del_res = client.delete(f"/api/v1/notifications/{n1.id}", headers=auth_headers)
     assert del_res.status_code == 200
+
+
+# ==========================================
+# 5. NEGATIVE AND ROUTE CONTRACT TESTS
+# ==========================================
+
+
+def test_reminders_alarms_timers_negative_invalid_token(client):
+    """Test 401 error output format on invalid token across reminders, alarms, timers, notifications."""
+    bad_headers = {"Authorization": "Bearer badtoken999"}
+    assert client.get("/api/v1/reminders", headers=bad_headers).status_code == 401
+    assert client.get("/api/v1/reminders", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
+
+    assert client.get("/api/v1/alarms", headers=bad_headers).status_code == 401
+    assert client.get("/api/v1/alarms", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
+
+    assert client.get("/api/v1/timers", headers=bad_headers).status_code == 401
+    assert client.get("/api/v1/timers", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
+
+    assert client.get("/api/v1/notifications", headers=bad_headers).status_code == 401
+    assert client.get("/api/v1/notifications", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
+
+
+def test_reminders_alarms_timers_negative_missing_payload_fields(client, auth_headers):
+    """Test 422 payload validation error format when fields are missing or invalid."""
+    # Reminder missing remind_at & title
+    res_r = client.post("/api/v1/reminders", json={}, headers=auth_headers)
+    assert res_r.status_code == 422
+    assert res_r.json()["error"]["code"] == "VALIDATION_ERROR"
+
+    # Alarm missing label & time
+    res_a = client.post("/api/v1/alarms", json={}, headers=auth_headers)
+    assert res_a.status_code == 422
+    assert res_a.json()["error"]["code"] == "VALIDATION_ERROR"
+
+    # Timer invalid duration_seconds type
+    res_t = client.post("/api/v1/timers", json={"duration_seconds": ["invalid", "list"]}, headers=auth_headers)
+    assert res_t.status_code == 422
+    assert res_t.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_reminders_alarms_timers_negative_nonexistent_resource_lookup(client, auth_headers):
+    """Test 404 format on non-existent resource ID operations."""
+    import uuid
+
+    fake_id = str(uuid.uuid4())
+
+    # Reminder 404
+    assert client.get(f"/api/v1/reminders/{fake_id}", headers=auth_headers).status_code == 404
+    assert client.get(f"/api/v1/reminders/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("REMINDER_NOT_FOUND", "NOT_FOUND")
+    assert client.patch(f"/api/v1/reminders/{fake_id}", json={"title": "X"}, headers=auth_headers).status_code == 404
+    assert client.delete(f"/api/v1/reminders/{fake_id}", headers=auth_headers).status_code == 404
+
+    # Alarm 404
+    assert client.patch(f"/api/v1/alarms/{fake_id}/toggle", headers=auth_headers).status_code == 404
+    assert client.patch(f"/api/v1/alarms/{fake_id}/toggle", headers=auth_headers).json()["error"]["code"] in ("ALARM_NOT_FOUND", "NOT_FOUND")
+    assert client.delete(f"/api/v1/alarms/{fake_id}", headers=auth_headers).status_code == 404
+
+    # Timer 404
+    assert client.get(f"/api/v1/timers/{fake_id}", headers=auth_headers).status_code == 404
+    assert client.get(f"/api/v1/timers/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("TIMER_NOT_FOUND", "NOT_FOUND")
+    assert client.delete(f"/api/v1/timers/{fake_id}", headers=auth_headers).status_code == 404
+
+    # Notification 404
+    assert client.patch(f"/api/v1/notifications/{fake_id}/read", headers=auth_headers).status_code == 404
+    assert client.patch(f"/api/v1/notifications/{fake_id}/read", headers=auth_headers).json()["error"]["code"] in ("NOTIFICATION_NOT_FOUND", "NOT_FOUND")
+
+
+def test_reminders_alarms_timers_operation_ids_and_route_contracts(client):
+    """Test REST operation_id presence and route contract responses for reminders, alarms, timers, notifications."""
+    openapi = client.app.openapi()
+    endpoints = [
+        ("/api/v1/reminders", "get"),
+        ("/api/v1/reminders", "post"),
+        ("/api/v1/reminders/{reminder_id}", "get"),
+        ("/api/v1/reminders/{reminder_id}", "patch"),
+        ("/api/v1/reminders/{reminder_id}", "delete"),
+        ("/api/v1/reminders/{reminder_id}/snooze", "post"),
+        ("/api/v1/alarms", "get"),
+        ("/api/v1/alarms", "post"),
+        ("/api/v1/alarms/{alarm_id}", "patch"),
+        ("/api/v1/alarms/{alarm_id}", "delete"),
+        ("/api/v1/alarms/{alarm_id}/toggle", "patch"),
+        ("/api/v1/timers", "get"),
+        ("/api/v1/timers", "post"),
+        ("/api/v1/timers/{timer_id}", "get"),
+        ("/api/v1/timers/{timer_id}", "delete"),
+        ("/api/v1/timers/{timer_id}/state", "patch"),
+        ("/api/v1/notifications", "get"),
+        ("/api/v1/notifications/{notification_id}/read", "patch"),
+        ("/api/v1/notifications/read-all", "patch"),
+        ("/api/v1/notifications/{notification_id}", "delete"),
+    ]
+    for path, method in endpoints:
+        assert path in openapi["paths"], f"Path {path} missing in OpenAPI schema"
+        assert method in openapi["paths"][path], f"Method {method} for {path} missing"
+        op_id = openapi["paths"][path][method].get("operationId")
+        assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
+

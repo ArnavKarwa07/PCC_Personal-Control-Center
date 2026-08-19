@@ -12,7 +12,7 @@ interface CalendarFilterTypes {
 interface CalendarStore {
   events: CalendarEvent[];
   currentDate: string; // ISO date string e.g. '2026-08-15'
-  activeView: 'month' | 'week';
+  activeView: 'month' | 'week' | 'day' | 'agenda';
   filterTypes: CalendarFilterTypes;
   selectedEventId: string | null;
   isLoading: boolean;
@@ -25,7 +25,7 @@ interface CalendarStore {
   deleteEvent: (id: string) => Promise<void>;
   toggleEventCompleted: (id: string) => Promise<void>;
   setCurrentDate: (dateStr: string) => void;
-  setActiveView: (view: 'month' | 'week') => void;
+  setActiveView: (view: 'month' | 'week' | 'day' | 'agenda') => void;
   toggleFilterType: (type: keyof CalendarFilterTypes) => void;
   setSelectedEventId: (id: string | null) => void;
   getEventById: (id: string) => CalendarEvent | undefined;

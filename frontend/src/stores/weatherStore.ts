@@ -7,18 +7,77 @@ interface WeatherStore {
   weather: WeatherData;
   unit: 'C' | 'F';
   selectedCity: string;
+  lat: number;
+  lon: number;
+  isGpsLocated: boolean;
+  locationStatus: 'pending' | 'granted' | 'denied' | 'unsupported';
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
 
   // Actions
-  fetchWeather: (city?: string) => Promise<void>;
+  requestLocation: () => Promise<void>;
+  fetchWeather: (coords?: { lat: number; lon: number }, city?: string) => Promise<void>;
   setCity: (city: string) => Promise<void>;
   toggleUnit: () => void;
   refreshWeather: () => Promise<void>;
 }
 
 const CITY_WEATHER_DATABASE: Record<string, WeatherData> = {
+  Pune: {
+    location: {
+      city: 'Pune',
+      country: 'IN',
+      region: 'Maharashtra',
+      timezone: 'IST (UTC+5:30)',
+      updatedAt: '2026-08-18T12:00:00Z',
+    },
+    current: {
+      temp: 27,
+      feelsLike: 28,
+      tempMin: 22,
+      tempMax: 30,
+      condition: 'Partly Cloudy',
+      icon: 'partly_cloudy',
+      description: 'Pleasant monsoonal breeze with mild sunshine over the Western Ghats plateau.',
+      humidity: 75,
+      windSpeed: 14,
+      windDirection: 'WSW',
+      uvIndex: 6,
+      aqi: 42,
+      aqiStatus: 'Good',
+      pressure: 1010,
+      visibility: 9,
+      sunrise: '06:12 AM',
+      sunset: '07:02 PM',
+    },
+    hourly: [
+      { time: '16:00', temp: 28, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 15 },
+      { time: '17:00', temp: 27, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20 },
+      { time: '18:00', temp: 26, condition: 'Light Rain', icon: 'rain', pop: 40 },
+      { time: '19:00', temp: 25, condition: 'Light Rain', icon: 'rain', pop: 35 },
+      { time: '20:00', temp: 24, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20 },
+      { time: '21:00', temp: 24, condition: 'Cloudy', icon: 'cloudy', pop: 10 },
+      { time: '22:00', temp: 23, condition: 'Cloudy', icon: 'cloudy', pop: 10 },
+      { time: '23:00', temp: 23, condition: 'Clear Sky', icon: 'sunny', pop: 5 },
+    ],
+    daily: [
+      { date: '2026-08-18', dayName: 'Today', tempMin: 22, tempMax: 30, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 30, humidity: 75 },
+      { date: '2026-08-19', dayName: 'Wed', tempMin: 21, tempMax: 29, condition: 'Light Rain', icon: 'rain', pop: 50, humidity: 80 },
+      { date: '2026-08-20', dayName: 'Thu', tempMin: 22, tempMax: 31, condition: 'Sunny', icon: 'sunny', pop: 15, humidity: 70 },
+      { date: '2026-08-21', dayName: 'Fri', tempMin: 22, tempMax: 30, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20, humidity: 72 },
+      { date: '2026-08-22', dayName: 'Sat', tempMin: 21, tempMax: 29, condition: 'Moderate Rain', icon: 'rain', pop: 60, humidity: 82 },
+    ],
+    alerts: [
+      {
+        id: 'alt-pune-01',
+        title: 'Mild Monsoon Shower Warning',
+        severity: 'info',
+        description: 'Passing monsoon showers expected in evening hours across Pune metro area.',
+        time: 'Today 18:00 - 21:00',
+      },
+    ],
+  },
   'San Francisco': {
     location: {
       city: 'San Francisco',
@@ -222,24 +281,64 @@ const CITY_WEATHER_DATABASE: Record<string, WeatherData> = {
 const STORAGE_KEY_CITY = 'pcc_weather_selected_city';
 const STORAGE_KEY_UNIT = 'pcc_weather_unit';
 
-const initialCity = localStorage.getItem(STORAGE_KEY_CITY) || 'San Francisco';
+const initialCity = localStorage.getItem(STORAGE_KEY_CITY) || 'Pune';
 const initialUnit = (localStorage.getItem(STORAGE_KEY_UNIT) as 'C' | 'F') || 'C';
 
 export const useWeatherStore = create<WeatherStore>((set, get) => ({
-  weather: CITY_WEATHER_DATABASE[initialCity] || CITY_WEATHER_DATABASE['San Francisco'],
+  weather: CITY_WEATHER_DATABASE[initialCity] || CITY_WEATHER_DATABASE['Pune'],
   unit: initialUnit,
   selectedCity: initialCity,
+
+  lat: 18.5204,
+  lon: 73.8567,
+  isGpsLocated: false,
+  locationStatus: 'pending',
   isLoading: false,
   isRefreshing: false,
   error: null,
 
-  fetchWeather: async (city) => {
+  requestLocation: async () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      set({ locationStatus: 'unsupported', isGpsLocated: false });
+      return;
+    }
+
+    set({ locationStatus: 'pending' });
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        set({
+          lat: latitude,
+          lon: longitude,
+          isGpsLocated: true,
+          locationStatus: 'granted',
+        });
+        get().refreshWeather();
+      },
+      () => {
+        set({
+          lat: 18.5204,
+          lon: 73.8567,
+          isGpsLocated: false,
+          locationStatus: 'denied',
+        });
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  },
+
+  fetchWeather: async (coords, city) => {
     const targetCity = city || get().selectedCity;
     set({ isLoading: true, error: null });
 
     try {
-      const serverData = await weatherApi.getCurrent(targetCity);
-      if (serverData && serverData.current) {
+      const serverData = await weatherApi.getCurrentWeather({
+        lat: coords?.lat ?? get().lat,
+        lon: coords?.lon ?? get().lon,
+        city: targetCity,
+      });
+      if (serverData && 'current' in serverData && serverData.current) {
         set({ weather: serverData, selectedCity: targetCity, isLoading: false });
         return;
       }
@@ -247,7 +346,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
       // Fallback to internal database
     }
 
-    const localData = CITY_WEATHER_DATABASE[targetCity] || CITY_WEATHER_DATABASE['San Francisco'];
+    const localData = CITY_WEATHER_DATABASE[targetCity] || CITY_WEATHER_DATABASE['Pune'];
     set({
       weather: localData,
       selectedCity: targetCity,
@@ -258,7 +357,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   setCity: async (city: string) => {
     localStorage.setItem(STORAGE_KEY_CITY, city);
     soundEffects.playPip();
-    await get().fetchWeather(city);
+    await get().fetchWeather(undefined, city);
   },
 
   toggleUnit: () => {
@@ -274,7 +373,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
     await new Promise((res) => setTimeout(res, 600));
 
     const currentCity = get().selectedCity;
-    const baseData = CITY_WEATHER_DATABASE[currentCity] || CITY_WEATHER_DATABASE['San Francisco'];
+    const baseData = CITY_WEATHER_DATABASE[currentCity] || CITY_WEATHER_DATABASE['Pune'];
 
     set({
       weather: {
@@ -288,3 +387,5 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
     });
   },
 }));
+
+
