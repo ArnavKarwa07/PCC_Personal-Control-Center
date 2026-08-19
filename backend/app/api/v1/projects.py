@@ -20,7 +20,7 @@ from app.services.project_service import project_service
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get("", summary="List Projects")
+@router.get("", operation_id="listProjects", summary="List Projects")
 def list_projects(
     status: Optional[ProjectStatus] = None,
     priority: Optional[ProjectPriority] = None,
@@ -51,7 +51,7 @@ def list_projects(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Project")
+@router.post("", operation_id="createProject", status_code=status.HTTP_201_CREATED, summary="Create Project")
 def create_project(
     data: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -64,7 +64,7 @@ def create_project(
     }
 
 
-@router.get("/{project_id}")
+@router.get("/{project_id}", operation_id="getProjectById")
 def get_project(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -77,7 +77,7 @@ def get_project(
     }
 
 
-@router.patch("/{project_id}")
+@router.patch("/{project_id}", operation_id="updateProjectById")
 def update_project(
     project_id: uuid.UUID,
     data: ProjectUpdate,
@@ -96,7 +96,7 @@ def update_project(
     }
 
 
-@router.delete("/{project_id}")
+@router.delete("/{project_id}", operation_id="deleteProjectById")
 def delete_project(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -111,7 +111,7 @@ def delete_project(
     }
 
 
-@router.get("/{project_id}/board")
+@router.get("/{project_id}/board", operation_id="getProjectBoard")
 def get_project_board(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -124,7 +124,7 @@ def get_project_board(
     }
 
 
-@router.post("/{project_id}/members", status_code=status.HTTP_201_CREATED)
+@router.post("/{project_id}/members", operation_id="addProjectMember", status_code=status.HTTP_201_CREATED)
 def add_project_member(
     project_id: uuid.UUID,
     data: ProjectMemberCreate,
@@ -143,7 +143,7 @@ def add_project_member(
     }
 
 
-@router.delete("/{project_id}/members/{member_id}")
+@router.delete("/{project_id}/members/{member_id}", operation_id="removeProjectMember")
 def remove_project_member(
     project_id: uuid.UUID,
     member_id: uuid.UUID,

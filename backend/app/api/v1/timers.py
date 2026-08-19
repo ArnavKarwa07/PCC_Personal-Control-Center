@@ -20,7 +20,7 @@ from app.services.timer_service import timer_service
 router = APIRouter(prefix="/timers", tags=["Timers"])
 
 
-@router.get("")
+@router.get("", operation_id="listTimers")
 def list_timers(
     status: Optional[TimerState] = None,
     timer_type: Optional[TimerType] = None,
@@ -49,7 +49,7 @@ def list_timers(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", operation_id="createTimer", status_code=status.HTTP_201_CREATED)
 def create_timer(
     data: TimerCreate,
     current_user: User = Depends(get_current_user),
@@ -62,7 +62,7 @@ def create_timer(
     }
 
 
-@router.get("/{timer_id}")
+@router.get("/{timer_id}", operation_id="getTimerById")
 def get_timer(
     timer_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -75,7 +75,7 @@ def get_timer(
     }
 
 
-@router.patch("/{timer_id}")
+@router.patch("/{timer_id}", operation_id="updateTimerById")
 def update_timer(
     timer_id: uuid.UUID,
     data: TimerUpdate,
@@ -94,7 +94,7 @@ def update_timer(
     }
 
 
-@router.patch("/{timer_id}/state")
+@router.patch("/{timer_id}/state", operation_id="updateTimerStateById")
 def update_timer_state(
     timer_id: uuid.UUID,
     data: TimerStateAction,
@@ -114,7 +114,7 @@ def update_timer_state(
     }
 
 
-@router.delete("/{timer_id}")
+@router.delete("/{timer_id}", operation_id="deleteTimerById")
 def delete_timer(
     timer_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

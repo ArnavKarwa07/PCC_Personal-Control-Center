@@ -11,7 +11,7 @@ from app.services.weather_service import weather_service
 router = APIRouter(prefix="/weather", tags=["Weather"])
 
 
-@router.get("/current")
+@router.get("/current", operation_id="getCurrentWeather")
 def get_current_weather(
     lat: float = Query(18.5204, description="Latitude coordinates"),
     lon: float = Query(73.8567, description="Longitude coordinates"),
@@ -31,7 +31,7 @@ def get_current_weather(
     }
 
 
-@router.get("/forecast")
+@router.get("/forecast", operation_id="getWeatherForecast")
 def get_weather_forecast(
     lat: float = Query(18.5204, description="Latitude coordinates"),
     lon: float = Query(73.8567, description="Longitude coordinates"),

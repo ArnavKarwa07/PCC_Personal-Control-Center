@@ -169,3 +169,58 @@ def test_task_unauthenticated(client):
     assert client.get(f"/api/v1/tasks/{random_id}").status_code == 401
     assert client.patch(f"/api/v1/tasks/{random_id}", json={"title": "Test"}).status_code == 401
     assert client.delete(f"/api/v1/tasks/{random_id}").status_code == 401
+
+
+def test_tasks_negative_invalid_token(client):
+    """Test 401 error output format on invalid auth token for task endpoints."""
+    invalid_headers = {"Authorization": "Bearer bad.token.value"}
+    res_list = client.get("/api/v1/tasks", headers=invalid_headers)
+    assert res_list.status_code == 401
+    assert res_list.json()["error"]["code"] == "UNAUTHORIZED"
+
+    res_create = client.post("/api/v1/tasks", json={"title": "Test"}, headers=invalid_headers)
+    assert res_create.status_code == 401
+    assert res_create.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_tasks_negative_missing_payload_fields(client, auth_headers):
+    """Test 422 validation error format when creating task without required fields."""
+    res = client.post("/api/v1/tasks", json={}, headers=auth_headers)
+    assert res.status_code == 422
+    error = res.json()["error"]
+    assert error["code"] == "VALIDATION_ERROR"
+    assert "message" in error
+
+
+def test_tasks_negative_nonexistent_resource_lookup(client, auth_headers):
+    """Test 404 format on non-existent task ID lookups."""
+    fake_id = str(uuid.uuid4())
+    res_get = client.get(f"/api/v1/tasks/{fake_id}", headers=auth_headers)
+    assert res_get.status_code == 404
+    assert res_get.json()["error"]["code"] == "TASK_NOT_FOUND"
+
+    res_patch = client.patch(f"/api/v1/tasks/{fake_id}", json={"title": "Updated"}, headers=auth_headers)
+    assert res_patch.status_code == 404
+    assert res_patch.json()["error"]["code"] == "TASK_NOT_FOUND"
+
+    res_del = client.delete(f"/api/v1/tasks/{fake_id}", headers=auth_headers)
+    assert res_del.status_code == 404
+    assert res_del.json()["error"]["code"] == "TASK_NOT_FOUND"
+
+
+def test_tasks_operation_ids_and_route_contracts(client):
+    """Test REST operation_id presence and route response contract for task routes."""
+    openapi = client.app.openapi()
+    task_endpoints = [
+        ("/api/v1/tasks", "get"),
+        ("/api/v1/tasks", "post"),
+        ("/api/v1/tasks/{task_id}", "get"),
+        ("/api/v1/tasks/{task_id}", "patch"),
+        ("/api/v1/tasks/{task_id}", "delete"),
+    ]
+    for path, method in task_endpoints:
+        assert path in openapi["paths"], f"Path {path} missing in OpenAPI schema"
+        assert method in openapi["paths"][path], f"Method {method} for {path} missing"
+        op_id = openapi["paths"][path][method].get("operationId")
+        assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
+

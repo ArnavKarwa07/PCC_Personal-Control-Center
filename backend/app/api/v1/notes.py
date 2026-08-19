@@ -15,7 +15,7 @@ from app.services.note_service import note_service
 router = APIRouter(prefix="/notes", tags=["Notes"])
 
 
-@router.get("", summary="List Notes")
+@router.get("", operation_id="listNotes", summary="List Notes")
 def list_notes(
     is_pinned: Optional[bool] = None,
     category: Optional[str] = None,
@@ -46,7 +46,7 @@ def list_notes(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Note")
+@router.post("", operation_id="createNote", status_code=status.HTTP_201_CREATED, summary="Create Note")
 def create_note(
     data: NoteCreate,
     current_user: User = Depends(get_current_user),
@@ -59,7 +59,7 @@ def create_note(
     }
 
 
-@router.get("/{note_id}")
+@router.get("/{note_id}", operation_id="getNoteById")
 def get_note(
     note_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -72,7 +72,7 @@ def get_note(
     }
 
 
-@router.patch("/{note_id}")
+@router.patch("/{note_id}", operation_id="updateNoteById")
 def update_note(
     note_id: uuid.UUID,
     data: NoteUpdate,
@@ -91,7 +91,7 @@ def update_note(
     }
 
 
-@router.patch("/{note_id}/pin")
+@router.patch("/{note_id}/pin", operation_id="toggleNotePin")
 def toggle_note_pin(
     note_id: uuid.UUID,
     is_pinned: Optional[bool] = None,
@@ -110,7 +110,7 @@ def toggle_note_pin(
     }
 
 
-@router.delete("/{note_id}")
+@router.delete("/{note_id}", operation_id="deleteNoteById")
 def delete_note(
     note_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

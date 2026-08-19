@@ -14,7 +14,7 @@ from app.services.search_service import search_service
 router = APIRouter(prefix="/search", tags=["Search"])
 
 
-@router.get("", response_model=SearchResponse, summary="Global Search")
+@router.get("", operation_id="searchEntities", response_model=SearchResponse, summary="Global Search")
 def search(
     q: str = Query(..., min_length=1, description="Search query string"),
     types: Optional[str] = Query(

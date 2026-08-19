@@ -169,3 +169,90 @@ def test_notes_ideas_multi_user_isolation(client, auth_headers, second_auth_head
     assert client.patch(f"/api/v1/ideas/{idea_id}", json={"title": "Hack"}, headers=second_auth_headers).status_code == 404
     assert client.post(f"/api/v1/ideas/{idea_id}/promote", json={"promote_to": "task"}, headers=second_auth_headers).status_code == 404
     assert client.delete(f"/api/v1/ideas/{idea_id}", headers=second_auth_headers).status_code == 404
+
+
+def test_notes_ideas_negative_invalid_token(client):
+    """Test 401 error output format on invalid auth token for notes and ideas."""
+    invalid_headers = {"Authorization": "Bearer badtoken123"}
+    assert client.get("/api/v1/notes", headers=invalid_headers).status_code == 401
+    assert client.get("/api/v1/notes", headers=invalid_headers).json()["error"]["code"] == "UNAUTHORIZED"
+
+    assert client.get("/api/v1/ideas", headers=invalid_headers).status_code == 401
+    assert client.get("/api/v1/ideas", headers=invalid_headers).json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_notes_ideas_negative_missing_payload_fields(client, auth_headers):
+    """Test 422 validation error format when creating notes/ideas without required fields."""
+    import uuid
+
+    # Note missing title
+    res_note = client.post("/api/v1/notes", json={"category": "general"}, headers=auth_headers)
+    assert res_note.status_code == 422
+    err_note = res_note.json()["error"]
+    assert err_note["code"] == "VALIDATION_ERROR"
+    assert "message" in err_note
+
+    # Idea missing title
+    res_idea = client.post("/api/v1/ideas", json={"description": "No title"}, headers=auth_headers)
+    assert res_idea.status_code == 422
+    err_idea = res_idea.json()["error"]
+    assert err_idea["code"] == "VALIDATION_ERROR"
+    assert "message" in err_idea
+
+    # Idea promote missing promote_to
+    res_promo = client.post(f"/api/v1/ideas/{uuid.uuid4()}/promote", json={}, headers=auth_headers)
+    assert res_promo.status_code == 422
+    assert res_promo.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_notes_ideas_negative_nonexistent_resource_lookup(client, auth_headers):
+    """Test 404 output format for non-existent note or idea ID operations."""
+    import uuid
+
+    fake_id = str(uuid.uuid4())
+
+    # Notes non-existent
+    res_n_get = client.get(f"/api/v1/notes/{fake_id}", headers=auth_headers)
+    assert res_n_get.status_code == 404
+    assert res_n_get.json()["error"]["code"] in ("NOTE_NOT_FOUND", "NOT_FOUND")
+
+    res_n_patch = client.patch(f"/api/v1/notes/{fake_id}", json={"title": "Updated"}, headers=auth_headers)
+    assert res_n_patch.status_code == 404
+
+    res_n_del = client.delete(f"/api/v1/notes/{fake_id}", headers=auth_headers)
+    assert res_n_del.status_code == 404
+
+    # Ideas non-existent
+    res_i_get = client.get(f"/api/v1/ideas/{fake_id}", headers=auth_headers)
+    assert res_i_get.status_code == 404
+    assert res_i_get.json()["error"]["code"] in ("IDEA_NOT_FOUND", "NOT_FOUND")
+
+    res_i_promote = client.post(f"/api/v1/ideas/{fake_id}/promote", json={"promote_to": "task"}, headers=auth_headers)
+    assert res_i_promote.status_code == 404
+
+    res_i_del = client.delete(f"/api/v1/ideas/{fake_id}", headers=auth_headers)
+    assert res_i_del.status_code == 404
+
+
+def test_notes_ideas_operation_ids_and_route_contracts(client):
+    """Test REST operation_id presence and route response contract for notes and ideas."""
+    openapi = client.app.openapi()
+    endpoints = [
+        ("/api/v1/notes", "get"),
+        ("/api/v1/notes", "post"),
+        ("/api/v1/notes/{note_id}", "get"),
+        ("/api/v1/notes/{note_id}", "patch"),
+        ("/api/v1/notes/{note_id}", "delete"),
+        ("/api/v1/ideas", "get"),
+        ("/api/v1/ideas", "post"),
+        ("/api/v1/ideas/{idea_id}", "get"),
+        ("/api/v1/ideas/{idea_id}", "patch"),
+        ("/api/v1/ideas/{idea_id}", "delete"),
+        ("/api/v1/ideas/{idea_id}/promote", "post"),
+    ]
+    for path, method in endpoints:
+        assert path in openapi["paths"], f"Path {path} missing in OpenAPI schema"
+        assert method in openapi["paths"][path], f"Method {method} for {path} missing"
+        op_id = openapi["paths"][path][method].get("operationId")
+        assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
+

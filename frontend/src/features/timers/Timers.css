@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-6);
-  padding: var(--space-6);
+  padding: var(--space-6) var(--space-6) 90px var(--space-6);
   max-width: 1000px;
   margin: 0 auto;
   width: 100%;
@@ -323,4 +323,73 @@
 .pcc-stopwatch-lap-item--slowest {
   color: var(--color-error);
   border-left: 3px solid var(--color-error);
+}
+
+/* Responsive Mobile Layout adjustments */
+@media (max-width: 640px) {
+  .pcc-timers-page {
+    padding: var(--space-4) var(--space-3) 120px var(--space-3);
+    gap: var(--space-4);
+  }
+
+  .pcc-timers-nav {
+    max-width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px;
+    gap: var(--space-1);
+    border-radius: var(--radius-lg);
+  }
+
+  .pcc-timers-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pcc-timers-nav-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pcc-timer-container {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .pcc-timer-ring-wrapper {
+    width: 220px;
+    height: 220px;
+  }
+
+  .pcc-timer-ring-time {
+    font-size: 2.25rem;
+  }
+
+  .pcc-timer-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .pcc-timer-btn-primary {
+    padding: var(--space-2-5, 10px) var(--space-5, 20px);
+    font-size: var(--font-size-sm);
+  }
+
+  .pcc-timer-btn-secondary {
+    padding: var(--space-2) var(--space-3-5, 14px);
+    font-size: var(--font-size-xs);
+  }
+
+  .pcc-stopwatch-display {
+    font-size: 2.75rem;
+  }
+
+  .pcc-stopwatch-display__ms {
+    font-size: 1.6rem;
+  }
 }

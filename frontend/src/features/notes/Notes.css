@@ -59,6 +59,38 @@
   }
 }
 
+@media (max-width: 768px) {
+  .pcc-notes-page {
+    height: auto;
+    min-height: auto;
+  }
+
+  .pcc-notes-view-mode-btn--split {
+    display: none !important;
+  }
+
+  .pcc-notes-editor__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .pcc-notes-editor__toolbar-left {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pcc-notes-editor__toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+}
+
 /* Left Pane: Notes Navigation & List */
 .pcc-notes-list-pane {
   display: flex;
@@ -88,10 +120,14 @@
 
 .pcc-notes-list__categories {
   display: flex;
+  flex-wrap: nowrap;
   gap: var(--space-1);
   overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: var(--space-2);
   scrollbar-width: none;
+  max-width: 100%;
 }
 
 .pcc-notes-list__categories::-webkit-scrollbar {
@@ -99,6 +135,7 @@
 }
 
 .pcc-notes-category-chip {
+  flex-shrink: 0;
   padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 11px;

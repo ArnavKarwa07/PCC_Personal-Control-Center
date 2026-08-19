@@ -17,7 +17,7 @@ from app.services.calendar_service import calendar_service
 router = APIRouter(prefix="/calendar", tags=["Calendar"])
 
 
-@router.get("/events")
+@router.get("/events", operation_id="listCalendarEvents")
 def list_calendar_events(
     start_date: Optional[datetime] = Query(None, description="Filter events starting on or after this timestamp"),
     end_date: Optional[datetime] = Query(None, description="Filter events starting on or before this timestamp"),
@@ -50,7 +50,7 @@ def list_calendar_events(
     }
 
 
-@router.post("/events", status_code=status.HTTP_201_CREATED)
+@router.post("/events", operation_id="createCalendarEvent", status_code=status.HTTP_201_CREATED)
 def create_calendar_event(
     data: CalendarEventCreate,
     current_user: User = Depends(get_current_user),
@@ -63,7 +63,7 @@ def create_calendar_event(
     }
 
 
-@router.get("/events/{event_id}")
+@router.get("/events/{event_id}", operation_id="getCalendarEventById")
 def get_calendar_event(
     event_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -76,7 +76,7 @@ def get_calendar_event(
     }
 
 
-@router.patch("/events/{event_id}")
+@router.patch("/events/{event_id}", operation_id="updateCalendarEventById")
 def update_calendar_event(
     event_id: uuid.UUID,
     data: CalendarEventUpdate,
@@ -95,7 +95,7 @@ def update_calendar_event(
     }
 
 
-@router.delete("/events/{event_id}")
+@router.delete("/events/{event_id}", operation_id="deleteCalendarEventById")
 def delete_calendar_event(
     event_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

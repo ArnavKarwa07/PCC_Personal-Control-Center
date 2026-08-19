@@ -17,7 +17,7 @@ from app.services.task_service import task_service
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
-@router.get("", summary="List Tasks")
+@router.get("", operation_id="listTasks", summary="List Tasks")
 def list_tasks(
     status: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
@@ -52,7 +52,7 @@ def list_tasks(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Task")
+@router.post("", operation_id="createTask", status_code=status.HTTP_201_CREATED, summary="Create Task")
 def create_task(
     data: TaskCreate,
     current_user: User = Depends(get_current_user),
@@ -65,7 +65,7 @@ def create_task(
     }
 
 
-@router.get("/{task_id}")
+@router.get("/{task_id}", operation_id="getTaskById")
 def get_task(
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -78,7 +78,7 @@ def get_task(
     }
 
 
-@router.patch("/{task_id}")
+@router.patch("/{task_id}", operation_id="updateTaskById")
 def update_task(
     task_id: uuid.UUID,
     data: TaskUpdate,
@@ -97,7 +97,7 @@ def update_task(
     }
 
 
-@router.delete("/{task_id}")
+@router.delete("/{task_id}", operation_id="deleteTaskById")
 def delete_task(
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

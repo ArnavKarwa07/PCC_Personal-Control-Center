@@ -19,7 +19,7 @@ from app.services.alarm_service import alarm_service
 router = APIRouter(prefix="/alarms", tags=["Alarms"])
 
 
-@router.get("")
+@router.get("", operation_id="listAlarms")
 def list_alarms(
     is_enabled: Optional[bool] = None,
     page: int = Query(1, ge=1, description="Page number"),
@@ -46,7 +46,7 @@ def list_alarms(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", operation_id="createAlarm", status_code=status.HTTP_201_CREATED)
 def create_alarm(
     data: AlarmCreate,
     current_user: User = Depends(get_current_user),
@@ -59,7 +59,7 @@ def create_alarm(
     }
 
 
-@router.get("/{alarm_id}")
+@router.get("/{alarm_id}", operation_id="getAlarmById")
 def get_alarm(
     alarm_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -72,7 +72,7 @@ def get_alarm(
     }
 
 
-@router.patch("/{alarm_id}")
+@router.patch("/{alarm_id}", operation_id="updateAlarmById")
 def update_alarm(
     alarm_id: uuid.UUID,
     data: AlarmUpdate,
@@ -91,7 +91,7 @@ def update_alarm(
     }
 
 
-@router.patch("/{alarm_id}/toggle")
+@router.patch("/{alarm_id}/toggle", operation_id="toggleAlarmById")
 def toggle_alarm(
     alarm_id: uuid.UUID,
     data: Optional[AlarmToggleRequest] = None,
@@ -111,7 +111,7 @@ def toggle_alarm(
     }
 
 
-@router.delete("/{alarm_id}")
+@router.delete("/{alarm_id}", operation_id="deleteAlarmById")
 def delete_alarm(
     alarm_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

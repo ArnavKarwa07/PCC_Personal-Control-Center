@@ -382,14 +382,13 @@ export const TasksPage: React.FC = () => {
 
       {/* Filter & View Mode Bar */}
       <div className="pcc-tasks__filter-bar">
-        <div className="pcc-tasks__filter-left">
+        <div className="pcc-tasks__search-wrapper">
           <Input
             id="tasks-search"
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onClear={() => setSearchQuery('')}
-            style={{ width: '180px' }}
             icon={
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
@@ -397,42 +396,44 @@ export const TasksPage: React.FC = () => {
               </svg>
             }
           />
-
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="pcc-tasks__filter-select"
-          >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-
-          <select
-            value={filterPriority}
-            onChange={(e) => setFilterPriority(e.target.value)}
-            className="pcc-tasks__filter-select"
-          >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-
-          <select
-            value={filterDueDate}
-            onChange={(e) => setFilterDueDate(e.target.value)}
-            className="pcc-tasks__filter-select"
-          >
-            <option value="all">All Dates</option>
-            <option value="today">Due Today</option>
-            <option value="overdue">Overdue</option>
-          </select>
         </div>
 
-        <div className="pcc-tasks__filter-right">
+        <div className="pcc-tasks__filter-controls-row">
+          <div className="pcc-tasks__filter-selects">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="pcc-tasks__filter-select"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="pcc-tasks__filter-select"
+            >
+              <option value="all">All Priorities</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+
+            <select
+              value={filterDueDate}
+              onChange={(e) => setFilterDueDate(e.target.value)}
+              className="pcc-tasks__filter-select"
+            >
+              <option value="all">All Dates</option>
+              <option value="today">Due Today</option>
+              <option value="overdue">Overdue</option>
+            </select>
+          </div>
+
           {/* View Mode Switcher */}
           <div className="pcc-tasks-view-modes">
             <button

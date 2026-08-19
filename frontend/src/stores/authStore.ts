@@ -13,7 +13,7 @@ try {
   storedUser = null;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>()((set) => ({
   user: storedUser || {
     id: 'usr-default',
     name: 'Arnav',
@@ -39,4 +39,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
     set({ user });
   },
+
+  resetToMockToken: () => {
+    localStorage.removeItem(STORAGE_KEY_TOKEN);
+    set((state: AuthState) => ({
+      ...state,
+      token: 'mock-dev-token',
+      isAuthenticated: true,
+      user: state.user || {
+        id: 'usr-default',
+        name: 'Arnav',
+        email: 'arnav@pcc.local',
+        role: 'Admin',
+      },
+    }));
+  },
 }));
+

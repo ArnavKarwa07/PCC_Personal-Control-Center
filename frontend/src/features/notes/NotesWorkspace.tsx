@@ -33,8 +33,25 @@ export const NotesWorkspace: React.FC = () => {
   const [localTitle, setLocalTitle] = useState(activeNote?.title || '');
   const [localContent, setLocalContent] = useState(activeNote?.content || '');
   const [localCategory, setLocalCategory] = useState(activeNote?.category || 'General');
-  const [viewMode, setViewMode] = useState<'split' | 'edit' | 'preview'>('split');
+  const [viewMode, setViewMode] = useState<'split' | 'edit' | 'preview'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      return 'edit';
+    }
+    return 'split';
+  });
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+
+  // Force single-pane view mode on narrow viewports
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setViewMode((prev) => (prev === 'split' ? 'edit' : prev));
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Debounced auto-save timer ref
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -308,6 +325,7 @@ export const NotesWorkspace: React.FC = () => {
                   </button>
                   <button
                     type="button"
+                    className="pcc-notes-view-mode-btn--split"
                     style={{
                       padding: '3px 8px',
                       fontSize: '11px',

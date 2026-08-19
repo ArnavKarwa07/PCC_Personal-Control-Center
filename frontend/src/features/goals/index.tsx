@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Button, Badge, Input } from '../../components/ui';
+import { Card, Button, Badge } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { OKRProgressRing } from '../../components/OKRProgressRing';
-import { EditGoalModal, Goal, Milestone } from './EditGoalModal';
+import { EditGoalModal, Goal } from './EditGoalModal';
 import './GoalsPage.css';
 
 export const GoalsPage: React.FC = () => {
@@ -33,37 +33,41 @@ export const GoalsPage: React.FC = () => {
     },
   ]);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
-  const [newTitle, setNewTitle] = useState('');
-  const [newTargetDate, setNewTargetDate] = useState('');
-  const [checkpoints, setCheckpoints] = useState<string[]>(['']);
 
-  const handleSaveGoal = (updatedGoal: Goal) => {
-    setGoals((prev) => prev.map((g) => (g.id === updatedGoal.id ? updatedGoal : g)));
-    toast.success(`Updated Goal: "${updatedGoal.title}"`);
+  const handleOpenAddModal = () => {
+    setEditingGoal(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingGoal(null);
+  };
+
+  const handleSaveGoal = (savedGoal: Goal) => {
+    setGoals((prev) => {
+      const exists = prev.some((g) => g.id === savedGoal.id);
+      if (exists) {
+        toast.success(`Updated Goal: "${savedGoal.title}"`);
+        return prev.map((g) => (g.id === savedGoal.id ? savedGoal : g));
+      } else {
+        toast.success(`Created OKR Goal: "${savedGoal.title}"`);
+        return [savedGoal, ...prev];
+      }
+    });
+    handleCloseModal();
   };
 
   const handleDeleteGoal = (goalId: string, title: string) => {
     setGoals((prev) => prev.filter((g) => g.id !== goalId));
     toast.info(`Deleted Goal: "${title}"`);
-  };
-
-  const handleAddCheckpoint = () => {
-    setCheckpoints([...checkpoints, '']);
-  };
-
-  const handleRemoveCheckpoint = (index: number) => {
-    if (checkpoints.length === 1) {
-      setCheckpoints(['']);
-    } else {
-      setCheckpoints(checkpoints.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleCheckpointChange = (index: number, value: string) => {
-    const updated = [...checkpoints];
-    updated[index] = value;
-    setCheckpoints(updated);
   };
 
   const handleToggleMilestone = (goalId: string, milestoneId: string) => {
@@ -88,53 +92,24 @@ export const GoalsPage: React.FC = () => {
     toast.info('Updated milestone status');
   };
 
-  const handleAddGoal = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-
-    const validCheckpoints = checkpoints.map((cp) => cp.trim()).filter(Boolean);
-    const newMilestones: Milestone[] =
-      validCheckpoints.length > 0
-        ? validCheckpoints.map((text, idx) => ({
-            id: `${Date.now()}-${idx}`,
-            text,
-            completed: false,
-          }))
-        : [
-            {
-              id: `${Date.now()}-0`,
-              text: 'Initial Objective Setup',
-              completed: false,
-            },
-          ];
-
-    const totalMilestones = newMilestones.length;
-    const completedMilestones = newMilestones.filter((m) => m.completed).length;
-    const progress = totalMilestones === 0 ? 0 : Math.round((completedMilestones / totalMilestones) * 100);
-
-    const newG: Goal = {
-      id: String(Date.now()),
-      title: newTitle.trim(),
-      period: newTargetDate || new Date().toISOString().split('T')[0],
-      progress,
-      status: progress === 100 ? 'Completed' : 'In Progress',
-      milestones: newMilestones,
-    };
-
-    setGoals([newG, ...goals]);
-    toast.success(`Created OKR Goal: "${newTitle.trim()}"`);
-    setNewTitle('');
-    setNewTargetDate('');
-    setCheckpoints(['']);
-  };
-
   return (
     <div className="pcc-goals-page">
       <div className="pcc-goals-header">
-        <div>
+        <div className="pcc-goals-header__main">
           <h1 className="pcc-goals-title">Goals & OKRs Matrix</h1>
           <p className="pcc-goals-subtitle">Strategic objectives, key results, and milestone progression</p>
         </div>
+        <Button
+          variant="primary"
+          className="pcc-add-objective-btn"
+          onClick={handleOpenAddModal}
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Objective
+        </Button>
       </div>
 
       <div className="pcc-goals-grid">
@@ -154,7 +129,7 @@ export const GoalsPage: React.FC = () => {
                       <button
                         type="button"
                         className="pcc-goal-action-btn"
-                        onClick={() => setEditingGoal(g)}
+                        onClick={() => handleOpenEditModal(g)}
                         title="Edit Goal"
                         aria-label="Edit Goal"
                       >
@@ -201,70 +176,12 @@ export const GoalsPage: React.FC = () => {
             </Card>
           ))}
         </div>
-
-        <div className="pcc-goals-sidebar">
-          <Card glass padding="lg" className="pcc-add-goal-card">
-            <h2>Add Objective / OKR</h2>
-            <form onSubmit={handleAddGoal} className="pcc-add-goal-form">
-              <Input
-                id="goal-title"
-                label="Objective Name"
-                placeholder="e.g. Master Rust Concurrency"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                required
-              />
-              <Input
-                id="goal-target-date"
-                type="date"
-                label="Target Date"
-                value={newTargetDate}
-                onChange={(e) => setNewTargetDate(e.target.value)}
-                required
-              />
-              <div className="pcc-checkpoint-group">
-                <label className="pcc-checkpoint-label">Checkpoints</label>
-                <div className="pcc-checkpoint-list">
-                  {checkpoints.map((cp, idx) => (
-                    <div key={idx} className="pcc-checkpoint-row">
-                      <input
-                        type="text"
-                        value={cp}
-                        placeholder="Checkpoint description"
-                        onChange={(e) => handleCheckpointChange(idx, e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="pcc-checkpoint-remove"
-                        onClick={() => handleRemoveCheckpoint(idx)}
-                        aria-label="Remove checkpoint"
-                        title="Remove checkpoint"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className="pcc-checkpoint-add"
-                    onClick={handleAddCheckpoint}
-                  >
-                    + Add Checkpoint
-                  </button>
-                </div>
-              </div>
-              <Button type="submit" variant="primary">
-                Create Objective
-              </Button>
-            </form>
-          </Card>
-        </div>
       </div>
 
       <EditGoalModal
-        isOpen={editingGoal !== null}
+        isOpen={isModalOpen}
         goal={editingGoal}
-        onClose={() => setEditingGoal(null)}
+        onClose={handleCloseModal}
         onSave={handleSaveGoal}
       />
     </div>
@@ -272,3 +189,4 @@ export const GoalsPage: React.FC = () => {
 };
 
 export default GoalsPage;
+

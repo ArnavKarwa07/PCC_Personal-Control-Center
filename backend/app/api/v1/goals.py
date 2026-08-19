@@ -16,7 +16,7 @@ from app.services.goal_service import goal_service
 router = APIRouter(prefix="/goals", tags=["Goals"])
 
 
-@router.get("", summary="List Goals")
+@router.get("", operation_id="listGoals", summary="List Goals")
 def list_goals(
     status: Optional[GoalStatus] = None,
     time_period: Optional[str] = None,
@@ -35,7 +35,7 @@ def list_goals(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Goal")
+@router.post("", operation_id="createGoal", status_code=status.HTTP_201_CREATED, summary="Create Goal")
 def create_goal(
     data: GoalCreate,
     current_user: User = Depends(get_current_user),
@@ -46,7 +46,7 @@ def create_goal(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
-@router.patch("/{goal_id}", summary="Update Goal")
+@router.patch("/{goal_id}", operation_id="updateGoalById", summary="Update Goal")
 def update_goal(
     goal_id: uuid.UUID,
     data: GoalUpdate,
@@ -60,7 +60,7 @@ def update_goal(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
-@router.delete("/{goal_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Goal")
+@router.delete("/{goal_id}", operation_id="deleteGoalById", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Goal")
 def delete_goal(
     goal_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

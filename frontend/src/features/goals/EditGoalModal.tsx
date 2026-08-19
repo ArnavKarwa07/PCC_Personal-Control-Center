@@ -34,16 +34,25 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
   const [status, setStatus] = useState<'In Progress' | 'Completed'>('In Progress');
   const [milestones, setMilestones] = useState<Milestone[]>([]);
 
-  useEffect(() => {
-    if (goal) {
-      setTitle(goal.title);
-      setPeriod(goal.period);
-      setStatus(goal.status);
-      setMilestones(goal.milestones || []);
-    }
-  }, [goal]);
+  const isEdit = Boolean(goal);
 
-  if (!goal) return null;
+  useEffect(() => {
+    if (isOpen) {
+      if (goal) {
+        setTitle(goal.title);
+        setPeriod(goal.period);
+        setStatus(goal.status);
+        setMilestones(goal.milestones ? [...goal.milestones] : []);
+      } else {
+        setTitle('');
+        setPeriod(new Date().toISOString().split('T')[0]);
+        setStatus('In Progress');
+        setMilestones([{ id: `${Date.now()}-0`, text: '', completed: false }]);
+      }
+    }
+  }, [goal, isOpen]);
+
+  if (!isOpen) return null;
 
   const handleAddMilestone = () => {
     setMilestones([
@@ -57,7 +66,11 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
   };
 
   const handleRemoveMilestone = (id: string) => {
-    setMilestones(milestones.filter((m) => m.id !== id));
+    if (milestones.length === 1 && !isEdit) {
+      setMilestones([{ id: `${Date.now()}-0`, text: '', completed: false }]);
+    } else {
+      setMilestones(milestones.filter((m) => m.id !== id));
+    }
   };
 
   const handleMilestoneTextChange = (id: string, text: string) => {
@@ -76,21 +89,35 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
-    const validMilestones = milestones.filter((m) => m.text.trim() !== '');
-    const total = validMilestones.length;
-    const completed = validMilestones.filter((m) => m.completed).length;
+    const validMilestones = milestones
+      .filter((m) => m.text.trim() !== '')
+      .map((m) => ({ ...m, text: m.text.trim() }));
+
+    const finalMilestones: Milestone[] =
+      validMilestones.length > 0
+        ? validMilestones
+        : [
+            {
+              id: `${Date.now()}-0`,
+              text: 'Initial Objective Setup',
+              completed: false,
+            },
+          ];
+
+    const total = finalMilestones.length;
+    const completed = finalMilestones.filter((m) => m.completed).length;
     const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-    const updatedGoal: Goal = {
-      ...goal,
+    const goalToSave: Goal = {
+      id: goal ? goal.id : String(Date.now()),
       title: title.trim(),
-      period: period || goal.period,
+      period: period || new Date().toISOString().split('T')[0],
       status: progress === 100 ? 'Completed' : status,
       progress,
-      milestones: validMilestones,
+      milestones: finalMilestones,
     };
 
-    onSave(updatedGoal);
+    onSave(goalToSave);
     onClose();
   };
 
@@ -98,7 +125,7 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Objective / OKR"
+      title={isEdit ? 'Edit Objective / OKR' : 'Add Objective / OKR'}
       size="md"
       footer={
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -106,22 +133,23 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit}>
-            Save Changes
+            {isEdit ? 'Save Changes' : 'Create Objective'}
           </Button>
         </div>
       }
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Input
-          id="edit-goal-title"
+          id="goal-modal-title"
           label="Objective Name"
+          placeholder="e.g. Master Rust Concurrency"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
         />
 
         <Input
-          id="edit-goal-period"
+          id="goal-modal-period"
           type="date"
           label="Target Date"
           value={period}
@@ -129,20 +157,22 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
           required
         />
 
-        <div className="pcc-reminder-form__group">
-          <label className="pcc-reminder-form__label" htmlFor="edit-goal-status">
-            Status
-          </label>
-          <select
-            id="edit-goal-status"
-            className="pcc-reminder-form__select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as 'In Progress' | 'Completed')}
-          >
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </div>
+        {isEdit && (
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label" htmlFor="goal-modal-status">
+              Status
+            </label>
+            <select
+              id="goal-modal-status"
+              className="pcc-reminder-form__select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as 'In Progress' | 'Completed')}
+            >
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+        )}
 
         <div className="pcc-checkpoint-group">
           <label className="pcc-checkpoint-label">Key Results & Checkpoints</label>
@@ -188,3 +218,4 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
     </Modal>
   );
 };
+

@@ -37,7 +37,8 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
-  customHeaders?: Record<string, string>
+  customHeaders?: Record<string, string>,
+  isRetry = false
 ): Promise<T> {
   const token = useAuthStore.getState().token || 'mock-dev-token';
   const headers: Record<string, string> = {
@@ -66,6 +67,17 @@ async function request<T>(
     const response = await fetch(url, config);
 
     if (!response.ok) {
+      if (response.status === 401 && !isRetry) {
+        localStorage.removeItem('pcc_auth_token');
+        const authState = useAuthStore.getState();
+        if (authState.resetToMockToken) {
+          authState.resetToMockToken();
+        } else {
+          useAuthStore.setState({ token: 'mock-dev-token', isAuthenticated: true });
+        }
+        return request<T>(method, path, body, customHeaders, true);
+      }
+
       let errData: ApiError;
       try {
         errData = await response.json();
@@ -168,16 +180,16 @@ export const ideasApi = {
 export const calendarApi = {
   getAll: (params?: { start?: string; end?: string; type?: string }) => {
     const query = new URLSearchParams();
-    if (params?.start) query.append('start', params.start);
-    if (params?.end) query.append('end', params.end);
-    if (params?.type) query.append('type', params.type);
+    if (params?.start) query.append('start_date', params.start);
+    if (params?.end) query.append('end_date', params.end);
+    if (params?.type) query.append('event_type', params.type);
     const qs = query.toString();
-    return apiClient.get<CalendarEvent[]>(`/calendar${qs ? `?${qs}` : ''}`);
+    return apiClient.get<CalendarEvent[]>(`/calendar/events${qs ? `?${qs}` : ''}`);
   },
-  getById: (id: string) => apiClient.get<CalendarEvent>(`/calendar/${id}`),
-  create: (data: Partial<CalendarEvent>) => apiClient.post<CalendarEvent>('/calendar', data),
-  update: (id: string, data: Partial<CalendarEvent>) => apiClient.put<CalendarEvent>(`/calendar/${id}`, data),
-  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/calendar/${id}`),
+  getById: (id: string) => apiClient.get<CalendarEvent>(`/calendar/events/${id}`),
+  create: (data: Partial<CalendarEvent>) => apiClient.post<CalendarEvent>('/calendar/events', data),
+  update: (id: string, data: Partial<CalendarEvent>) => apiClient.patch<CalendarEvent>(`/calendar/events/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/calendar/events/${id}`),
 };
 
 export const remindersApi = {
@@ -202,7 +214,7 @@ export const alarmsApi = {
 export const notificationsApi = {
   getAll: () => apiClient.get<AppNotification[]>('/notifications'),
   markAsRead: (id: string) => apiClient.patch<AppNotification>(`/notifications/${id}/read`, {}),
-  markAllAsRead: () => apiClient.post<{ success: boolean }>('/notifications/mark-all-read', {}),
+  markAllAsRead: () => apiClient.patch<{ success: boolean }>('/notifications/read-all', {}),
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notifications/${id}`),
   clearAll: () => apiClient.delete<{ success: boolean }>('/notifications'),
 };
@@ -219,7 +231,7 @@ export const integrationsApi = {
 export const weatherApi = {
   getCurrent: (city?: string) => {
     const query = city ? `?city=${encodeURIComponent(city)}` : '';
-    return apiClient.get<WeatherData>(`/weather${query}`);
+    return apiClient.get<WeatherData>(`/weather/current${query}`);
   },
 };
 
@@ -283,6 +295,20 @@ export const goalsApi = {
   update: (id: string, data: Partial<GoalItem>) => apiClient.patch<{ data: GoalItem }>(`/goals/${id}`, data),
   delete: (id: string) => apiClient.delete<void>(`/goals/${id}`),
 };
+
+export const assistantApi = {
+  query: (query: string) => apiClient.post<Record<string, unknown>>('/assistant/query', { query }),
+  getBriefing: () => apiClient.get<Record<string, unknown>>('/assistant/briefing'),
+};
+
+export const contactsApi = {
+  getAll: () => apiClient.get<Array<Record<string, unknown>>>('/contacts'),
+  getById: (id: string) => apiClient.get<Record<string, unknown>>(`/contacts/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/contacts', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put<Record<string, unknown>>(`/contacts/${id}`, data),
+  delete: (id: string) => apiClient.delete<void>(`/contacts/${id}`),
+};
+
 
 
 

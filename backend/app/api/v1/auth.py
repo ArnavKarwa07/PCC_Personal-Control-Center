@@ -10,7 +10,7 @@ from app.services.auth_service import auth_service
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@router.post("/register", operation_id="registerUser", status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user account."""
     user, token = auth_service.register_user(db, request)
@@ -24,7 +24,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/login")
+@router.post("/login", operation_id="loginUser")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     """Authenticate with email and password."""
     user, token = auth_service.authenticate_user(db, request)
@@ -38,7 +38,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/logout")
+@router.post("/logout", operation_id="logoutUser")
 def logout():
     """Logout endpoint (stateless JWT client-side eviction)."""
     return {

@@ -18,6 +18,7 @@ export interface AuthState {
   login: (user: User, token: string) => void;
   logout: () => void;
   setUser: (user: User) => void;
+  resetToMockToken: () => void;
 }
 
 export type Theme = 'dark' | 'light';

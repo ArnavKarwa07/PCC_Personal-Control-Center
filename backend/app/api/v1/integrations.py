@@ -13,7 +13,7 @@ from app.services.integration_service import integration_service
 router = APIRouter(prefix="/integrations", tags=["Integrations"])
 
 
-@router.get("")
+@router.get("", operation_id="listIntegrations")
 def list_integrations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -25,7 +25,7 @@ def list_integrations(
     }
 
 
-@router.post("/{provider}/connect", status_code=status.HTTP_200_OK)
+@router.post("/{provider}/connect", operation_id="connectIntegration", status_code=status.HTTP_200_OK)
 def connect_integration(
     provider: IntegrationProvider,
     data: IntegrationConnectRequest,
@@ -44,7 +44,7 @@ def connect_integration(
     }
 
 
-@router.post("/{provider}/disconnect")
+@router.post("/{provider}/disconnect", operation_id="disconnectIntegration")
 def disconnect_integration(
     provider: IntegrationProvider,
     current_user: User = Depends(get_current_user),
@@ -61,7 +61,7 @@ def disconnect_integration(
     }
 
 
-@router.get("/{provider}/status")
+@router.get("/{provider}/status", operation_id="getIntegrationStatus")
 def get_integration_status(
     provider: IntegrationProvider,
     current_user: User = Depends(get_current_user),

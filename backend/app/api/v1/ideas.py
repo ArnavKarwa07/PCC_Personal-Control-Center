@@ -16,7 +16,7 @@ from app.services.idea_service import idea_service
 router = APIRouter(prefix="/ideas", tags=["Ideas"])
 
 
-@router.get("", summary="List Ideas")
+@router.get("", operation_id="listIdeas", summary="List Ideas")
 def list_ideas(
     status: Optional[IdeaStatus] = None,
     category: Optional[str] = None,
@@ -47,7 +47,7 @@ def list_ideas(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, summary="Create Idea")
+@router.post("", operation_id="createIdea", status_code=status.HTTP_201_CREATED, summary="Create Idea")
 def create_idea(
     data: IdeaCreate,
     current_user: User = Depends(get_current_user),
@@ -60,7 +60,7 @@ def create_idea(
     }
 
 
-@router.get("/{idea_id}")
+@router.get("/{idea_id}", operation_id="getIdeaById")
 def get_idea(
     idea_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -73,7 +73,7 @@ def get_idea(
     }
 
 
-@router.patch("/{idea_id}")
+@router.patch("/{idea_id}", operation_id="updateIdeaById")
 def update_idea(
     idea_id: uuid.UUID,
     data: IdeaUpdate,
@@ -92,7 +92,7 @@ def update_idea(
     }
 
 
-@router.post("/{idea_id}/promote")
+@router.post("/{idea_id}/promote", operation_id="promoteIdeaById")
 def promote_idea(
     idea_id: uuid.UUID,
     data: IdeaPromoteRequest,
@@ -114,7 +114,7 @@ def promote_idea(
     }
 
 
-@router.delete("/{idea_id}")
+@router.delete("/{idea_id}", operation_id="deleteIdeaById")
 def delete_idea(
     idea_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

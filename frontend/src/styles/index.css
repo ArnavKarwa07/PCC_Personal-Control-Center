@@ -258,6 +258,13 @@ html[data-theme='dark'][data-accent='amber'] {
   padding: 0;
 }
 
+html,
+body,
+#root {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;
@@ -269,7 +276,6 @@ body {
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
   min-height: 100vh;
-  overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   transition: background-color var(--transition-base), color var(--transition-base);
@@ -297,6 +303,7 @@ a:hover { color: var(--color-accent-hover); }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 
+/* Enhanced Select Element Styles for Touch & Mobile */
 select {
   font-family: inherit;
   font-size: inherit;
@@ -305,6 +312,11 @@ select {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-2) 32px var(--space-2) var(--space-3) !important;
+  min-height: 38px;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   outline: none;
   color-scheme: light dark;
   appearance: none;
@@ -338,6 +350,8 @@ select option,
 select optgroup {
   background-color: var(--color-bg-elevated);
   color: var(--color-text-primary);
+  min-height: 38px;
+  padding: 8px 12px;
 }
 
 html[data-theme='dark'] select option,
@@ -350,6 +364,29 @@ html[data-theme='light'] select option,
 html[data-theme='light'] select optgroup {
   background-color: #ffffff;
   color: #0f172a;
+}
+
+@media (max-width: 768px) {
+  select {
+    min-height: 38px;
+    padding-right: 32px !important;
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Touch-friendly Horizontal Scroll Utility */
+.pcc-horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pcc-horizontal-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
