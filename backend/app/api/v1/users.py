@@ -12,8 +12,8 @@ from app.services.auth_service import auth_service
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/me", operation_id="getUserProfile")
-def get_user_profile(current_user: User = Depends(get_current_user)):
+@router.get("/get_users_me", operation_id="get_users_me", summary="Get Users Me")
+def get_users_me(current_user: User = Depends(get_current_user)):
     """Fetch profile of current authenticated user."""
     user_data = UserResponse.model_validate(current_user)
     return {
@@ -21,8 +21,8 @@ def get_user_profile(current_user: User = Depends(get_current_user)):
     }
 
 
-@router.patch("/me", operation_id="updateUserProfile")
-def update_user_profile(
+@router.patch("/update_users_me", operation_id="update_users_me", summary="Update Users Me")
+def update_users_me(
     updates: UserUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

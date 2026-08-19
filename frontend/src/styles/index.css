@@ -375,6 +375,47 @@ html[data-theme='light'] select optgroup {
   }
 }
 
+@media (max-width: 360px) {
+  :root {
+    --space-4: 0.75rem;
+    --space-6: 1rem;
+    --space-8: 1.25rem;
+  }
+
+  body {
+    font-size: 0.9375rem;
+  }
+
+  select {
+    font-size: 0.8125rem;
+    padding-left: var(--space-2) !important;
+  }
+}
+
+@media (max-width: 320px) {
+  :root {
+    --space-3: 0.5rem;
+    --space-4: 0.625rem;
+    --space-5: 0.75rem;
+    --space-6: 0.875rem;
+    --space-8: 1rem;
+  }
+
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    font-size: 0.875rem;
+  }
+
+  select {
+    font-size: 0.75rem;
+    min-height: 34px;
+    padding: var(--space-1) 26px var(--space-1) var(--space-2) !important;
+  }
+}
+
 /* Touch-friendly Horizontal Scroll Utility */
 .pcc-horizontal-scroll {
   display: flex;
@@ -396,3 +437,4 @@ html[data-theme='light'] select optgroup {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+

@@ -7,12 +7,17 @@ interface WeatherStore {
   weather: WeatherData;
   unit: 'C' | 'F';
   selectedCity: string;
+  lat: number;
+  lon: number;
+  isGpsLocated: boolean;
+  locationStatus: 'pending' | 'granted' | 'denied' | 'unsupported';
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
 
   // Actions
-  fetchWeather: (city?: string) => Promise<void>;
+  requestLocation: () => Promise<void>;
+  fetchWeather: (coords?: { lat: number; lon: number }, city?: string) => Promise<void>;
   setCity: (city: string) => Promise<void>;
   toggleUnit: () => void;
   refreshWeather: () => Promise<void>;
@@ -283,17 +288,57 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   weather: CITY_WEATHER_DATABASE[initialCity] || CITY_WEATHER_DATABASE['Pune'],
   unit: initialUnit,
   selectedCity: initialCity,
+
+  lat: 18.5204,
+  lon: 73.8567,
+  isGpsLocated: false,
+  locationStatus: 'pending',
   isLoading: false,
   isRefreshing: false,
   error: null,
 
-  fetchWeather: async (city) => {
+  requestLocation: async () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      set({ locationStatus: 'unsupported', isGpsLocated: false });
+      return;
+    }
+
+    set({ locationStatus: 'pending' });
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        set({
+          lat: latitude,
+          lon: longitude,
+          isGpsLocated: true,
+          locationStatus: 'granted',
+        });
+        get().refreshWeather();
+      },
+      () => {
+        set({
+          lat: 18.5204,
+          lon: 73.8567,
+          isGpsLocated: false,
+          locationStatus: 'denied',
+        });
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  },
+
+  fetchWeather: async (coords, city) => {
     const targetCity = city || get().selectedCity;
     set({ isLoading: true, error: null });
 
     try {
-      const serverData = await weatherApi.getCurrent(targetCity);
-      if (serverData && serverData.current) {
+      const serverData = await weatherApi.getCurrentWeather({
+        lat: coords?.lat ?? get().lat,
+        lon: coords?.lon ?? get().lon,
+        city: targetCity,
+      });
+      if (serverData && 'current' in serverData && serverData.current) {
         set({ weather: serverData, selectedCity: targetCity, isLoading: false });
         return;
       }
@@ -312,7 +357,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   setCity: async (city: string) => {
     localStorage.setItem(STORAGE_KEY_CITY, city);
     soundEffects.playPip();
-    await get().fetchWeather(city);
+    await get().fetchWeather(undefined, city);
   },
 
   toggleUnit: () => {
@@ -342,3 +387,5 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
     });
   },
 }));
+
+

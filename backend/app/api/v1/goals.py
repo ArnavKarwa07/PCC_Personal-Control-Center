@@ -16,7 +16,7 @@ from app.services.goal_service import goal_service
 router = APIRouter(prefix="/goals", tags=["Goals"])
 
 
-@router.get("", operation_id="listGoals", summary="List Goals")
+@router.get("/list_goals", operation_id="list_goals", summary="List Goals")
 def list_goals(
     status: Optional[GoalStatus] = None,
     time_period: Optional[str] = None,
@@ -35,7 +35,7 @@ def list_goals(
     }
 
 
-@router.post("", operation_id="createGoal", status_code=status.HTTP_201_CREATED, summary="Create Goal")
+@router.post("/create_goal", operation_id="create_goal", status_code=status.HTTP_201_CREATED, summary="Create Goal")
 def create_goal(
     data: GoalCreate,
     current_user: User = Depends(get_current_user),
@@ -46,8 +46,8 @@ def create_goal(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
-@router.get("/{goal_id}", operation_id="getGoalById", summary="Get Goal")
-def get_goal(
+@router.get("/get_goal_by_id/{goal_id}", operation_id="get_goal_by_id", summary="Get Goal By Id")
+def get_goal_by_id(
     goal_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -59,8 +59,8 @@ def get_goal(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
-@router.patch("/{goal_id}", operation_id="updateGoalById", summary="Update Goal")
-def update_goal(
+@router.patch("/update_goal_by_id/{goal_id}", operation_id="update_goal_by_id", summary="Update Goal By Id")
+def update_goal_by_id(
     goal_id: uuid.UUID,
     data: GoalUpdate,
     current_user: User = Depends(get_current_user),
@@ -73,8 +73,8 @@ def update_goal(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
-@router.delete("/{goal_id}", operation_id="deleteGoalById", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Goal")
-def delete_goal(
+@router.delete("/delete_goal_by_id/{goal_id}", operation_id="delete_goal_by_id", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Goal By Id")
+def delete_goal_by_id(
     goal_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

@@ -5,9 +5,15 @@ import { useToast } from '../../hooks/useToast';
 import './Weather.css';
 
 export const WeatherPage: React.FC = () => {
-  const { weather, unit, selectedCity, isRefreshing, setCity, toggleUnit, refreshWeather } =
+  const { weather, unit, isRefreshing, isGpsLocated, locationStatus, requestLocation, toggleUnit, refreshWeather } =
     useWeatherStore();
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (locationStatus === 'pending') {
+      requestLocation();
+    }
+  }, [locationStatus, requestLocation]);
 
   const convertTemp = (tempC: number) => {
     if (unit === 'F') {
@@ -15,6 +21,7 @@ export const WeatherPage: React.FC = () => {
     }
     return Math.round(tempC);
   };
+
 
   const renderWeatherIcon = (iconName: string) => {
     switch (iconName) {
@@ -80,12 +87,6 @@ export const WeatherPage: React.FC = () => {
     }
   };
 
-  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCity = e.target.value;
-    await setCity(newCity);
-    toast.info(`Updated weather location to ${newCity}`);
-  };
-
   return (
     <div className="pcc-weather-page">
       {/* Header Controls */}
@@ -96,18 +97,10 @@ export const WeatherPage: React.FC = () => {
         </div>
 
         <div className="pcc-weather-header__controls">
-          <select
-            id="weather-city-select"
-            className="pcc-weather-city-select"
-            value={selectedCity}
-            onChange={handleCityChange}
-          >
-            <option value="Pune">Pune, IN (Default)</option>
-            <option value="San Francisco">San Francisco, US</option>
-            <option value="New York">New York, US</option>
-            <option value="London">London, UK</option>
-            <option value="Tokyo">Tokyo, JP</option>
-          </select>
+          <Badge variant={isGpsLocated ? 'success' : 'primary'} size="sm">
+            {isGpsLocated ? 'GPS Located' : 'Pune, IN (Default)'}
+          </Badge>
+
 
           <div className="pcc-weather-unit-toggle">
             <button

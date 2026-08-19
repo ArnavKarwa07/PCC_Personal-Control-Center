@@ -48,6 +48,36 @@
   }
 }
 
+@media (max-width: 480px) {
+  .pcc-dashboard-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 320px) {
+  .pcc-dashboard-page {
+    gap: var(--space-3);
+  }
+
+  .pcc-dashboard-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .pcc-dashboard-metrics {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .pcc-metric-card {
+    padding: var(--space-2) !important;
+  }
+
+  .pcc-daily-briefing__bullet-item {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+
 .pcc-metric-card {
   cursor: pointer;
 }

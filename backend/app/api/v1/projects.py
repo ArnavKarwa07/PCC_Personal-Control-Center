@@ -20,7 +20,7 @@ from app.services.project_service import project_service
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get("", operation_id="listProjects", summary="List Projects")
+@router.get("/list_projects", operation_id="list_projects", summary="List Projects")
 def list_projects(
     status: Optional[ProjectStatus] = None,
     priority: Optional[ProjectPriority] = None,
@@ -51,7 +51,7 @@ def list_projects(
     }
 
 
-@router.post("", operation_id="createProject", status_code=status.HTTP_201_CREATED, summary="Create Project")
+@router.post("/create_project", operation_id="create_project", status_code=status.HTTP_201_CREATED, summary="Create Project")
 def create_project(
     data: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -64,8 +64,8 @@ def create_project(
     }
 
 
-@router.get("/{project_id}", operation_id="getProjectById")
-def get_project(
+@router.get("/get_project_by_id/{project_id}", operation_id="get_project_by_id", summary="Get Project By Id")
+def get_project_by_id(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -77,8 +77,8 @@ def get_project(
     }
 
 
-@router.patch("/{project_id}", operation_id="updateProjectById")
-def update_project(
+@router.patch("/update_project_by_id/{project_id}", operation_id="update_project_by_id", summary="Update Project By Id")
+def update_project_by_id(
     project_id: uuid.UUID,
     data: ProjectUpdate,
     current_user: User = Depends(get_current_user),
@@ -96,8 +96,8 @@ def update_project(
     }
 
 
-@router.delete("/{project_id}", operation_id="deleteProjectById")
-def delete_project(
+@router.delete("/delete_project_by_id/{project_id}", operation_id="delete_project_by_id", summary="Delete Project By Id")
+def delete_project_by_id(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

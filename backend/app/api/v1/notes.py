@@ -15,7 +15,7 @@ from app.services.note_service import note_service
 router = APIRouter(prefix="/notes", tags=["Notes"])
 
 
-@router.get("", operation_id="listNotes", summary="List Notes")
+@router.get("/list_notes", operation_id="list_notes", summary="List Notes")
 def list_notes(
     is_pinned: Optional[bool] = None,
     category: Optional[str] = None,
@@ -46,7 +46,7 @@ def list_notes(
     }
 
 
-@router.post("", operation_id="createNote", status_code=status.HTTP_201_CREATED, summary="Create Note")
+@router.post("/create_note", operation_id="create_note", status_code=status.HTTP_201_CREATED, summary="Create Note")
 def create_note(
     data: NoteCreate,
     current_user: User = Depends(get_current_user),
@@ -59,8 +59,8 @@ def create_note(
     }
 
 
-@router.get("/{note_id}", operation_id="getNoteById")
-def get_note(
+@router.get("/get_note_by_id/{note_id}", operation_id="get_note_by_id", summary="Get Note By Id")
+def get_note_by_id(
     note_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -72,8 +72,8 @@ def get_note(
     }
 
 
-@router.patch("/{note_id}", operation_id="updateNoteById")
-def update_note(
+@router.patch("/update_note_by_id/{note_id}", operation_id="update_note_by_id", summary="Update Note By Id")
+def update_note_by_id(
     note_id: uuid.UUID,
     data: NoteUpdate,
     current_user: User = Depends(get_current_user),
@@ -91,7 +91,7 @@ def update_note(
     }
 
 
-@router.patch("/{note_id}/pin", operation_id="toggleNotePin")
+@router.post("/toggle_note_pin/{note_id}", operation_id="toggle_note_pin", summary="Toggle Note Pin")
 def toggle_note_pin(
     note_id: uuid.UUID,
     is_pinned: Optional[bool] = None,
@@ -110,8 +110,8 @@ def toggle_note_pin(
     }
 
 
-@router.delete("/{note_id}", operation_id="deleteNoteById")
-def delete_note(
+@router.delete("/delete_note_by_id/{note_id}", operation_id="delete_note_by_id", summary="Delete Note By Id")
+def delete_note_by_id(
     note_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
