@@ -389,9 +389,6 @@ export const SearchPage: React.FC = () => {
           </span>
           Global Search & Knowledge Index
         </h1>
-        <p className="pcc-search-header__subtitle">
-          Instant full-text discovery across tasks, projects, notes, ideas, calendar, contacts, goals, and finances.
-        </p>
       </div>
 
       {/* Main Glass Search Box Card */}

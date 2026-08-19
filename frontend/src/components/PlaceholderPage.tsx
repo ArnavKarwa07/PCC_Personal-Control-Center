@@ -25,7 +25,6 @@ export interface PlaceholderPageProps {
 
 export const PlaceholderPage: React.FC<PlaceholderPageProps> = ({
   title,
-  subtitle,
   category = 'Module',
   stats,
   actions,
@@ -45,7 +44,6 @@ export const PlaceholderPage: React.FC<PlaceholderPageProps> = ({
             </span>
           </div>
           <h1 className="pcc-placeholder-page__title">{title}</h1>
-          <p className="pcc-placeholder-page__subtitle">{subtitle}</p>
         </div>
 
         {actions && actions.length > 0 && (

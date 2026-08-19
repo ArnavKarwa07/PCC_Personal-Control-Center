@@ -161,7 +161,6 @@ export const TimersPage: React.FC = () => {
       {/* Header */}
       <div className="pcc-timers-header">
         <h1>Focus Timers & Intervals</h1>
-        <p>Deep work pomodoros, precision stopwatch, and custom countdown timers.</p>
       </div>
 
       {/* Navigation Switcher */}

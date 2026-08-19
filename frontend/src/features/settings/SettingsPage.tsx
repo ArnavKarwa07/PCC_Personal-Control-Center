@@ -244,7 +244,6 @@ export const SettingsPage: React.FC = () => {
       {/* Header */}
       <div className="pcc-settings-header">
         <h1>Settings & Integrations</h1>
-        <p>Manage system preferences, API integrations, notification tones, and backup archives.</p>
       </div>
 
       {/* Navigation Tabs */}

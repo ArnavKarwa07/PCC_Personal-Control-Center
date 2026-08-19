@@ -104,7 +104,6 @@ export const IdeasPage: React.FC = () => {
       <div className="pcc-ideas__header">
         <div className="pcc-ideas__title-group">
           <h1>Idea Incubator & Sparks</h1>
-          <p>Capture raw flashes of inspiration, evaluate leverage, and convert viable ideas into projects.</p>
         </div>
         <Button
           variant="primary"

@@ -135,7 +135,6 @@ export const NotificationsPage: React.FC = () => {
               </Badge>
             )}
           </h1>
-          <p>Aggregated updates from background jobs, reminders, alarms, and connected integrations.</p>
         </div>
 
         <div className="pcc-notifications-header__actions">

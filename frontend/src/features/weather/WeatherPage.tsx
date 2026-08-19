@@ -93,7 +93,6 @@ export const WeatherPage: React.FC = () => {
       <header className="pcc-weather-header">
         <div className="pcc-weather-header__titles">
           <h1>Weather & Environmental Metrics</h1>
-          <p>Hyper-local weather telemetry, AQI indices, and multi-day meteorological forecasts.</p>
         </div>
 
         <div className="pcc-weather-header__controls">

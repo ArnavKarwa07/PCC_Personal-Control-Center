@@ -141,7 +141,6 @@ export const RemindersPage: React.FC = () => {
       <header className="pcc-reminders-header">
         <div className="pcc-reminders-header__titles">
           <h1>Reminders & Scheduled Nudges</h1>
-          <p>Time-critical alerts, recurring routines, and context-aware nudges.</p>
         </div>
 
         <div className="pcc-reminders-header__actions">

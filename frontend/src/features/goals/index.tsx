@@ -97,7 +97,6 @@ export const GoalsPage: React.FC = () => {
       <div className="pcc-goals-header">
         <div className="pcc-goals-header__main">
           <h1 className="pcc-goals-title">Goals & OKRs Matrix</h1>
-          <p className="pcc-goals-subtitle">Strategic objectives, key results, and milestone progression</p>
         </div>
         <Button
           variant="primary"

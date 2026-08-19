@@ -127,7 +127,6 @@ export const ProjectsPage: React.FC = () => {
       <div className="pcc-projects__header">
         <div className="pcc-projects__title-group">
           <h1>Projects & Initiatives</h1>
-          <p>Organize high-leverage goals, track deliverables, and manage Kanban workflows.</p>
         </div>
         <Button
           variant="primary"

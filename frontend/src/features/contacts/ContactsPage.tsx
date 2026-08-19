@@ -208,9 +208,6 @@ export const ContactsPage: React.FC = () => {
       <div className="pcc-contacts-header">
         <div>
           <h1 className="pcc-contacts-title">Personal CRM & Contacts</h1>
-          <p className="pcc-contacts-subtitle">
-            Relationship context, interaction history, and catch-up reminders
-          </p>
         </div>
       </div>
 

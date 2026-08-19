@@ -342,7 +342,6 @@ export const TasksPage: React.FC = () => {
       <div className="pcc-tasks__header">
         <div className="pcc-tasks__title-group">
           <h1>Tasks & Action Items</h1>
-          <p>Accelerate execution, track checklists, and manage recurring productivity routines.</p>
         </div>
         <Button
           variant="primary"
