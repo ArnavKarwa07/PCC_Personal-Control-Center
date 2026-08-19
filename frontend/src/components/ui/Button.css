@@ -156,12 +156,20 @@
   color: inherit;
 }
 
-.pcc-button__icon-left,
+.pcc-button__icon-left {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
 .pcc-button__icon-right {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-left: 2px;
 }
 
 .pcc-button__icon-left svg,
@@ -173,6 +181,11 @@
 .pcc-button__content {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
+}
+
+.pcc-button__content > svg:first-child {
+  margin-right: 8px;
 }
 
 /* Click Ripple Micro-Animation */

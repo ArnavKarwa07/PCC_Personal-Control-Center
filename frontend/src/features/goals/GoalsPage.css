@@ -38,7 +38,7 @@ html[data-theme='light'] .pcc-goals-title,
 .pcc-add-objective-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px !important;
+  gap: 12px !important;
   padding: 0.625rem 1.25rem;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
@@ -53,6 +53,10 @@ html[data-theme='light'] .pcc-goals-title,
   cursor: pointer;
 }
 
+.pcc-add-objective-btn .pcc-button__icon-left {
+  margin-right: 4px;
+}
+
 .pcc-add-objective-btn:hover {
   transform: translateY(-2px);
   background: linear-gradient(135deg, rgba(67, 56, 202, 0.95) 0%, rgba(79, 70, 229, 0.95) 100%);
@@ -63,6 +67,7 @@ html[data-theme='light'] .pcc-goals-title,
 .pcc-add-objective-btn svg {
   transition: transform 0.25s ease;
   flex-shrink: 0;
+  margin-right: 2px;
 }
 
 .pcc-add-objective-btn:hover svg {
