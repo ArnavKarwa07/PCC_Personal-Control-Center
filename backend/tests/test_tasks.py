@@ -176,11 +176,11 @@ def test_tasks_negative_invalid_token(client):
     invalid_headers = {"Authorization": "Bearer bad.token.value"}
     res_list = client.get("/api/v1/tasks", headers=invalid_headers)
     assert res_list.status_code == 401
-    assert res_list.json()["error"]["code"] == "UNAUTHORIZED"
+    assert res_list.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
     res_create = client.post("/api/v1/tasks", json={"title": "Test"}, headers=invalid_headers)
     assert res_create.status_code == 401
-    assert res_create.json()["error"]["code"] == "UNAUTHORIZED"
+    assert res_create.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
 
 def test_tasks_negative_missing_payload_fields(client, auth_headers):

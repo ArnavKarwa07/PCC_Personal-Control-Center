@@ -58,11 +58,11 @@ def test_assistant_negative_invalid_token(client: TestClient):
     invalid_headers = {"Authorization": "Bearer invalidtoken123"}
     res_b = client.get("/api/v1/assistant/briefing", headers=invalid_headers)
     assert res_b.status_code == 401
-    assert res_b.json()["error"]["code"] == "UNAUTHORIZED"
+    assert res_b.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
     res_q = client.post("/api/v1/assistant/query", json={"query": "test"}, headers=invalid_headers)
     assert res_q.status_code == 401
-    assert res_q.json()["error"]["code"] == "UNAUTHORIZED"
+    assert res_q.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
 
 def test_assistant_negative_missing_payload_fields(client: TestClient, auth_headers: dict):

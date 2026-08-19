@@ -47,12 +47,12 @@ def get_current_user(
     payload = decode_access_token(token_str)
     user_id_str = payload.get("sub")
     if not user_id_str:
-        raise UnauthorizedException(message="Token missing subject claim", code="INVALID_TOKEN")
+        raise UnauthorizedException(message="Token missing subject claim", code="UNAUTHORIZED")
 
     try:
         user_id = uuid.UUID(str(user_id_str))
     except (ValueError, TypeError):
-        raise UnauthorizedException(message="Invalid user identifier format in token", code="INVALID_TOKEN")
+        raise UnauthorizedException(message="Invalid user identifier format in token", code="UNAUTHORIZED")
 
     user = db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).first()
     if not user:

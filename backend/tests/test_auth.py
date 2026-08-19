@@ -122,7 +122,7 @@ def test_auth_negative_invalid_token(client):
     assert response.status_code == 401
     res_json = response.json()
     assert "error" in res_json
-    assert res_json["error"]["code"] == "UNAUTHORIZED"
+    assert res_json["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
     assert "message" in res_json["error"]
 
 

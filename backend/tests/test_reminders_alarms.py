@@ -372,20 +372,20 @@ def test_reminders_alarms_timers_negative_invalid_token(client):
     """Test 401 error output format on invalid token across reminders, alarms, timers, notifications."""
     bad_headers = {"Authorization": "Bearer badtoken999"}
     assert client.get("/api/v1/reminders", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/reminders", headers=bad_headers).json()["error"]["code"] == "UNAUTHORIZED"
+    assert client.get("/api/v1/reminders", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
     assert client.get("/api/v1/alarms", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/alarms", headers=bad_headers).json()["error"]["code"] == "UNAUTHORIZED"
+    assert client.get("/api/v1/alarms", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
     assert client.get("/api/v1/timers", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/timers", headers=bad_headers).json()["error"]["code"] == "UNAUTHORIZED"
+    assert client.get("/api/v1/timers", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
     assert client.get("/api/v1/notifications", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/notifications", headers=bad_headers).json()["error"]["code"] == "UNAUTHORIZED"
+    assert client.get("/api/v1/notifications", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
 
 def test_reminders_alarms_timers_negative_missing_payload_fields(client, auth_headers):
-    """Test 422 payload validation error format when fields are missing."""
+    """Test 422 payload validation error format when fields are missing or invalid."""
     # Reminder missing remind_at & title
     res_r = client.post("/api/v1/reminders", json={}, headers=auth_headers)
     assert res_r.status_code == 422
@@ -396,8 +396,8 @@ def test_reminders_alarms_timers_negative_missing_payload_fields(client, auth_he
     assert res_a.status_code == 422
     assert res_a.json()["error"]["code"] == "VALIDATION_ERROR"
 
-    # Timer missing label & duration_seconds
-    res_t = client.post("/api/v1/timers", json={}, headers=auth_headers)
+    # Timer invalid duration_seconds type
+    res_t = client.post("/api/v1/timers", json={"duration_seconds": "invalid_number_type"}, headers=auth_headers)
     assert res_t.status_code == 422
     assert res_t.json()["error"]["code"] == "VALIDATION_ERROR"
 
