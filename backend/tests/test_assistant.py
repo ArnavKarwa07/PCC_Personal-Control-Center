@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
     # Daily briefing
-    res = client.get("/api/v1/assistant/briefing", headers=auth_headers)
+    res = client.get("/api/v1/assistant/get_daily_briefing", headers=auth_headers)
     assert res.status_code == 200
     briefing = res.json()
     assert "greeting" in briefing
@@ -15,7 +15,7 @@ def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
 
     # Dispatch task creation query
     res = client.post(
-        "/api/v1/assistant/query",
+        "/api/v1/assistant/process_assistant_query",
         headers=auth_headers,
         json={"query": "remind me to review Q3 roadmap projections"},
     )
@@ -26,7 +26,7 @@ def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
 
     # Dispatch general info query
     res = client.post(
-        "/api/v1/assistant/query",
+        "/api/v1/assistant/process_assistant_query",
         headers=auth_headers,
         json={"query": "give me a status update on my productivity"},
     )
@@ -38,10 +38,10 @@ def test_assistant_query_and_briefing(client: TestClient, auth_headers: dict):
 def test_assistant_daily_briefing_deduplication(client: TestClient, auth_headers: dict):
     """Test that daily briefing bullet points are strictly deduplicated."""
     # Create duplicate tasks
-    client.post("/api/v1/tasks", headers=auth_headers, json={"title": "Duplicate Task Item"})
-    client.post("/api/v1/tasks", headers=auth_headers, json={"title": "Duplicate Task Item"})
+    client.post("/api/v1/tasks/create_task", headers=auth_headers, json={"title": "Duplicate Task Item"})
+    client.post("/api/v1/tasks/create_task", headers=auth_headers, json={"title": "Duplicate Task Item"})
 
-    res = client.get("/api/v1/assistant/briefing", headers=auth_headers)
+    res = client.get("/api/v1/assistant/get_daily_briefing", headers=auth_headers)
     assert res.status_code == 200
     briefing = res.json()
 
@@ -56,18 +56,18 @@ def test_assistant_daily_briefing_deduplication(client: TestClient, auth_headers
 def test_assistant_negative_invalid_token(client: TestClient):
     """Test 401 error format for executive assistant endpoints with invalid auth token."""
     invalid_headers = {"Authorization": "Bearer invalidtoken123"}
-    res_b = client.get("/api/v1/assistant/briefing", headers=invalid_headers)
+    res_b = client.get("/api/v1/assistant/get_daily_briefing", headers=invalid_headers)
     assert res_b.status_code == 401
     assert res_b.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
-    res_q = client.post("/api/v1/assistant/query", json={"query": "test"}, headers=invalid_headers)
+    res_q = client.post("/api/v1/assistant/process_assistant_query", json={"query": "test"}, headers=invalid_headers)
     assert res_q.status_code == 401
     assert res_q.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
 
 def test_assistant_negative_missing_payload_fields(client: TestClient, auth_headers: dict):
     """Test 422 validation error format when assistant query payload lacks required fields."""
-    res = client.post("/api/v1/assistant/query", json={}, headers=auth_headers)
+    res = client.post("/api/v1/assistant/process_assistant_query", json={}, headers=auth_headers)
     assert res.status_code == 422
     err = res.json()["error"]
     assert err["code"] == "VALIDATION_ERROR"
@@ -78,13 +78,14 @@ def test_assistant_operation_ids_and_route_contracts(client: TestClient):
     """Test REST operation_id presence and route response contract for executive assistant."""
     openapi = client.app.openapi()
     endpoints = [
-        ("/api/v1/assistant/briefing", "get"),
-        ("/api/v1/assistant/query", "post"),
+        ("/api/v1/assistant/get_daily_briefing", "get"),
+        ("/api/v1/assistant/process_assistant_query", "post"),
     ]
     for path, method in endpoints:
         assert path in openapi["paths"], f"Path {path} missing in OpenAPI schema"
         assert method in openapi["paths"][path], f"Method {method} for {path} missing"
         op_id = openapi["paths"][path][method].get("operationId")
         assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
+
 
 

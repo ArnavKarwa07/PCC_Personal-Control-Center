@@ -73,7 +73,7 @@ def test_task_completion_generates_next_recurring_task(client, auth_headers):
             "interval": 1,
         },
     }
-    create_res = client.post("/api/v1/tasks", json=create_payload, headers=auth_headers)
+    create_res = client.post("/api/v1/tasks/create_task", json=create_payload, headers=auth_headers)
     assert create_res.status_code == 201
     task_data = create_res.json()["data"]
     task_id = task_data["id"]
@@ -82,7 +82,7 @@ def test_task_completion_generates_next_recurring_task(client, auth_headers):
 
     # 2. Mark the task as done
     patch_res = client.patch(
-        f"/api/v1/tasks/{task_id}",
+        f"/api/v1/tasks/update_task_by_id/{task_id}",
         json={"status": "done"},
         headers=auth_headers,
     )
@@ -91,7 +91,7 @@ def test_task_completion_generates_next_recurring_task(client, auth_headers):
     assert patch_res.json()["data"]["completed_at"] is not None
 
     # 3. Verify that the next task instance was automatically generated
-    list_res = client.get("/api/v1/tasks", headers=auth_headers)
+    list_res = client.get("/api/v1/tasks/list_tasks", headers=auth_headers)
     tasks = list_res.json()["data"]
     assert len(tasks) == 2
 
@@ -118,14 +118,15 @@ def test_task_recurrence_respects_end_date(client, auth_headers):
             "end_date": "2026-08-15",  # Already at final occurrence
         },
     }
-    create_res = client.post("/api/v1/tasks", json=create_payload, headers=auth_headers)
+    create_res = client.post("/api/v1/tasks/create_task", json=create_payload, headers=auth_headers)
     task_id = create_res.json()["data"]["id"]
 
     # Mark as done
-    client.patch(f"/api/v1/tasks/{task_id}", json={"status": "done"}, headers=auth_headers)
+    client.patch(f"/api/v1/tasks/update_task_by_id/{task_id}", json={"status": "done"}, headers=auth_headers)
 
     # Verify no new task was generated because 2026-08-16 > end_date (2026-08-15)
-    list_res = client.get("/api/v1/tasks", headers=auth_headers)
+    list_res = client.get("/api/v1/tasks/list_tasks", headers=auth_headers)
     tasks = list_res.json()["data"]
     assert len(tasks) == 1
     assert tasks[0]["status"] == "done"
+

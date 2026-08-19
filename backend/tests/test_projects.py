@@ -14,7 +14,7 @@ def test_create_project(client, auth_headers):
         "deadline": "2026-08-30",
         "tags": ["backend", "fastapi"],
     }
-    response = client.post("/api/v1/projects", json=payload, headers=auth_headers)
+    response = client.post("/api/v1/projects/create_project", json=payload, headers=auth_headers)
     assert response.status_code == 201
     data = response.json()["data"]
     assert data["name"] == payload["name"]
@@ -31,24 +31,24 @@ def test_create_project(client, auth_headers):
 def test_list_and_filter_projects(client, auth_headers):
     """Test listing projects with status/priority filtering and pagination."""
     client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "Active High Project", "status": "active", "priority": "high"},
         headers=auth_headers,
     )
     client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "Paused Low Project", "status": "paused", "priority": "low"},
         headers=auth_headers,
     )
 
     # Filter status
-    res = client.get("/api/v1/projects?status=active", headers=auth_headers)
+    res = client.get("/api/v1/projects/list_projects?status=active", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()["data"]) == 1
     assert res.json()["data"][0]["name"] == "Active High Project"
 
     # Search filter
-    res = client.get("/api/v1/projects?search=Paused", headers=auth_headers)
+    res = client.get("/api/v1/projects/list_projects?search=Paused", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()["data"]) == 1
     assert res.json()["data"][0]["name"] == "Paused Low Project"
@@ -57,7 +57,7 @@ def test_list_and_filter_projects(client, auth_headers):
 def test_project_progress_calculation(client, auth_headers):
     """Test progress is calculated based on linked completed tasks."""
     proj_res = client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "Progress Test Project"},
         headers=auth_headers,
     )
@@ -65,18 +65,18 @@ def test_project_progress_calculation(client, auth_headers):
 
     # Add 2 tasks (1 todo, 1 done)
     client.post(
-        "/api/v1/tasks",
+        "/api/v1/tasks/create_task",
         json={"title": "Task 1", "project_id": project_id, "status": "done"},
         headers=auth_headers,
     )
     client.post(
-        "/api/v1/tasks",
+        "/api/v1/tasks/create_task",
         json={"title": "Task 2", "project_id": project_id, "status": "todo"},
         headers=auth_headers,
     )
 
     # Fetch project
-    res = client.get(f"/api/v1/projects/{project_id}", headers=auth_headers)
+    res = client.get(f"/api/v1/projects/get_project_by_id/{project_id}", headers=auth_headers)
     assert res.status_code == 200
     data = res.json()["data"]
     assert data["task_count"] == 2
@@ -87,7 +87,7 @@ def test_project_progress_calculation(client, auth_headers):
 def test_update_and_delete_project(client, auth_headers):
     """Test updating project details and soft-deleting project."""
     create_res = client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "Project to Update"},
         headers=auth_headers,
     )
@@ -95,7 +95,7 @@ def test_update_and_delete_project(client, auth_headers):
 
     # Update
     patch_res = client.patch(
-        f"/api/v1/projects/{project_id}",
+        f"/api/v1/projects/update_project_by_id/{project_id}",
         json={"name": "Updated Project Name", "status": "active"},
         headers=auth_headers,
     )
@@ -104,11 +104,11 @@ def test_update_and_delete_project(client, auth_headers):
     assert patch_res.json()["data"]["status"] == "active"
 
     # Delete
-    del_res = client.delete(f"/api/v1/projects/{project_id}", headers=auth_headers)
+    del_res = client.delete(f"/api/v1/projects/delete_project_by_id/{project_id}", headers=auth_headers)
     assert del_res.status_code == 200
 
     # Verify not found
-    get_res = client.get(f"/api/v1/projects/{project_id}", headers=auth_headers)
+    get_res = client.get(f"/api/v1/projects/get_project_by_id/{project_id}", headers=auth_headers)
     assert get_res.status_code == 404
 
 
@@ -122,7 +122,7 @@ def test_project_members(client, auth_headers, db_session, test_user):
 
     # Create project
     proj_res = client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "Member Project"},
         headers=auth_headers,
     )
@@ -140,7 +140,7 @@ def test_project_members(client, auth_headers, db_session, test_user):
     member_id = member_data["id"]
 
     # Check project returns member
-    get_proj = client.get(f"/api/v1/projects/{project_id}", headers=auth_headers)
+    get_proj = client.get(f"/api/v1/projects/get_project_by_id/{project_id}", headers=auth_headers)
     assert len(get_proj.json()["data"]["members"]) == 1
 
     # Remove member
@@ -151,14 +151,14 @@ def test_project_members(client, auth_headers, db_session, test_user):
     assert del_member_res.status_code == 200
 
     # Verify member removed
-    get_proj2 = client.get(f"/api/v1/projects/{project_id}", headers=auth_headers)
+    get_proj2 = client.get(f"/api/v1/projects/get_project_by_id/{project_id}", headers=auth_headers)
     assert len(get_proj2.json()["data"]["members"]) == 0
 
 
 def test_project_board_and_card_movement(client, auth_headers):
     """Test Kanban board retrieval, column creation, card placement, and moving cards."""
     proj_res = client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "Kanban Project"},
         headers=auth_headers,
     )
@@ -185,7 +185,7 @@ def test_project_board_and_card_movement(client, auth_headers):
 
     # Create a task and add as a card
     task_res = client.post(
-        "/api/v1/tasks",
+        "/api/v1/tasks/create_task",
         json={"title": "Feature Card Task", "project_id": project_id},
         headers=auth_headers,
     )
@@ -218,14 +218,15 @@ def test_project_board_and_card_movement(client, auth_headers):
 def test_project_multi_user_isolation(client, auth_headers, second_auth_headers):
     """Test user A cannot read, update, or delete user B's project."""
     create_res = client.post(
-        "/api/v1/projects",
+        "/api/v1/projects/create_project",
         json={"name": "User A Private Project"},
         headers=auth_headers,
     )
     project_id = create_res.json()["data"]["id"]
 
     # User B attempts access
-    assert client.get(f"/api/v1/projects/{project_id}", headers=second_auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/projects/{project_id}", json={"name": "Hacked"}, headers=second_auth_headers).status_code == 404
-    assert client.delete(f"/api/v1/projects/{project_id}", headers=second_auth_headers).status_code == 404
+    assert client.get(f"/api/v1/projects/get_project_by_id/{project_id}", headers=second_auth_headers).status_code == 404
+    assert client.patch(f"/api/v1/projects/update_project_by_id/{project_id}", json={"name": "Hacked"}, headers=second_auth_headers).status_code == 404
+    assert client.delete(f"/api/v1/projects/delete_project_by_id/{project_id}", headers=second_auth_headers).status_code == 404
     assert client.get(f"/api/v1/projects/{project_id}/board", headers=second_auth_headers).status_code == 404
+
