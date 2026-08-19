@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../layouts/AppShell';
-import { Spinner } from '../components/ui/Spinner';
+import { PageLoader } from '../components/ui/PageLoader';
 
 // Route Lazy Loading
 const DashboardPage = lazy(() => import('../features/dashboard'));
@@ -25,18 +25,9 @@ const WeatherPage = lazy(() => import('../features/weather'));
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
 const RegisterPage = lazy(() => import('../features/auth/RegisterPage'));
 
-const PageFallback: React.FC = () => (
-  <div
-    style={{
-      display: 'flex',
-      minHeight: '300px',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-    }}
-  >
-    <Spinner size="lg" />
-  </div>
+const PageFallback: React.FC = () => <PageLoader message="Loading module..." />;
+const AuthFallback: React.FC = () => (
+  <PageLoader message="Initializing Personal Control Center..." fullScreen />
 );
 
 export const router = createBrowserRouter([
@@ -44,7 +35,7 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: (
-      <Suspense fallback={<PageFallback />}>
+      <Suspense fallback={<AuthFallback />}>
         <LoginPage />
       </Suspense>
     ),
@@ -52,7 +43,7 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: (
-      <Suspense fallback={<PageFallback />}>
+      <Suspense fallback={<AuthFallback />}>
         <RegisterPage />
       </Suspense>
     ),
