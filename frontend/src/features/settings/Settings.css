@@ -224,6 +224,12 @@
   height: 22px;
 }
 
+.pcc-integration-card__logo-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .pcc-integration-card__title-area {
   display: flex;
   flex-direction: column;

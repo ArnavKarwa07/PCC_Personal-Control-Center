@@ -15,6 +15,9 @@ class IntegrationProvider(str, enum.Enum):
     SLACK = "slack"
     GITLAB = "gitlab"
     JIRA = "jira"
+    TELEGRAM = "telegram"
+    NOTION = "notion"
+    DISCORD = "discord"
 
 
 class IntegrationStatus(str, enum.Enum):

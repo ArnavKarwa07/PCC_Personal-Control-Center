@@ -435,6 +435,126 @@ class JiraConnector(BaseConnector):
 
 
 
+class TelegramConnector(BaseConnector):
+    """Connector for Telegram bot notifications and alert delivery."""
+
+    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+        cfg = dict(data.config or {})
+        bot_token = cfg.get("bot_token") or cfg.get("botToken") or data.access_token or data.api_key or "bot_mock_token"
+        chat_id = cfg.get("chat_id") or cfg.get("chatId") or "12345678"
+        token_masked = mask_credential_value(bot_token)
+        res = dict(cfg)
+        res.update({
+            "bot_token": bot_token,
+            "chat_id": chat_id,
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+            "token_masked": token_masked,
+        })
+        return res
+
+    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+        pass
+
+    def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
+        if not integration or integration.status != IntegrationStatus.CONNECTED:
+            return {"status": "unlinked", "service": "Telegram"}
+        cfg = integration.config or {}
+        return {
+            "service": "Telegram",
+            "chat_id": cfg.get("chat_id") or cfg.get("chatId", "12345678"),
+            "last_synced_at": cfg.get("last_synced_at"),
+            "synced_alerts_count": cfg.get("synced_alerts_count", 8),
+        }
+
+    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+        cfg = dict(integration.config or {})
+        now_iso = datetime.now(timezone.utc).isoformat()
+        cfg["last_synced_at"] = now_iso
+        cfg["synced_alerts_count"] = 8
+        integration.config = cfg
+        db.commit()
+        return {"provider": "telegram", "synced_items": 8, "synced_at": now_iso}
+
+
+class NotionConnector(BaseConnector):
+    """Connector for Notion workspace databases and notes sync."""
+
+    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+        cfg = dict(data.config or {})
+        token = data.access_token or data.api_key or cfg.get("integrationToken") or cfg.get("integration_token") or cfg.get("apiKey") or cfg.get("api_key") or "secret_mock_notion_token"
+        workspace_id = cfg.get("workspaceId") or cfg.get("workspace_id") or "workspace_main"
+        token_masked = mask_credential_value(token)
+        res = dict(cfg)
+        res.update({
+            "workspace_id": workspace_id,
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+            "token_masked": token_masked,
+        })
+        return res
+
+    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+        pass
+
+    def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
+        if not integration or integration.status != IntegrationStatus.CONNECTED:
+            return {"status": "unlinked", "service": "Notion"}
+        cfg = integration.config or {}
+        return {
+            "service": "Notion",
+            "workspace_id": cfg.get("workspace_id") or cfg.get("workspaceId", "workspace_main"),
+            "last_synced_at": cfg.get("last_synced_at"),
+            "synced_pages_count": cfg.get("synced_pages_count", 14),
+        }
+
+    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+        cfg = dict(integration.config or {})
+        now_iso = datetime.now(timezone.utc).isoformat()
+        cfg["last_synced_at"] = now_iso
+        cfg["synced_pages_count"] = 14
+        integration.config = cfg
+        db.commit()
+        return {"provider": "notion", "synced_items": 14, "synced_at": now_iso}
+
+
+class DiscordConnector(BaseConnector):
+    """Connector for Discord channel webhooks and notification dispatch."""
+
+    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+        cfg = dict(data.config or {})
+        webhook_url = cfg.get("webhookUrl") or cfg.get("webhook_url") or data.access_token or data.api_key or "https://discord.com/api/webhooks/mock"
+        url_masked = mask_credential_value(webhook_url)
+        res = dict(cfg)
+        res.update({
+            "webhook_url": webhook_url,
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+            "webhook_masked": url_masked,
+        })
+        return res
+
+    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+        pass
+
+    def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
+        if not integration or integration.status != IntegrationStatus.CONNECTED:
+            return {"status": "unlinked", "service": "Discord"}
+        cfg = integration.config or {}
+        return {
+            "service": "Discord",
+            "webhook_url_masked": mask_credential_value(cfg.get("webhook_url") or cfg.get("webhookUrl", "https://discord.com/api/webhooks/mock")),
+            "last_synced_at": cfg.get("last_synced_at"),
+            "dispatched_webhooks_count": cfg.get("dispatched_webhooks_count", 6),
+        }
+
+    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+        cfg = dict(integration.config or {})
+        now_iso = datetime.now(timezone.utc).isoformat()
+        cfg["last_synced_at"] = now_iso
+        cfg["dispatched_webhooks_count"] = 6
+        integration.config = cfg
+        db.commit()
+        return {"provider": "discord", "synced_items": 6, "synced_at": now_iso}
+
+
 class IntegrationService:
     """Service managing third-party connectors, auth lifecycles, and synchronization."""
 
@@ -445,6 +565,9 @@ class IntegrationService:
         IntegrationProvider.SLACK: SlackConnector(),
         IntegrationProvider.GITLAB: GitLabConnector(),
         IntegrationProvider.JIRA: JiraConnector(),
+        IntegrationProvider.TELEGRAM: TelegramConnector(),
+        IntegrationProvider.NOTION: NotionConnector(),
+        IntegrationProvider.DISCORD: DiscordConnector(),
     }
 
     @classmethod

@@ -154,86 +154,17 @@ export const SettingsPage: React.FC = () => {
   };
 
   const renderServiceIcon = (service: IntegrationService) => {
-    switch (service) {
-      case 'github':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-          </svg>
-        );
-      case 'google_calendar':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        );
-      case 'teams_calendar':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <rect x="2" y="4" width="14" height="14" rx="2" />
-            <path d="M16 8h4a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-1" />
-            <line x1="2" y1="9" x2="16" y2="9" />
-            <circle cx="6.5" cy="13.5" r="1" fill="currentColor" />
-            <circle cx="11.5" cy="13.5" r="1" fill="currentColor" />
-          </svg>
-        );
-      case 'weather':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M12 2v2" />
-            <path d="M4.93 4.93l1.41 1.41" />
-            <path d="M20 12h2" />
-            <path d="M15.5 13a4.5 4.5 0 1 0-8.9 1A4 4 0 0 0 8 22h10a4 4 0 0 0 0-8c-.8 0-1.6.2-2.5.5z" />
-          </svg>
-        );
-      case 'telegram':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        );
-      case 'slack':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z" />
-            <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-            <path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z" />
-            <path d="M3.5 14H5v1.5C5 16.33 4.33 17 3.5 17S2 16.33 2 15.5 2.67 14 3.5 14z" />
-          </svg>
-        );
-      case 'gitlab':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 5.48 2a.43.43 0 0 1 .41.28l2.1 6.46h8.02l2.1-6.46A.43.43 0 0 1 18.52 2a.42.42 0 0 1 .37.21l2.44 7.51 1.22 3.78a.84.84 0 0 1-.3.94z" />
-          </svg>
-        );
-      case 'jira':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M11.53 2.3a1.85 1.85 0 0 0-2.6 0L2.3 8.93a1.85 1.85 0 0 0 0 2.6l6.63 6.64a1.85 1.85 0 0 0 2.6 0l6.64-6.64a1.85 1.85 0 0 0 0-2.6L11.53 2.3z" />
-            <path d="M19.7 10.5l-4.5 4.5 4.5 4.5a1.85 1.85 0 0 0 2.6 0l.2-.2a1.85 1.85 0 0 0 0-2.6l-2.8-2.2" />
-          </svg>
-        );
-      case 'notion':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-        );
-      case 'discord':
-      default:
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        );
-    }
+    return (
+      <img
+        src={`/logos/${service}.svg`}
+        alt={`${service} logo`}
+        className="pcc-integration-card__logo-img"
+        aria-hidden="true"
+        onError={(e) => {
+          (e.target as HTMLElement).style.display = 'none';
+        }}
+      />
+    );
   };
 
   // Full backup JSON export
