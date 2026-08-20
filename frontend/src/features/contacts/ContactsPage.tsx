@@ -220,6 +220,19 @@ export const ContactsPage: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <Button
+          variant="primary"
+          className="pcc-add-contact-btn"
+          onClick={() => setIsAddModalOpen(true)}
+          icon={
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          }
+        >
+          Add Contact
+        </Button>
       </div>
 
       <div className="pcc-contacts-content">
@@ -324,54 +337,69 @@ export const ContactsPage: React.FC = () => {
             })
           )}
         </div>
+      </div>
 
-        <Card glass padding="lg" className="pcc-add-contact-card">
-          <h2>Add New Contact</h2>
-          <form onSubmit={handleAddContact} className="pcc-add-contact-form">
-            <Input
-              id="c-name"
-              label="Full Name"
-              placeholder="e.g. John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <Input
-              id="c-org"
-              label="Organization"
-              placeholder="e.g. Acme Corp"
-              value={org}
-              onChange={(e) => setOrg(e.target.value)}
-            />
-            <Input
-              id="c-role"
-              label="Role / Title"
-              placeholder="e.g. Product Designer"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            />
-            <Input
-              id="c-email"
-              label="Email Address"
-              type="email"
-              placeholder="e.g. john@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Input
-              id="c-phone"
-              label="Phone Number"
-              type="tel"
-              placeholder="e.g. +91 98765 43210"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
+      {/* Add Contact Modal */}
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Add New Contact"
+        size="md"
+      >
+        <form onSubmit={handleAddContact} className="pcc-add-contact-form">
+          <Input
+            id="c-name"
+            label="Full Name"
+            placeholder="e.g. John Doe"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <Input
+            id="c-org"
+            label="Organization"
+            placeholder="e.g. Acme Corp"
+            value={org}
+            onChange={(e) => setOrg(e.target.value)}
+          />
+          <Input
+            id="c-role"
+            label="Role / Title"
+            placeholder="e.g. Product Designer"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          />
+          <Input
+            id="c-email"
+            label="Email Address"
+            type="email"
+            placeholder="e.g. john@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            id="c-phone"
+            label="Phone Number"
+            type="tel"
+            placeholder="e.g. +91 98765 43210"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <div className="pcc-add-contact-modal-footer">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsAddModalOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
             <Button type="submit" variant="primary" loading={isSubmitting}>
               Add Contact
             </Button>
-          </form>
-        </Card>
-      </div>
+          </div>
+        </form>
+      </Modal>
 
       <Modal
         isOpen={deleteTarget !== null}

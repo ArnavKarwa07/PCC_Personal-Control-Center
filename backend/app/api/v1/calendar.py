@@ -18,7 +18,7 @@ router = APIRouter(prefix="/calendar", tags=["Calendar"])
 
 
 @router.get("/events/list_calendar_events", operation_id="list_calendar_events", summary="List Calendar Events")
-@router.get("/events", include_in_schema=False)
+@router.get("/events", operation_id="list_calendar_events_alias", summary="List Calendar Events (Alias)")
 def list_calendar_events(
     start_date: Optional[datetime] = Query(None, description="Filter events starting on or after this timestamp"),
     end_date: Optional[datetime] = Query(None, description="Filter events starting on or before this timestamp"),
@@ -52,7 +52,7 @@ def list_calendar_events(
 
 
 @router.post("/events/create_calendar_event", operation_id="create_calendar_event", status_code=status.HTTP_201_CREATED, summary="Create Calendar Event")
-@router.post("/events", include_in_schema=False, status_code=status.HTTP_201_CREATED)
+@router.post("/events", operation_id="create_calendar_event_alias", status_code=status.HTTP_201_CREATED, summary="Create Calendar Event (Alias)")
 def create_calendar_event(
     data: CalendarEventCreate,
     current_user: User = Depends(get_current_user),
@@ -66,7 +66,7 @@ def create_calendar_event(
 
 
 @router.get("/events/get_calendar_event_by_id/{event_id}", operation_id="get_calendar_event_by_id", summary="Get Calendar Event By Id")
-@router.get("/events/{event_id}", include_in_schema=False)
+@router.get("/events/{event_id}", operation_id="get_calendar_event_by_id_alias", summary="Get Calendar Event By Id (Alias)")
 def get_calendar_event(
     event_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -80,7 +80,7 @@ def get_calendar_event(
 
 
 @router.patch("/events/update_calendar_event_by_id/{event_id}", operation_id="update_calendar_event_by_id", summary="Update Calendar Event By Id")
-@router.patch("/events/{event_id}", include_in_schema=False)
+@router.patch("/events/{event_id}", operation_id="update_calendar_event_by_id_alias", summary="Update Calendar Event By Id (Alias)")
 def update_calendar_event(
     event_id: uuid.UUID,
     data: CalendarEventUpdate,
@@ -100,7 +100,7 @@ def update_calendar_event(
 
 
 @router.delete("/events/delete_calendar_event_by_id/{event_id}", operation_id="delete_calendar_event_by_id", summary="Delete Calendar Event By Id")
-@router.delete("/events/{event_id}", include_in_schema=False)
+@router.delete("/events/{event_id}", operation_id="delete_calendar_event_by_id_alias", summary="Delete Calendar Event By Id (Alias)")
 def delete_calendar_event(
     event_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
