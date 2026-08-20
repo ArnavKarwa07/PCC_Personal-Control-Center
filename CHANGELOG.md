@@ -5,6 +5,18 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-08-20
+
+### Removed
+- **Obsolete Root Worker Forwarder**: Removed obsolete root `worker/` forwarder package (`worker/__init__.py`, `worker/main.py`, `worker/README.md`) since active background worker logic resides in `backend/worker/main.py`.
+- **Unused Shared Stub**: Removed unused empty `shared/` package stub (`shared/__init__.py`, `shared/README.md`).
+- **Empty Infrastructure Directory**: Removed empty `infrastructure/` placeholder directory (`infrastructure/README.md`).
+- **Duplicate Sample Data**: Removed duplicate sample data file `frontend/public/pcc_data_sample.json`.
+
+### Added
+- **Git Ignore Rule**: Added `.ruff_cache/` rule to `.gitignore` to prevent Ruff linter cache artifacts from entering source control.
+- **Makefile Clean Target**: Added `clean` target to `Makefile` for purging `.pytest_cache` and `.ruff_cache` directories.
+
 ## [1.4.0] - 2026-08-20
 
 ### Added
