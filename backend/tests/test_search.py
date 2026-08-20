@@ -106,7 +106,7 @@ def test_search_across_all_entity_types(client: TestClient, auth_headers: dict, 
     """Verify that search returns results across all supported entity categories."""
     _seed_all_entities(db_session, test_user, keyword="Quantum")
 
-    response = client.get("/api/v1/search?q=Quantum", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=Quantum", headers=auth_headers)
     assert response.status_code == 200
     res_data = response.json()
 
@@ -135,7 +135,7 @@ def test_search_type_filtering(client: TestClient, auth_headers: dict, db_sessio
     _seed_all_entities(db_session, test_user, keyword="Filtered")
 
     # Filter to only tasks and notes
-    response = client.get("/api/v1/search?q=Filtered&types=tasks,notes", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=Filtered&types=tasks,notes", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
 
@@ -161,7 +161,7 @@ def test_search_relevance_ranking(client: TestClient, auth_headers: dict, db_ses
     db_session.add_all([note1, note2])
     db_session.commit()
 
-    response = client.get("/api/v1/search?q=Supernova", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=Supernova", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
 
@@ -193,13 +193,13 @@ def test_search_user_isolation(
     db_session.commit()
 
     # Search with user 2 headers
-    response = client.get("/api/v1/search?q=Alpha", headers=second_auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=Alpha", headers=second_auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
     assert len(data) == 0
 
     # Search with user 1 headers
-    response = client.get("/api/v1/search?q=Alpha", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=Alpha", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
     assert len(data) == 1
@@ -224,7 +224,7 @@ def test_search_soft_deleted_excluded(
     db_session.add_all([active_task, deleted_task])
     db_session.commit()
 
-    response = client.get("/api/v1/search?q=Target", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=Target", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
 
@@ -250,7 +250,7 @@ def test_search_case_insensitivity_and_snippet(
     db_session.commit()
 
     # Query with lower case "hyperdrive"
-    response = client.get("/api/v1/search?q=hyperdrive", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=hyperdrive", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()["data"]
 
@@ -263,7 +263,7 @@ def test_search_empty_and_no_matches(
     client: TestClient, auth_headers: dict, db_session: Session, test_user: User
 ):
     """Verify behavior when no results match or invalid query is passed."""
-    response = client.get("/api/v1/search?q=NonExistentTermXYZ12345", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=NonExistentTermXYZ12345", headers=auth_headers)
     assert response.status_code == 200
     res = response.json()
     assert res["data"] == []
@@ -281,7 +281,7 @@ def test_search_pagination_limit_offset(
     db_session.add_all(tasks)
     db_session.commit()
 
-    response = client.get("/api/v1/search?q=BatchItem&limit=3&offset=0", headers=auth_headers)
+    response = client.get("/api/v1/search/search_entities?q=BatchItem&limit=3&offset=0", headers=auth_headers)
     assert response.status_code == 200
     res = response.json()
     assert len(res["data"]) == 3
@@ -290,7 +290,7 @@ def test_search_pagination_limit_offset(
     assert res["meta"]["offset"] == 0
 
     # Next page
-    response2 = client.get("/api/v1/search?q=BatchItem&limit=3&offset=3", headers=auth_headers)
+    response2 = client.get("/api/v1/search/search_entities?q=BatchItem&limit=3&offset=3", headers=auth_headers)
     assert response2.status_code == 200
     res2 = response2.json()
     assert len(res2["data"]) == 3

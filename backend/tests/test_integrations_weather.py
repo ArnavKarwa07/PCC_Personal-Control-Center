@@ -1,15 +1,14 @@
 """Tests for Integrations and Weather APIs."""
 
 
-
 # ==========================================
 # 1. INTEGRATIONS TESTS
 # ==========================================
 
 
 def test_list_integrations_returns_all_providers(client, auth_headers):
-    """Test GET /api/v1/integrations enumerates all supported providers."""
-    res = client.get("/api/v1/integrations", headers=auth_headers)
+    """Test GET /api/v1/integrations/list_integrations enumerates all supported providers."""
+    res = client.get("/api/v1/integrations/list_integrations", headers=auth_headers)
     assert res.status_code == 200
     providers = res.json()["data"]
     provider_names = {p["provider"] for p in providers}
@@ -26,7 +25,7 @@ def test_connect_and_status_github_integration(client, auth_headers):
         "config": {"username": "developer_test", "synced_repos_count": 4},
     }
     connect_res = client.post(
-        "/api/v1/integrations/github/connect",
+        "/api/v1/integrations/connect_integration/github",
         json=connect_payload,
         headers=auth_headers,
     )
@@ -37,7 +36,7 @@ def test_connect_and_status_github_integration(client, auth_headers):
     assert data["is_connected"] is True
 
     # Check status endpoint
-    status_res = client.get("/api/v1/integrations/github/status", headers=auth_headers)
+    status_res = client.get("/api/v1/integrations/get_integration_status/github", headers=auth_headers)
     assert status_res.status_code == 200
     status_data = status_res.json()["data"]
     assert status_data["is_connected"] is True
@@ -49,7 +48,7 @@ def test_connect_google_calendar_and_disconnect(client, auth_headers):
     """Test connecting and disconnecting Google Calendar integration."""
     # 1. Connect
     res = client.post(
-        "/api/v1/integrations/google_calendar/connect",
+        "/api/v1/integrations/connect_integration/google_calendar",
         json={"config": {"calendar_id": "work_primary@gmail.com"}},
         headers=auth_headers,
     )
@@ -58,7 +57,7 @@ def test_connect_google_calendar_and_disconnect(client, auth_headers):
 
     # 2. Disconnect
     disc_res = client.post(
-        "/api/v1/integrations/google_calendar/disconnect",
+        "/api/v1/integrations/disconnect_integration/google_calendar",
         headers=auth_headers,
     )
     assert disc_res.status_code == 200
@@ -66,20 +65,20 @@ def test_connect_google_calendar_and_disconnect(client, auth_headers):
     assert disc_res.json()["data"]["is_connected"] is False
 
     # Status should reflect disconnected
-    st_res = client.get("/api/v1/integrations/google_calendar/status", headers=auth_headers)
+    st_res = client.get("/api/v1/integrations/get_integration_status/google_calendar", headers=auth_headers)
     assert st_res.json()["data"]["is_connected"] is False
 
 
 def test_integration_multi_tenant_isolation(client, auth_headers, second_auth_headers):
     """Test that integration connections are isolated between users."""
     client.post(
-        "/api/v1/integrations/github/connect",
+        "/api/v1/integrations/connect_integration/github",
         json={"config": {"username": "user_one_gh"}},
         headers=auth_headers,
     )
 
     # Second user's GitHub integration should still be disconnected
-    res_other = client.get("/api/v1/integrations/github/status", headers=second_auth_headers)
+    res_other = client.get("/api/v1/integrations/get_integration_status/github", headers=second_auth_headers)
     assert res_other.status_code == 200
     assert res_other.json()["data"]["is_connected"] is False
 
@@ -90,8 +89,8 @@ def test_integration_multi_tenant_isolation(client, auth_headers, second_auth_he
 
 
 def test_get_current_weather(client, auth_headers):
-    """Test GET /api/v1/weather/current returns valid weather data with default location Pune, India."""
-    res = client.get("/api/v1/weather/current", headers=auth_headers)
+    """Test GET /api/v1/weather/get_current_weather returns valid weather data with default location Pune, India."""
+    res = client.get("/api/v1/weather/get_current_weather", headers=auth_headers)
     assert res.status_code == 200
     data = res.json()["data"]
     assert "temperature" in data
@@ -103,9 +102,9 @@ def test_get_current_weather(client, auth_headers):
 
 
 def test_get_weather_forecast_with_params(client, auth_headers):
-    """Test GET /api/v1/weather/forecast with query parameters."""
+    """Test GET /api/v1/weather/get_weather_forecast with query parameters."""
     res = client.get(
-        "/api/v1/weather/forecast?lat=37.7749&lon=-122.4194&city=San+Francisco&days=5&units=imperial",
+        "/api/v1/weather/get_weather_forecast?lat=37.7749&lon=-122.4194&city=San+Francisco&days=5&units=imperial",
         headers=auth_headers,
     )
     assert res.status_code == 200
