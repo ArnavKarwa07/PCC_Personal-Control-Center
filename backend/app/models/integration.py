@@ -11,7 +11,6 @@ from app.models.base import BaseModel
 class IntegrationProvider(str, enum.Enum):
     GITHUB = "github"
     GOOGLE_CALENDAR = "google_calendar"
-    WEATHER = "weather"
 
 
 class IntegrationStatus(str, enum.Enum):

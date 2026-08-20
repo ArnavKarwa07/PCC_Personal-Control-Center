@@ -47,16 +47,6 @@ const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'te
   discord: [
     { key: 'webhookUrl', label: 'Webhook URL', type: 'text' },
   ],
-  openweather: [
-    { key: 'apiKey', label: 'API Key', type: 'password' },
-    { key: 'defaultCity', label: 'Default City', type: 'text' },
-    { key: 'units', label: 'Units', type: 'text' },
-  ],
-  weather: [
-    { key: 'apiKey', label: 'API Key', type: 'password' },
-    { key: 'defaultCity', label: 'Default City', type: 'text' },
-    { key: 'units', label: 'Units', type: 'text' },
-  ],
 };
 
 export const SettingsPage: React.FC = () => {

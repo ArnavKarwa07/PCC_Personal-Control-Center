@@ -14,7 +14,7 @@ def test_list_integrations_returns_all_providers(client, auth_headers):
     provider_names = {p["provider"] for p in providers}
     assert "github" in provider_names
     assert "google_calendar" in provider_names
-    assert "weather" in provider_names
+    assert "weather" not in provider_names
     assert all(not p["is_connected"] for p in providers)
 
 

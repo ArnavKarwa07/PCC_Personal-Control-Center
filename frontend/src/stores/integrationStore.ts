@@ -17,7 +17,7 @@ interface IntegrationStore {
   testConnection: (id: string) => Promise<boolean>;
 }
 
-const STORAGE_KEY = 'pcc_integrations_store_v1';
+const STORAGE_KEY = 'pcc_integrations_store_v2';
 
 const INITIAL_INTEGRATIONS: Integration[] = [
   {
@@ -46,20 +46,6 @@ const INITIAL_INTEGRATIONS: Integration[] = [
       account: 'arnav.karwa@pcc.local',
       calendars: 'Primary, Focus Schedule',
       autoSyncInterval: '15m',
-    },
-  },
-  {
-    id: 'int-weather',
-    service: 'weather',
-    name: 'OpenWeather Map API',
-    description: 'Live hyper-local weather conditions, air quality index, and severe weather warnings.',
-    connected: true,
-    lastSynced: '2026-08-15T12:00:00Z',
-    category: 'environment',
-    config: {
-      apiKey: 'owm_********************************',
-      defaultCity: 'Pune, India',
-      units: 'metric',
     },
   },
   {
@@ -103,7 +89,10 @@ const loadStoredIntegrations = (): Integration[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed: Integration[] = JSON.parse(raw);
+      return parsed.filter(
+        (i) => i.service !== 'weather' && (i as any).service !== 'openweather' && i.id !== 'int-weather'
+      );
     }
   } catch (err) {
     console.warn('Failed to load integrations from localStorage', err);

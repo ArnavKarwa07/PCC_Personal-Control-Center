@@ -8,7 +8,6 @@ from app.services.integration_service import (
     GitHubConnector,
     GoogleCalendarConnector,
     IntegrationService,
-    WeatherConnector,
     integration_service,
 )
 from app.services.note_service import NoteService, note_service
@@ -47,7 +46,6 @@ __all__ = [
     "integration_service",
     "GitHubConnector",
     "GoogleCalendarConnector",
-    "WeatherConnector",
     "WeatherService",
     "weather_service",
 ]

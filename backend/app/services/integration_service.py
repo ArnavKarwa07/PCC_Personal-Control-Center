@@ -118,51 +118,12 @@ class GoogleCalendarConnector(BaseConnector):
         return {"provider": "google_calendar", "synced_items": 12, "synced_at": now_iso}
 
 
-class WeatherConnector(BaseConnector):
-    """Connector for real-time weather and forecast data provider."""
-
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
-        cfg = data.config or {}
-        return {
-            "location": cfg.get("location", "New York, USA"),
-            "latitude": cfg.get("latitude", 40.7128),
-            "longitude": cfg.get("longitude", -74.0060),
-            "units": cfg.get("units", "metric"),
-            "provider_backend": "open-meteo",
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-        }
-
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
-        pass
-
-    def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
-        if not integration or integration.status != IntegrationStatus.CONNECTED:
-            return {"status": "unlinked", "service": "Weather"}
-        cfg = integration.config or {}
-        return {
-            "service": "Weather",
-            "location": cfg.get("location", "New York, USA"),
-            "units": cfg.get("units", "metric"),
-            "provider_backend": cfg.get("provider_backend", "open-meteo"),
-            "last_synced_at": cfg.get("last_synced_at"),
-        }
-
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
-        cfg = dict(integration.config or {})
-        now_iso = datetime.now(timezone.utc).isoformat()
-        cfg["last_synced_at"] = now_iso
-        integration.config = cfg
-        db.commit()
-        return {"provider": "weather", "synced_items": 1, "synced_at": now_iso}
-
-
 class IntegrationService:
     """Service managing third-party connectors, auth lifecycles, and synchronization."""
 
     _connectors: Dict[IntegrationProvider, BaseConnector] = {
         IntegrationProvider.GITHUB: GitHubConnector(),
         IntegrationProvider.GOOGLE_CALENDAR: GoogleCalendarConnector(),
-        IntegrationProvider.WEATHER: WeatherConnector(),
     }
 
     @classmethod
