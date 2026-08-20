@@ -21,7 +21,6 @@ router = APIRouter(prefix="/timers", tags=["Timers"])
 
 
 @router.get("/list_timers", operation_id="list_timers", summary="List Timers")
-@router.get("", operation_id="list_timers_alias", summary="List Timers (Alias)")
 def list_timers(
     status: Optional[TimerState] = None,
     timer_type: Optional[TimerType] = None,
@@ -51,7 +50,6 @@ def list_timers(
 
 
 @router.post("/create_timer", operation_id="create_timer", status_code=status.HTTP_201_CREATED, summary="Create Timer")
-@router.post("", operation_id="create_timer_alias", status_code=status.HTTP_201_CREATED, summary="Create Timer (Alias)")
 def create_timer(
     data: TimerCreate,
     current_user: User = Depends(get_current_user),
@@ -65,7 +63,6 @@ def create_timer(
 
 
 @router.get("/get_timer_by_id/{timer_id}", operation_id="get_timer_by_id", summary="Get Timer By Id")
-@router.get("/{timer_id}", operation_id="get_timer_by_id_alias", summary="Get Timer By Id (Alias)")
 def get_timer(
     timer_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -79,7 +76,6 @@ def get_timer(
 
 
 @router.patch("/update_timer_by_id/{timer_id}", operation_id="update_timer_by_id", summary="Update Timer By Id")
-@router.patch("/{timer_id}", operation_id="update_timer_by_id_alias", summary="Update Timer By Id (Alias)")
 def update_timer(
     timer_id: uuid.UUID,
     data: TimerUpdate,
@@ -99,7 +95,6 @@ def update_timer(
 
 
 @router.patch("/update_timer_state_by_id/{timer_id}", operation_id="update_timer_state_by_id", summary="Update Timer State By Id")
-@router.patch("/{timer_id}/state", operation_id="update_timer_state_by_id_alias", summary="Update Timer State By Id (Alias)")
 def update_timer_state(
     timer_id: uuid.UUID,
     data: TimerStateAction,
@@ -120,7 +115,6 @@ def update_timer_state(
 
 
 @router.delete("/delete_timer_by_id/{timer_id}", operation_id="delete_timer_by_id", summary="Delete Timer By Id")
-@router.delete("/{timer_id}", operation_id="delete_timer_by_id_alias", summary="Delete Timer By Id (Alias)")
 def delete_timer(
     timer_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

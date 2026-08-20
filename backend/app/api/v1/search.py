@@ -15,7 +15,6 @@ router = APIRouter(prefix="/search", tags=["Search"])
 
 
 @router.get("/search_entities", operation_id="search_entities", response_model=SearchResponse, summary="Search Entities")
-@router.get("", include_in_schema=False, response_model=SearchResponse)
 def search(
     q: str = Query(..., min_length=1, description="Search query string"),
     types: Optional[str] = Query(

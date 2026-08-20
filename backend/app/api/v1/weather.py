@@ -12,7 +12,6 @@ router = APIRouter(prefix="/weather", tags=["Weather"])
 
 
 @router.get("/get_current_weather", operation_id="get_current_weather", summary="Get Current Weather")
-@router.get("/current", include_in_schema=False)
 def get_current_weather(
     lat: float = Query(18.5204, description="Latitude coordinates"),
     lon: float = Query(73.8567, description="Longitude coordinates"),
@@ -33,7 +32,6 @@ def get_current_weather(
 
 
 @router.get("/get_weather_forecast", operation_id="get_weather_forecast", summary="Get Weather Forecast")
-@router.get("/forecast", include_in_schema=False)
 def get_weather_forecast(
     lat: float = Query(18.5204, description="Latitude coordinates"),
     lon: float = Query(73.8567, description="Longitude coordinates"),

@@ -20,7 +20,6 @@ router = APIRouter(prefix="/alarms", tags=["Alarms"])
 
 
 @router.get("/list_alarms", operation_id="list_alarms", summary="List Alarms")
-@router.get("", operation_id="list_alarms_alias", summary="List Alarms (Alias)")
 def list_alarms(
     is_enabled: Optional[bool] = None,
     page: int = Query(1, ge=1, description="Page number"),
@@ -48,7 +47,6 @@ def list_alarms(
 
 
 @router.post("/create_alarm", operation_id="create_alarm", status_code=status.HTTP_201_CREATED, summary="Create Alarm")
-@router.post("", operation_id="create_alarm_alias", status_code=status.HTTP_201_CREATED, summary="Create Alarm (Alias)")
 def create_alarm(
     data: AlarmCreate,
     current_user: User = Depends(get_current_user),
@@ -62,7 +60,6 @@ def create_alarm(
 
 
 @router.get("/get_alarm_by_id/{alarm_id}", operation_id="get_alarm_by_id", summary="Get Alarm By Id")
-@router.get("/{alarm_id}", operation_id="get_alarm_by_id_alias", summary="Get Alarm By Id (Alias)")
 def get_alarm(
     alarm_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -76,7 +73,6 @@ def get_alarm(
 
 
 @router.patch("/update_alarm_by_id/{alarm_id}", operation_id="update_alarm_by_id", summary="Update Alarm By Id")
-@router.patch("/{alarm_id}", operation_id="update_alarm_by_id_alias", summary="Update Alarm By Id (Alias)")
 def update_alarm(
     alarm_id: uuid.UUID,
     data: AlarmUpdate,
@@ -96,7 +92,6 @@ def update_alarm(
 
 
 @router.patch("/toggle_alarm_by_id/{alarm_id}", operation_id="toggle_alarm_by_id", summary="Toggle Alarm By Id")
-@router.patch("/{alarm_id}/toggle", operation_id="toggle_alarm_by_id_alias", summary="Toggle Alarm By Id (Alias)")
 def toggle_alarm(
     alarm_id: uuid.UUID,
     data: Optional[AlarmToggleRequest] = None,
@@ -117,7 +112,6 @@ def toggle_alarm(
 
 
 @router.delete("/delete_alarm_by_id/{alarm_id}", operation_id="delete_alarm_by_id", summary="Delete Alarm By Id")
-@router.delete("/{alarm_id}", operation_id="delete_alarm_by_id_alias", summary="Delete Alarm By Id (Alias)")
 def delete_alarm(
     alarm_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

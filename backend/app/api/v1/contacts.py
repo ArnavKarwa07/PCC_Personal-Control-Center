@@ -16,7 +16,6 @@ router = APIRouter(prefix="/contacts", tags=["Contacts"])
 
 
 @router.get("/list_contacts", operation_id="list_contacts", summary="List Contacts")
-@router.get("", include_in_schema=False)
 def list_contacts(
     search: Optional[str] = None,
     overdue_only: bool = False,
@@ -36,7 +35,6 @@ def list_contacts(
 
 
 @router.post("/create_contact", operation_id="create_contact", status_code=status.HTTP_201_CREATED, summary="Create Contact")
-@router.post("", include_in_schema=False, status_code=status.HTTP_201_CREATED)
 def create_contact(
     data: ContactCreate,
     current_user: User = Depends(get_current_user),
@@ -48,7 +46,6 @@ def create_contact(
 
 
 @router.get("/get_contact_by_id/{contact_id}", operation_id="get_contact_by_id", summary="Get Contact By Id")
-@router.get("/{contact_id}", include_in_schema=False)
 def get_contact_by_id(
     contact_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -62,8 +59,6 @@ def get_contact_by_id(
 
 
 @router.patch("/update_contact_by_id/{contact_id}", operation_id="update_contact_by_id", summary="Update Contact By Id")
-@router.put("/{contact_id}", include_in_schema=False)
-@router.patch("/{contact_id}", include_in_schema=False)
 def update_contact(
     contact_id: uuid.UUID,
     data: ContactUpdate,
@@ -78,7 +73,6 @@ def update_contact(
 
 
 @router.delete("/delete_contact_by_id/{contact_id}", operation_id="delete_contact_by_id", summary="Delete Contact By Id")
-@router.delete("/{contact_id}", include_in_schema=False, status_code=status.HTTP_204_NO_CONTENT)
 def delete_contact(
     contact_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
