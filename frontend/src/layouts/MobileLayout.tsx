@@ -73,7 +73,6 @@ export const MobileLayout: React.FC = () => {
             className="pcc-mobile-header__logo-img"
             style={{ width: 26, height: 26, borderRadius: 5, objectFit: 'contain' }}
           />
-          <span className="pcc-mobile-header__title">PCC</span>
         </div>
 
         <div className="pcc-mobile-header__actions">

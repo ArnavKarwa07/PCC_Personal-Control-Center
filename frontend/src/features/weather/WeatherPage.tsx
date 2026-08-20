@@ -5,22 +5,19 @@ import { useToast } from '../../hooks/useToast';
 import './Weather.css';
 
 export const WeatherPage: React.FC = () => {
-  const { weather, unit, isRefreshing, isGpsLocated, locationStatus, requestLocation, toggleUnit, refreshWeather } =
+  const { weather, isRefreshing, isGpsLocated, locationStatus, requestLocation, fetchWeather, refreshWeather } =
     useWeatherStore();
   const { toast } = useToast();
+  const [isDetailedOpen, setIsDetailedOpen] = React.useState(false);
 
   React.useEffect(() => {
+    fetchWeather();
     if (locationStatus === 'pending') {
       requestLocation();
     }
-  }, [locationStatus, requestLocation]);
+  }, [locationStatus, requestLocation, fetchWeather]);
 
-  const convertTemp = (tempC: number) => {
-    if (unit === 'F') {
-      return Math.round((tempC * 9) / 5 + 32);
-    }
-    return Math.round(tempC);
-  };
+  const convertTemp = (tempC: number) => Math.round(tempC);
 
 
   const renderWeatherIcon = (iconName: string) => {
@@ -92,7 +89,7 @@ export const WeatherPage: React.FC = () => {
       {/* Header Controls */}
       <header className="pcc-weather-header">
         <div className="pcc-weather-header__titles">
-          <h1>Weather & Environmental Metrics</h1>
+          <h1>Weather</h1>
         </div>
 
         <div className="pcc-weather-header__controls">
@@ -100,36 +97,44 @@ export const WeatherPage: React.FC = () => {
             {isGpsLocated ? 'GPS Located' : 'Pune, IN (Default)'}
           </Badge>
 
+          <Button
+            id="btn-detect-gps-location"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              requestLocation();
+              toast.info('Requesting browser location permission...');
+            }}
+            icon={
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+              </svg>
+            }
+          >
+            {isGpsLocated ? 'Update GPS' : 'Use GPS Location'}
+          </Button>
 
-          <div className="pcc-weather-unit-toggle">
-            <button
-              type="button"
-              className={`pcc-weather-unit-btn ${unit === 'C' ? 'pcc-weather-unit-btn--active' : ''}`}
-              onClick={toggleUnit}
-            >
-              °C
-            </button>
-            <button
-              type="button"
-              className={`pcc-weather-unit-btn ${unit === 'F' ? 'pcc-weather-unit-btn--active' : ''}`}
-              onClick={toggleUnit}
-            >
-              °F
-            </button>
-          </div>
 
           <Button
             id="btn-refresh-weather"
             variant="secondary"
             size="sm"
             loading={isRefreshing}
+            aria-label="Refresh Weather"
+            title="Refresh Weather"
             onClick={async () => {
               await refreshWeather();
               toast.success('Weather updated');
             }}
-          >
-            Refresh
-          </Button>
+            icon={
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M23 4v6h-6" />
+                <path d="M1 20v-6h6" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+            }
+          />
         </div>
       </header>
 
@@ -158,9 +163,11 @@ export const WeatherPage: React.FC = () => {
             <span>
               {weather.location.city}, {weather.location.country}
             </span>
-            <Badge variant="accent" size="sm">
-              {weather.location.timezone}
-            </Badge>
+            {Boolean(weather.location.timezone) && (
+              <Badge variant="accent" size="sm">
+                {weather.location.timezone}
+              </Badge>
+            )}
           </div>
 
           <div className="pcc-weather-hero__temp-row">
@@ -168,110 +175,235 @@ export const WeatherPage: React.FC = () => {
 
             <div>
               <div className="pcc-weather-hero__temp">
-                {convertTemp(weather.current.temp)}°{unit}
+                {convertTemp(weather.current.temp)}°C
               </div>
             </div>
 
             <div className="pcc-weather-hero__temp-meta">
               <span className="pcc-weather-hero__condition">{weather.current.condition}</span>
               <span className="pcc-weather-hero__feels-like">
-                Feels like {convertTemp(weather.current.feelsLike)}°{unit} • H:{' '}
+                Feels like {convertTemp(weather.current.feelsLike)}°C • H:{' '}
                 {convertTemp(weather.current.tempMax)}° L: {convertTemp(weather.current.tempMin)}°
               </span>
             </div>
           </div>
 
-          <p className="pcc-weather-hero__desc">{weather.current.description}</p>
+          {/* <p className="pcc-weather-hero__desc">{weather.current.description}</p> */}
         </div>
 
-        {/* Environmental Metrics Quick Grid */}
+        {/* Environmental Metrics (Desktop: Direct 2x3 Grid | Mobile: Collapsible Accordion Dropdown) */}
         <div className="pcc-weather-hero__right">
-          <div className="pcc-weather-quick-metric">
-            <div className="pcc-weather-quick-metric__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-              </svg>
-            </div>
-            <div className="pcc-weather-quick-metric__info">
-              <span className="pcc-weather-quick-metric__value">{weather.current.humidity}%</span>
-              <span className="pcc-weather-quick-metric__label">Humidity</span>
+          {/* Desktop Direct Grid (No Dropdown Button) */}
+          <div className="pcc-weather-desktop-view">
+            <div className="pcc-weather-detailed-grid pcc-weather-desktop-grid">
+              <div className="pcc-weather-quick-metric">
+                <div className="pcc-weather-quick-metric__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                  </svg>
+                </div>
+                <div className="pcc-weather-quick-metric__info">
+                  <span className="pcc-weather-quick-metric__value">{weather.current.humidity}%</span>
+                  <span className="pcc-weather-quick-metric__label">Humidity</span>
+                </div>
+              </div>
+
+              <div className="pcc-weather-quick-metric">
+                <div className="pcc-weather-quick-metric__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
+                  </svg>
+                </div>
+                <div className="pcc-weather-quick-metric__info">
+                  <span className="pcc-weather-quick-metric__value">
+                    {weather.current.windSpeed} km/h {weather.current.windDirection}
+                  </span>
+                  <span className="pcc-weather-quick-metric__label">Wind Speed</span>
+                </div>
+              </div>
+
+              <div className="pcc-weather-quick-metric">
+                <div className="pcc-weather-quick-metric__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 12a4 4 0 0 1 8 0" />
+                  </svg>
+                </div>
+                <div className="pcc-weather-quick-metric__info">
+                  <span className="pcc-weather-quick-metric__value">
+                    {weather.current.aqi ? `AQI ${weather.current.aqi}` : 'AQI --'}
+                  </span>
+                  <span className="pcc-weather-quick-metric__label">Air Quality</span>
+                </div>
+              </div>
+
+              <div className="pcc-weather-quick-metric">
+                <div className="pcc-weather-quick-metric__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                  </svg>
+                </div>
+                <div className="pcc-weather-quick-metric__info">
+                  <span className="pcc-weather-quick-metric__value">UV {weather.current.uvIndex}</span>
+                  <span className="pcc-weather-quick-metric__label">UV Index</span>
+                </div>
+              </div>
+
+              <div className="pcc-weather-quick-metric">
+                <div className="pcc-weather-quick-metric__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 14 14" />
+                  </svg>
+                </div>
+                <div className="pcc-weather-quick-metric__info">
+                  <span className="pcc-weather-quick-metric__value">{weather.current.pressure} hPa</span>
+                  <span className="pcc-weather-quick-metric__label">Pressure</span>
+                </div>
+              </div>
+
+              <div className="pcc-weather-quick-metric">
+                <div className="pcc-weather-quick-metric__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 18a5 5 0 0 0-10 0" />
+                    <line x1="12" y1="2" x2="12" y2="9" />
+                    <line x1="4.22" y1="10.22" x2="5.64" y2="11.64" />
+                    <line x1="1" y1="18" x2="3" y2="18" />
+                    <line x1="21" y1="18" x2="23" y2="18" />
+                    <line x1="18.36" y1="11.64" x2="19.78" y2="10.22" />
+                    <line x1="23" y1="22" x2="1" y2="22" />
+                  </svg>
+                </div>
+                <div className="pcc-weather-quick-metric__info">
+                  <span className="pcc-weather-quick-metric__value">
+                    {weather.current.sunrise} / {weather.current.sunset}
+                  </span>
+                  <span className="pcc-weather-quick-metric__label">Sunrise / Sunset</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="pcc-weather-quick-metric">
-            <div className="pcc-weather-quick-metric__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
+          {/* Mobile Collapsible Accordion Dropdown */}
+          <div className="pcc-weather-mobile-view">
+            <button
+              type="button"
+              className="pcc-weather-accordion__toggle"
+              onClick={() => setIsDetailedOpen((prev) => !prev)}
+              aria-expanded={isDetailedOpen}
+            >
+              <div className="pcc-weather-accordion__title">
+                <span>Detailed View</span>
+                <span className="pcc-weather-accordion__badge">6 Metrics</span>
+              </div>
+              <svg
+                className={`pcc-weather-accordion__chevron ${isDetailedOpen ? 'pcc-weather-accordion__chevron--open' : ''}`}
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
               </svg>
-            </div>
-            <div className="pcc-weather-quick-metric__info">
-              <span className="pcc-weather-quick-metric__value">
-                {weather.current.windSpeed} km/h {weather.current.windDirection}
-              </span>
-              <span className="pcc-weather-quick-metric__label">Wind Speed</span>
-            </div>
-          </div>
+            </button>
 
-          <div className="pcc-weather-quick-metric">
-            <div className="pcc-weather-quick-metric__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 12a4 4 0 0 1 8 0" />
-              </svg>
-            </div>
-            <div className="pcc-weather-quick-metric__info">
-              <span className="pcc-weather-quick-metric__value">
-                AQI {weather.current.aqi} ({weather.current.aqiStatus})
-              </span>
-              <span className="pcc-weather-quick-metric__label">Air Quality</span>
-            </div>
-          </div>
+            {isDetailedOpen && (
+              <div className="pcc-weather-accordion__content">
+                <div className="pcc-weather-detailed-grid">
+                  <div className="pcc-weather-quick-metric">
+                    <div className="pcc-weather-quick-metric__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                      </svg>
+                    </div>
+                    <div className="pcc-weather-quick-metric__info">
+                      <span className="pcc-weather-quick-metric__value">{weather.current.humidity}%</span>
+                      <span className="pcc-weather-quick-metric__label">Humidity</span>
+                    </div>
+                  </div>
 
-          <div className="pcc-weather-quick-metric">
-            <div className="pcc-weather-quick-metric__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-              </svg>
-            </div>
-            <div className="pcc-weather-quick-metric__info">
-              <span className="pcc-weather-quick-metric__value">UV {weather.current.uvIndex} (Moderate)</span>
-              <span className="pcc-weather-quick-metric__label">UV Index</span>
-            </div>
-          </div>
+                  <div className="pcc-weather-quick-metric">
+                    <div className="pcc-weather-quick-metric__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
+                      </svg>
+                    </div>
+                    <div className="pcc-weather-quick-metric__info">
+                      <span className="pcc-weather-quick-metric__value">
+                        {weather.current.windSpeed} km/h {weather.current.windDirection}
+                      </span>
+                      <span className="pcc-weather-quick-metric__label">Wind Speed</span>
+                    </div>
+                  </div>
 
-          <div className="pcc-weather-quick-metric">
-            <div className="pcc-weather-quick-metric__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 14 14" />
-              </svg>
-            </div>
-            <div className="pcc-weather-quick-metric__info">
-              <span className="pcc-weather-quick-metric__value">{weather.current.pressure} hPa</span>
-              <span className="pcc-weather-quick-metric__label">Pressure</span>
-            </div>
-          </div>
+                  <div className="pcc-weather-quick-metric">
+                    <div className="pcc-weather-quick-metric__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 12a4 4 0 0 1 8 0" />
+                      </svg>
+                    </div>
+                    <div className="pcc-weather-quick-metric__info">
+                      <span className="pcc-weather-quick-metric__value">
+                        {weather.current.aqi ? `AQI ${weather.current.aqi}` : 'AQI --'}
+                      </span>
+                      <span className="pcc-weather-quick-metric__label">Air Quality</span>
+                    </div>
+                  </div>
 
-          <div className="pcc-weather-quick-metric">
-            <div className="pcc-weather-quick-metric__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 18a5 5 0 0 0-10 0" />
-                <line x1="12" y1="2" x2="12" y2="9" />
-                <line x1="4.22" y1="10.22" x2="5.64" y2="11.64" />
-                <line x1="1" y1="18" x2="3" y2="18" />
-                <line x1="21" y1="18" x2="23" y2="18" />
-                <line x1="18.36" y1="11.64" x2="19.78" y2="10.22" />
-                <line x1="23" y1="22" x2="1" y2="22" />
-              </svg>
-            </div>
-            <div className="pcc-weather-quick-metric__info">
-              <span className="pcc-weather-quick-metric__value">
-                {weather.current.sunrise} / {weather.current.sunset}
-              </span>
-              <span className="pcc-weather-quick-metric__label">Sunrise / Sunset</span>
-            </div>
+                  <div className="pcc-weather-quick-metric">
+                    <div className="pcc-weather-quick-metric__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                      </svg>
+                    </div>
+                    <div className="pcc-weather-quick-metric__info">
+                      <span className="pcc-weather-quick-metric__value">UV {weather.current.uvIndex}</span>
+                      <span className="pcc-weather-quick-metric__label">UV Index</span>
+                    </div>
+                  </div>
+
+                  <div className="pcc-weather-quick-metric">
+                    <div className="pcc-weather-quick-metric__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 14 14" />
+                      </svg>
+                    </div>
+                    <div className="pcc-weather-quick-metric__info">
+                      <span className="pcc-weather-quick-metric__value">{weather.current.pressure} hPa</span>
+                      <span className="pcc-weather-quick-metric__label">Pressure</span>
+                    </div>
+                  </div>
+
+                  <div className="pcc-weather-quick-metric">
+                    <div className="pcc-weather-quick-metric__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 18a5 5 0 0 0-10 0" />
+                        <line x1="12" y1="2" x2="12" y2="9" />
+                        <line x1="4.22" y1="10.22" x2="5.64" y2="11.64" />
+                        <line x1="1" y1="18" x2="3" y2="18" />
+                        <line x1="21" y1="18" x2="23" y2="18" />
+                        <line x1="18.36" y1="11.64" x2="19.78" y2="10.22" />
+                        <line x1="23" y1="22" x2="1" y2="22" />
+                      </svg>
+                    </div>
+                    <div className="pcc-weather-quick-metric__info">
+                      <span className="pcc-weather-quick-metric__value">
+                        {weather.current.sunrise} / {weather.current.sunset}
+                      </span>
+                      <span className="pcc-weather-quick-metric__label">Sunrise / Sunset</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -283,7 +415,7 @@ export const WeatherPage: React.FC = () => {
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          24-Hour Hourly Forecast
+          Hourly Forecast
         </h2>
 
         <div className="pcc-weather-hourly-track">
@@ -292,7 +424,7 @@ export const WeatherPage: React.FC = () => {
               <span className="pcc-weather-hourly-time">{hour.time}</span>
               <div className="pcc-weather-hourly-icon">{renderWeatherIcon(hour.icon)}</div>
               <span className="pcc-weather-hourly-temp">
-                {convertTemp(hour.temp)}°{unit}
+                {convertTemp(hour.temp)}°C
               </span>
               <span className="pcc-weather-hourly-pop">
                 {hour.pop > 0 ? (
@@ -320,7 +452,7 @@ export const WeatherPage: React.FC = () => {
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          5-Day Forecast
+          Daily Forecast
         </h2>
 
         <div className="pcc-weather-daily-grid">
@@ -335,10 +467,10 @@ export const WeatherPage: React.FC = () => {
                 <div className="pcc-weather-daily-icon">{renderWeatherIcon(day.icon)}</div>
                 <div className="pcc-weather-daily-temps">
                   <span className="pcc-weather-daily-temp-high">
-                    {convertTemp(day.tempMax)}°{unit}
+                    {convertTemp(day.tempMax)}°C
                   </span>
                   <span className="pcc-weather-daily-temp-low">
-                    Low {convertTemp(day.tempMin)}°{unit}
+                    Low {convertTemp(day.tempMin)}°C
                   </span>
                 </div>
               </div>

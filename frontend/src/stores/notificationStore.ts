@@ -25,45 +25,14 @@ interface NotificationStore {
 
 const STORAGE_KEY = 'pcc_notifications_store_v1';
 
-const INITIAL_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'notif-dummy-01',
-    title: 'Reminder: Review Personal Control Center Architecture',
-    message: 'Scheduled deep-dive review on UI card spacing, theme tokens, and notifications stream.',
-    read: false,
-    type: 'reminder',
-    priority: 'warning',
-    link: '/reminders',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'notif-dummy-02',
-    title: 'Task Completed: Implement Glassmorphism Cards',
-    message: 'High priority UI task was marked completed in Personal Control Center project.',
-    read: false,
-    type: 'task',
-    priority: 'success',
-    link: '/tasks',
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: 'notif-dummy-03',
-    title: 'Calendar Sync: Weekly Team Engineering Sync',
-    message: 'Event starts in 1 hour on Google Calendar sync channel.',
-    read: true,
-    type: 'calendar',
-    priority: 'info',
-    link: '/calendar',
-    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-  },
-];
+const INITIAL_NOTIFICATIONS: AppNotification[] = [];
 
 const loadStoredNotifications = (): AppNotification[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
@@ -91,7 +60,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const serverNotifs = await notificationsApi.getAll();
-      if (serverNotifs && Array.isArray(serverNotifs) && serverNotifs.length > 0) {
+      if (serverNotifs && Array.isArray(serverNotifs)) {
         set({ notifications: serverNotifs, isLoading: false });
         saveNotifications(serverNotifs);
         return;

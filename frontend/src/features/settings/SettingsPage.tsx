@@ -51,6 +51,7 @@ const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'te
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [openSection, setOpenSection] = useState<string | null>('general');
 
   const { user, setUser } = useAuthStore();
   const { theme, setTheme, accentColor, setAccentColor } = useUIStore();
@@ -229,11 +230,408 @@ export const SettingsPage: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const renderGeneralContent = (idPrefix = '') => (
+    <div className="pcc-settings-grid">
+      {/* Profile Info */}
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Profile Information
+          </span>
+        </div>
+
+        <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <Input
+            id={`${idPrefix}profile-name`}
+            label="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            id={`${idPrefix}profile-email`}
+            label="Email Address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            id={`${idPrefix}profile-role`}
+            label="Role / Title"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="primary" size="sm" type="submit">
+              Save Profile
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Appearance & Preferences */}
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+            </svg>
+            Appearance & Regional
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label">Theme Mode</label>
+            <div
+              className={cn('pcc-theme-switch', theme === 'dark' ? 'pcc-theme-switch--dark' : 'pcc-theme-switch--light')}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              role="switch"
+              aria-checked={theme === 'dark'}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setTheme(theme === 'dark' ? 'light' : 'dark');
+                }
+              }}
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+            >
+              <div className="pcc-theme-switch__option pcc-theme-switch__option--light">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <span>Light</span>
+              </div>
+
+              <div className="pcc-theme-switch__option pcc-theme-switch__option--dark">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+                <span>Dark</span>
+              </div>
+
+              <div className="pcc-theme-switch__knob" />
+            </div>
+          </div>
+
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label">Accent Color Palette</label>
+            <div className="pcc-accent-swatches">
+              {ACCENT_OPTIONS.map((opt) => {
+                const isSelected = accentColor === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={cn('pcc-accent-swatch', isSelected && 'pcc-accent-swatch--active')}
+                    onClick={() => {
+                      setAccentColor(opt.id);
+                      soundEffects.playPip();
+                      toast.success(`Accent color set to ${opt.label}`);
+                    }}
+                    title={`Select ${opt.label} accent color`}
+                  >
+                    <span
+                      className="pcc-accent-swatch__preview"
+                      style={{ background: opt.gradient }}
+                    />
+                    <span className="pcc-accent-swatch__label">{opt.label}</span>
+                    {isSelected && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        className="pcc-accent-swatch__check"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="pcc-settings-field-row">
+            <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor={`${idPrefix}settings-tz`}>
+              Primary Timezone
+            </label>
+            <select
+              id={`${idPrefix}settings-tz`}
+              className="pcc-reminder-form__select pcc-settings-select"
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+            >
+              <option value="America/Los_Angeles">Pacific Time (UTC-8)</option>
+              <option value="America/New_York">Eastern Time (UTC-5)</option>
+              <option value="Europe/London">London (UTC+0)</option>
+              <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+              <option value="Asia/Kolkata">India (UTC+5:30)</option>
+            </select>
+          </div>
+
+          <div className="pcc-settings-field-row">
+            <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor={`${idPrefix}settings-date-format`}>
+              Date Display Format
+            </label>
+            <select
+              id={`${idPrefix}settings-date-format`}
+              className="pcc-reminder-form__select pcc-settings-select"
+              value={dateFormat}
+              onChange={(e) => setDateFormat(e.target.value)}
+            >
+              <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601)</option>
+              <option value="MM/DD/YYYY">MM/DD/YYYY (US Standard)</option>
+              <option value="DD/MM/YYYY">DD/MM/YYYY (EU Standard)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderIntegrationsContent = (idPrefix = '') => (
+    <div className="pcc-integrations-grid">
+      {integrations.map((item: Integration) => {
+        const isItemSyncing = isSyncing[item.id];
+
+        return (
+          <div
+            key={item.id}
+            id={`integration-${idPrefix}${item.id}`}
+            className={cn(
+              'pcc-integration-card',
+              item.connected && 'pcc-integration-card--connected'
+            )}
+          >
+            <div>
+              <div className="pcc-integration-card__header">
+                <div className="pcc-integration-card__brand">
+                  <div className="pcc-integration-card__icon">{renderServiceIcon(item.service)}</div>
+                  <div className="pcc-integration-card__title-area">
+                    <span className="pcc-integration-card__name">{item.name}</span>
+                    <span className="pcc-integration-card__category">{item.category}</span>
+                  </div>
+                </div>
+
+                <Badge variant={item.connected ? 'success' : 'default'} size="sm">
+                  {item.connected ? 'Connected' : 'Disconnected'}
+                </Badge>
+              </div>
+
+              <p className="pcc-integration-card__desc" style={{ marginTop: 'var(--space-3)' }}>
+                {item.description}
+              </p>
+            </div>
+
+            {/* Config Box if connected */}
+            {item.connected && item.config && (
+              <div className="pcc-integration-card__config-box">
+                {Object.entries(item.config).map(([key, val]) => (
+                  <div key={key} className="pcc-integration-card__config-row">
+                    <span className="pcc-integration-card__config-label">{key}:</span>
+                    <input
+                      className="pcc-integration-card__config-input"
+                      value={val}
+                      onChange={(e) =>
+                        updateConfig(item.id, { [key]: e.target.value })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Footer Actions */}
+            <div className="pcc-integration-card__footer">
+              <span className="pcc-integration-card__synced-text">
+                {item.lastSynced
+                  ? `Synced: ${item.lastSynced.slice(11, 16)} UTC`
+                  : 'Not synced yet'}
+              </span>
+
+              <div className="pcc-integration-card__actions">
+                {item.connected ? (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={isItemSyncing}
+                      onClick={async () => {
+                        await syncIntegration(item.id);
+                        toast.success(`Synced ${item.name}`);
+                      }}
+                    >
+                      Sync
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        toggleConnect(item.id);
+                        toast.info(`Disconnected from ${item.name}`);
+                      }}
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={async () => {
+                        await testConnection(item.id);
+                        toast.info('Connection test succeeded');
+                      }}
+                    >
+                      Test
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        const provider = (item as any).provider || item.service;
+                        setConnectModal({
+                          provider,
+                          name: item.name,
+                          id: item.id,
+                        });
+                        setConnectConfig({});
+                        setConnectError(null);
+                      }}
+                    >
+                      Connect
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderAudioContent = (idPrefix = '') => (
+    <div className="pcc-settings-grid">
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+            </svg>
+            Sound & Tone Preferences
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label" htmlFor={`${idPrefix}sound-preset`}>
+              Default Alarm Tone
+            </label>
+            <select
+              id={`${idPrefix}sound-preset`}
+              className="pcc-reminder-form__select"
+              value={selectedTone}
+              onChange={(e) => setSelectedTone(e.target.value)}
+            >
+              <option value="radiant">Radiant Bell (Polyphonic Harmonic)</option>
+              <option value="gentle">Gentle Chime (Smooth Sine)</option>
+              <option value="digital">Digital Pulse (Triple Beep)</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                soundEffects.playAlarm(
+                  selectedTone === 'digital'
+                    ? 'digital'
+                    : selectedTone === 'gentle'
+                    ? 'gentle'
+                    : 'radiant'
+                );
+                toast.info(`Playing tone: ${selectedTone}`);
+              }}
+            >
+              ▶ Test Selected Tone
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                soundEffects.playTimerComplete();
+                toast.info('Playing Pomodoro chime');
+              }}
+            >
+              🔔 Test Timer Bell
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDataContent = (idPrefix = '') => (
+    <div className="pcc-data-panel">
+      <div className="pcc-backup-action-card">
+        <h3>Export Complete PCC Archive</h3>
+        <p>
+          Download your tasks, projects, notes, ideas, calendar schedules, reminders, and alarm
+          configurations as a portable, standardized JSON backup archive.
+        </p>
+        <div>
+          <Button id={`${idPrefix}btn-export-json`} variant="primary" size="sm" onClick={handleExportJSON}>
+            Export JSON Backup
+          </Button>
+        </div>
+      </div>
+
+      <div className="pcc-backup-action-card">
+        <h3>Import & Restore Backup</h3>
+        <p>Restore your system database from an existing PCC JSON archive backup file.</p>
+        <div>
+          <label className="pcc-upload-btn" style={{ cursor: 'pointer' }}>
+            📂 Choose Backup File
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImportJSONFile}
+              style={{ display: 'none' }}
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="pcc-settings-page">
       {/* Header */}
       <div className="pcc-settings-header">
-        <h1>Settings & Integrations</h1>
+        <h1>Settings</h1>
       </div>
 
       {/* Navigation Tabs */}
@@ -282,7 +680,7 @@ export const SettingsPage: React.FC = () => {
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
+            <line x1="12" y1="1" x2="12" y2="3" />
           </svg>
           Data & Export
         </button>
@@ -291,389 +689,109 @@ export const SettingsPage: React.FC = () => {
       {/* TAB 1: GENERAL */}
       {activeTab === 'general' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-settings-grid">
-            {/* Profile Info */}
-            <div className="pcc-settings-card">
-              <div className="pcc-settings-card__header">
-                <span className="pcc-settings-card__title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Profile Information
-                </span>
-              </div>
-
-              <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <Input
-                  id="profile-name"
-                  label="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <Input
-                  id="profile-email"
-                  label="Email Address"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <Input
-                  id="profile-role"
-                  label="Role / Title"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                />
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button variant="primary" size="sm" type="submit">
-                    Save Profile
-                  </Button>
-                </div>
-              </form>
-            </div>
-
-            {/* Appearance & Preferences */}
-            <div className="pcc-settings-card">
-              <div className="pcc-settings-card__header">
-                <span className="pcc-settings-card__title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                  </svg>
-                  Appearance & Regional
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label">Theme Mode</label>
-                  <div className="pcc-theme-toggle-group">
-                    <Button
-                      variant={theme === 'dark' ? 'primary' : 'secondary'}
-                      size="sm"
-                      onClick={() => setTheme('dark')}
-                    >
-                      Dark Mode
-                    </Button>
-                    <Button
-                      variant={theme === 'light' ? 'primary' : 'secondary'}
-                      size="sm"
-                      onClick={() => setTheme('light')}
-                    >
-                      Light Mode
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label">Accent Color Palette</label>
-                  <div className="pcc-accent-swatches">
-                    {ACCENT_OPTIONS.map((opt) => {
-                      const isSelected = accentColor === opt.id;
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          className={cn('pcc-accent-swatch', isSelected && 'pcc-accent-swatch--active')}
-                          onClick={() => {
-                            setAccentColor(opt.id);
-                            soundEffects.playPip();
-                            toast.success(`Accent color set to ${opt.label}`);
-                          }}
-                          title={`Select ${opt.label} accent color`}
-                        >
-                          <span
-                            className="pcc-accent-swatch__preview"
-                            style={{ background: opt.gradient }}
-                          />
-                          <span className="pcc-accent-swatch__label">{opt.label}</span>
-                          {isSelected && (
-                            <svg
-                              viewBox="0 0 24 24"
-                              width="14"
-                              height="14"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              className="pcc-accent-swatch__check"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="pcc-settings-field-row">
-                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-tz">
-                    Primary Timezone
-                  </label>
-                  <select
-                    id="settings-tz"
-                    className="pcc-reminder-form__select pcc-settings-select"
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                  >
-                    <option value="America/Los_Angeles">Pacific Time (UTC-8)</option>
-                    <option value="America/New_York">Eastern Time (UTC-5)</option>
-                    <option value="Europe/London">London (UTC+0)</option>
-                    <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
-                    <option value="Asia/Kolkata">India (UTC+5:30)</option>
-                  </select>
-                </div>
-
-                <div className="pcc-settings-field-row">
-                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-date-format">
-                    Date Display Format
-                  </label>
-                  <select
-                    id="settings-date-format"
-                    className="pcc-reminder-form__select pcc-settings-select"
-                    value={dateFormat}
-                    onChange={(e) => setDateFormat(e.target.value)}
-                  >
-                    <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601)</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY (US Standard)</option>
-                    <option value="DD/MM/YYYY">DD/MM/YYYY (EU Standard)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderGeneralContent()}
         </div>
       )}
 
       {/* TAB 2: INTEGRATIONS */}
       {activeTab === 'integrations' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-integrations-grid">
-            {integrations.map((item: Integration) => {
-              const isItemSyncing = isSyncing[item.id];
-
-              return (
-                <div
-                  key={item.id}
-                  id={`integration-${item.id}`}
-                  className={cn(
-                    'pcc-integration-card',
-                    item.connected && 'pcc-integration-card--connected'
-                  )}
-                >
-                  <div>
-                    <div className="pcc-integration-card__header">
-                      <div className="pcc-integration-card__brand">
-                        <div className="pcc-integration-card__icon">{renderServiceIcon(item.service)}</div>
-                        <div className="pcc-integration-card__title-area">
-                          <span className="pcc-integration-card__name">{item.name}</span>
-                          <span className="pcc-integration-card__category">{item.category}</span>
-                        </div>
-                      </div>
-
-                      <Badge variant={item.connected ? 'success' : 'default'} size="sm">
-                        {item.connected ? 'Connected' : 'Disconnected'}
-                      </Badge>
-                    </div>
-
-                    <p className="pcc-integration-card__desc" style={{ marginTop: 'var(--space-3)' }}>
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Config Box if connected */}
-                  {item.connected && item.config && (
-                    <div className="pcc-integration-card__config-box">
-                      {Object.entries(item.config).map(([key, val]) => (
-                        <div key={key} className="pcc-integration-card__config-row">
-                          <span className="pcc-integration-card__config-label">{key}:</span>
-                          <input
-                            className="pcc-integration-card__config-input"
-                            value={val}
-                            onChange={(e) =>
-                              updateConfig(item.id, { [key]: e.target.value })
-                            }
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Footer Actions */}
-                  <div className="pcc-integration-card__footer">
-                    <span className="pcc-integration-card__synced-text">
-                      {item.lastSynced
-                        ? `Synced: ${item.lastSynced.slice(11, 16)} UTC`
-                        : 'Not synced yet'}
-                    </span>
-
-                    <div className="pcc-integration-card__actions">
-                      {item.connected ? (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            loading={isItemSyncing}
-                            onClick={async () => {
-                              await syncIntegration(item.id);
-                              toast.success(`Synced ${item.name}`);
-                            }}
-                          >
-                            Sync
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              toggleConnect(item.id);
-                              toast.info(`Disconnected from ${item.name}`);
-                            }}
-                          >
-                            Disconnect
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={async () => {
-                              await testConnection(item.id);
-                              toast.info('Connection test succeeded');
-                            }}
-                          >
-                            Test
-                          </Button>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => {
-                              const provider = (item as any).provider || item.service;
-                              setConnectModal({
-                                provider,
-                                name: item.name,
-                                id: item.id,
-                              });
-                              setConnectConfig({});
-                              setConnectError(null);
-                            }}
-                          >
-                            Connect
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {renderIntegrationsContent()}
         </div>
       )}
 
       {/* TAB 3: AUDIO & ALARMS */}
       {activeTab === 'audio' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-settings-grid">
-            <div className="pcc-settings-card">
-              <div className="pcc-settings-card__header">
-                <span className="pcc-settings-card__title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  </svg>
-                  Sound & Tone Preferences
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label" htmlFor="sound-preset">
-                    Default Alarm Tone
-                  </label>
-                  <select
-                    id="sound-preset"
-                    className="pcc-reminder-form__select"
-                    value={selectedTone}
-                    onChange={(e) => setSelectedTone(e.target.value)}
-                  >
-                    <option value="radiant">Radiant Bell (Polyphonic Harmonic)</option>
-                    <option value="gentle">Gentle Chime (Smooth Sine)</option>
-                    <option value="digital">Digital Pulse (Triple Beep)</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      soundEffects.playAlarm(
-                        selectedTone === 'digital'
-                          ? 'digital'
-                          : selectedTone === 'gentle'
-                          ? 'gentle'
-                          : 'radiant'
-                      );
-                      toast.info(`Playing tone: ${selectedTone}`);
-                    }}
-                  >
-                    ▶ Test Selected Tone
-                  </Button>
-
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      soundEffects.playTimerComplete();
-                      toast.info('Playing Pomodoro chime');
-                    }}
-                  >
-                    🔔 Test Timer Bell
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderAudioContent()}
         </div>
       )}
 
       {/* TAB 4: DATA & EXPORT */}
       {activeTab === 'data' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-data-panel">
-            <div className="pcc-backup-action-card">
-              <h3>Export Complete PCC Archive</h3>
-              <p>
-                Download your tasks, projects, notes, ideas, calendar schedules, reminders, and alarm
-                configurations as a portable, standardized JSON backup archive.
-              </p>
-              <div>
-                <Button id="btn-export-json" variant="primary" size="sm" onClick={handleExportJSON}>
-                  Export JSON Backup
-                </Button>
-              </div>
-            </div>
-
-            <div className="pcc-backup-action-card">
-              <h3>Import & Restore Backup</h3>
-              <p>Restore your system database from an existing PCC JSON archive backup file.</p>
-              <div>
-                <label className="pcc-upload-btn" style={{ cursor: 'pointer' }}>
-                  📂 Choose Backup File
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleImportJSONFile}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
+          {renderDataContent()}
         </div>
       )}
+
+      {/* Mobile View: 4 Single-Open Expandable Accordion Sections */}
+      <div className="pcc-settings-mobile-container">
+        {[
+          {
+            id: 'general',
+            num: '1',
+            title: 'General',
+            content: () => renderGeneralContent('m-'),
+          },
+          {
+            id: 'integrations',
+            num: '2',
+            title: 'Integrations',
+            content: () => renderIntegrationsContent('m-'),
+          },
+          {
+            id: 'audio',
+            num: '3',
+            title: 'Audio & Alarms',
+            content: () => renderAudioContent('m-'),
+          },
+          {
+            id: 'data',
+            num: '4',
+            title: 'Data & Export',
+            content: () => renderDataContent('m-'),
+          },
+        ].map((sec) => {
+          const isOpen = openSection === sec.id;
+          return (
+            <div
+              key={sec.id}
+              className={cn(
+                'pcc-settings-accordion-card',
+                isOpen && 'pcc-settings-accordion-card--open'
+              )}
+            >
+              <button
+                type="button"
+                className="pcc-settings-accordion-trigger"
+                onClick={() => setOpenSection(isOpen ? null : sec.id)}
+                aria-expanded={isOpen}
+              >
+                <div className="pcc-settings-accordion-trigger__left">
+                  <span className="pcc-settings-accordion-trigger__badge">{sec.num}</span>
+                  <span className="pcc-settings-accordion-trigger__title">{sec.title}</span>
+                </div>
+                <div className="pcc-settings-accordion-trigger__right">
+                  <span className="pcc-settings-accordion-trigger__state">
+                    {isOpen ? 'Collapse' : 'Expand'}
+                  </span>
+                  <svg
+                    className={cn(
+                      'pcc-settings-accordion-chevron',
+                      isOpen && 'pcc-settings-accordion-chevron--open'
+                    )}
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </button>
+
+              {isOpen && (
+                <div className="pcc-settings-accordion-content">
+                  {sec.content()}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Connect Integration Modal */}
       {connectModal && (
         <Modal

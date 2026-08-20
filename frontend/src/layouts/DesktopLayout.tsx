@@ -104,11 +104,6 @@ export const DesktopLayout: React.FC = () => {
         <div className="pcc-sidebar__header">
           <div className="pcc-sidebar__logo" onClick={() => navigate('/')}>
             <img src="/logo.png" alt="PCC Logo" className="pcc-sidebar__logo-img" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain' }} />
-            {!sidebarCollapsed && (
-              <div className="pcc-sidebar__logo-text">
-                <span className="pcc-sidebar__logo-title">PCC</span>
-              </div>
-            )}
           </div>
         </div>
 

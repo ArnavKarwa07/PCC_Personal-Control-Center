@@ -24,7 +24,7 @@ export const RemindersPage: React.FC = () => {
   const { toast } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const todayStr = '2026-08-15';
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   // Stats
   const totalActive = reminders.filter((r) => !r.completed).length;
@@ -140,7 +140,7 @@ export const RemindersPage: React.FC = () => {
       {/* Header */}
       <header className="pcc-reminders-header">
         <div className="pcc-reminders-header__titles">
-          <h1>Reminders & Scheduled Nudges</h1>
+          <h1>Reminders</h1>
         </div>
 
         <div className="pcc-reminders-header__actions">
@@ -217,35 +217,27 @@ export const RemindersPage: React.FC = () => {
       {/* Controls Bar */}
       <div className="pcc-reminders-controls">
         <div className="pcc-reminders-controls__filters">
-          {(
-            [
-              { id: 'all', label: 'All Statuses' },
-              { id: 'today', label: 'Due Today' },
-              { id: 'upcoming', label: 'Upcoming' },
-              { id: 'snoozed', label: 'Snoozed' },
-              { id: 'completed', label: 'Completed' },
-            ] as const
-          ).map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={cn(
-                'pcc-reminders-filter-pill',
-                filterStatus === item.id && 'pcc-reminders-filter-pill--active'
-              )}
-              onClick={() => setFilterStatus(item.id as ReminderFilterStatus)}
-            >
-              {item.label}
-            </button>
-          ))}
+          <select
+            id="reminders-status-filter"
+            className="pcc-reminders-filter-select"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as ReminderFilterStatus)}
+            aria-label="Filter reminders by status"
+          >
+            <option value="all">All Statuses</option>
+            <option value="today">Due Today</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="snoozed">Snoozed</option>
+            <option value="completed">Completed</option>
+          </select>
 
           {categories.length > 1 && (
             <select
               id="reminders-category-filter"
-              className="pcc-reminders-filter-pill"
-              style={{ outline: 'none' }}
+              className="pcc-reminders-filter-select"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
+              aria-label="Filter reminders by category"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>

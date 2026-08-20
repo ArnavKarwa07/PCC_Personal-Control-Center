@@ -128,7 +128,7 @@ export const NotificationsPage: React.FC = () => {
       <header className="pcc-notifications-header">
         <div className="pcc-notifications-header__titles">
           <h1>
-            Notification Center
+            Notification
             {unreadCount > 0 && (
               <Badge variant="accent" size="md">
                 {unreadCount} Unread
@@ -144,7 +144,7 @@ export const NotificationsPage: React.FC = () => {
             size="sm"
             onClick={handleAddNotification}
           >
-            + Add Notification
+            + Add 
           </Button>
 
           {unreadCount > 0 && (

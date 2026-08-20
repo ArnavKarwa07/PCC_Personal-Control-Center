@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge, Input, Modal } from '../../components/ui';
+import { Card, Button, Badge, Input, Modal, EmptyState } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
-import { apiClient } from '../../services/api';
+import { contactsApi } from '../../services/api';
 import './ContactsPage.css';
 
 export interface Contact {
@@ -18,28 +18,7 @@ export interface Contact {
 export const ContactsPage: React.FC = () => {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
-  const [contacts, setContacts] = useState<Contact[]>([
-    {
-      id: '1',
-      name: 'Dr. Sarah Connor',
-      role: 'Principal Research Scientist',
-      organization: 'MIT AI Lab',
-      email: 'sarah@mit.edu',
-      phone: '+1 617-555-0144',
-      lastContact: '3 days ago',
-      status: 'Up to date',
-    },
-    {
-      id: '2',
-      name: 'Marcus Vance',
-      role: 'VP of Engineering',
-      organization: 'Apex Robotics',
-      email: 'mvance@apex.io',
-      phone: '+1 415-555-0198',
-      lastContact: '3 weeks ago',
-      status: 'Catch up due',
-    },
-  ]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [name, setName] = useState('');
@@ -55,39 +34,46 @@ export const ContactsPage: React.FC = () => {
     let isMounted = true;
     const fetchContacts = async () => {
       try {
-        const res = await apiClient.get<{
-          data: Array<{
-            id: string;
-            name: string;
-            role?: string;
-            organization?: string;
-            email?: string;
-            phone?: string;
-            last_interaction?: string;
-            next_followup?: string;
-          }>;
-        }>('/contacts');
-        if (isMounted && res?.data && res.data.length > 0) {
-          setContacts(
-            res.data.map((c) => ({
-              id: String(c.id),
-              name: c.name,
-              role: c.role || 'Contact',
-              organization: c.organization || 'Independent',
-              email: c.email || 'n/a',
-              phone: c.phone || 'n/a',
-              lastContact: c.last_interaction
-                ? new Date(c.last_interaction).toLocaleDateString()
-                : 'N/A',
-              status:
-                c.next_followup && new Date(c.next_followup) < new Date()
-                  ? 'Catch up due'
-                  : 'Up to date',
-            }))
-          );
+        const res = await contactsApi.getAll();
+        const rawList = (res as any)?.data || (Array.isArray(res) ? res : []);
+        if (isMounted && Array.isArray(rawList) && rawList.length > 0) {
+          const mapped = rawList.map((c: any) => ({
+            id: String(c.id),
+            name: c.name,
+            role: c.role || 'Contact',
+            organization: c.organization || 'Independent',
+            email: c.email || 'n/a',
+            phone: c.phone || 'n/a',
+            lastContact: c.last_interaction
+              ? new Date(c.last_interaction).toLocaleDateString()
+              : 'N/A',
+            status:
+              c.next_followup && new Date(c.next_followup) < new Date()
+                ? 'Catch up due'
+                : 'Up to date',
+          }));
+          setContacts(mapped);
+          try {
+            localStorage.setItem('pcc_contacts', JSON.stringify(mapped));
+          } catch {
+            // ignore
+          }
+          return;
         }
       } catch {
-        // Retain initial contacts if API is unreachable
+        // Fallback to localStorage
+      }
+
+      try {
+        const stored = localStorage.getItem('pcc_contacts');
+        if (stored && isMounted) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setContacts(parsed);
+          }
+        }
+      } catch {
+        // ignore
       }
     };
 
@@ -105,25 +91,16 @@ export const ContactsPage: React.FC = () => {
     let newId = String(Date.now());
 
     try {
-      const res = await apiClient.post<{
-        data: {
-          id: string;
-          name: string;
-          role?: string;
-          organization?: string;
-          email?: string;
-          phone?: string;
-        };
-      }>('/contacts', {
+      const res = await contactsApi.create({
         name: name.trim(),
-        organization: org.trim() || undefined,
         role: role.trim() || undefined,
+        organization: org.trim() || undefined,
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
       });
-
-      if (res?.data?.id) {
-        newId = String(res.data.id);
+      const created = (res as any)?.data || res;
+      if (created && created.id) {
+        newId = String(created.id);
       }
     } catch (err) {
       console.warn('Backend contact creation failed, falling back to local:', err);
@@ -159,7 +136,7 @@ export const ContactsPage: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/contacts/${targetId}`);
+      await contactsApi.delete(targetId);
     } catch (err) {
       console.warn('Backend contact deletion failed, updating local state:', err);
     } finally {
@@ -173,10 +150,10 @@ export const ContactsPage: React.FC = () => {
 
   const handleLogCatchUp = async (contactId: string, contactName: string) => {
     try {
-      await apiClient.put(`/contacts/${contactId}`, {
+      await contactsApi.update(contactId, {
         last_interaction: new Date().toISOString(),
         next_followup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      });
+      } as any);
     } catch (err) {
       console.warn('Backend catch-up update failed, updating local state:', err);
     }
@@ -209,7 +186,7 @@ export const ContactsPage: React.FC = () => {
     <div className="pcc-contacts-page">
       <div className="pcc-contacts-header">
         <div>
-          <h1 className="pcc-contacts-title">Personal CRM & Contacts</h1>
+          <h1 className="pcc-contacts-title">Contacts</h1>
         </div>
       </div>
 
@@ -238,9 +215,16 @@ export const ContactsPage: React.FC = () => {
       <div className="pcc-contacts-content">
         <div className="pcc-contacts-list">
           {filtered.length === 0 ? (
-            <Card glass padding="md" className="pcc-contacts-empty">
-              <p>No contacts found matching &ldquo;{search}&rdquo;</p>
-            </Card>
+            <EmptyState
+              title="No Contacts Found"
+              description={
+                search
+                  ? `No contacts match "${search}". Try clearing search.`
+                  : 'Your personal contacts directory is empty.'
+              }
+              actionLabel="Add Contact"
+              onAction={() => setIsAddModalOpen(true)}
+            />
           ) : (
             filtered.map((c) => {
               const initials =

@@ -373,6 +373,74 @@ html[data-theme='light'] select optgroup {
     max-width: 100%;
     text-overflow: ellipsis;
   }
+
+  /* Tasks Responsiveness */
+  .pcc-tasks__stats-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .pcc-tasks__filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .pcc-tasks__search-wrapper {
+    width: 100% !important;
+  }
+
+  .pcc-tasks__search-wrapper .pcc-input-wrapper,
+  .pcc-tasks__search-wrapper input {
+    width: 100% !important;
+  }
+
+  .pcc-tasks__filter-controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+
+  .pcc-tasks__filter-selects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .pcc-tasks__filter-select,
+  .pcc-tasks-view-select--mobile {
+    flex: 1 1 calc(50% - var(--space-2));
+    min-width: 120px;
+  }
+
+  .pcc-tasks-view-modes--desktop {
+    display: none !important;
+  }
+
+  .pcc-tasks-view-select--mobile {
+    display: block !important;
+  }
+
+  /* Reminders Responsiveness */
+  .pcc-reminders-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .pcc-tasks-view-select--mobile {
+    display: none !important;
+  }
+
+  .pcc-tasks-view-modes--desktop {
+    display: flex !important;
+  }
 }
 
 @media (max-width: 360px) {

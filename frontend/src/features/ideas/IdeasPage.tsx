@@ -103,7 +103,7 @@ export const IdeasPage: React.FC = () => {
       {/* Header */}
       <div className="pcc-ideas__header">
         <div className="pcc-ideas__title-group">
-          <h1>Idea Incubator & Sparks</h1>
+          <h1>Ideas</h1>
         </div>
         <Button
           variant="primary"

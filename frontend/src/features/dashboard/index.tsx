@@ -20,19 +20,17 @@ interface DailyBriefingData {
 const DEFAULT_BRIEFING: DailyBriefingData = {
   date_str: new Date().toISOString().split('T')[0],
   greeting: 'Welcome back to your Personal Control Center',
-  pending_tasks_count: 5,
-  upcoming_events_count: 2,
-  overdue_reminders_count: 1,
-  active_projects_count: 4,
-  unread_notifications_count: 3,
-  executive_summary: 'Good day! All system monitors and background services are operational.',
-  focus_recommendation: 'Focus on completing your top priority tasks and reviewing upcoming calendar events.',
+  pending_tasks_count: 0,
+  upcoming_events_count: 0,
+  overdue_reminders_count: 0,
+  active_projects_count: 0,
+  unread_notifications_count: 0,
+  executive_summary: 'Welcome to Personal Control Center! Your workspace is active and ready.',
+  focus_recommendation: 'Create a task, project, or note to begin organizing your workflow.',
   bullet_points: [
-    'Finalize PCC Phase E Release Verification (High Priority Task)',
-    'Sync on OpenAPI Endpoint Specs at 14:00 (Calendar Event)',
-    'Review Idea Backlog & Notes (Overdue Reminder)',
-    'Prepare Q3 OKR Progress Report for team sync (Upcoming Task)',
-    'Weekly Architecture Review meeting (Calendar Event)',
+    'Welcome to your personal control hub.',
+    'Create your first project or Kanban task.',
+    'Sync your calendar schedule and set daily focus goals.',
   ],
 };
 
@@ -46,9 +44,11 @@ export const DashboardPage: React.FC = () => {
     setLoading(true);
     setError(false);
     apiClient
-      .get<DailyBriefingData>('/assistant/briefing')
+      .get<DailyBriefingData>('/assistant/get_daily_briefing')
+      .catch(() => apiClient.get<DailyBriefingData>('/assistant/briefing'))
       .then((data) => {
-        setBriefing(data);
+        if (data) setBriefing(data);
+        else setBriefing(DEFAULT_BRIEFING);
         setLoading(false);
       })
       .catch(() => {
@@ -97,7 +97,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.pending_tasks_count ?? 5}</div>
+          <div className="pcc-metric-card__val">{briefing?.pending_tasks_count ?? 0}</div>
           <Badge variant="warning" size="sm">Pending</Badge>
         </Card>
 
@@ -122,7 +122,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.upcoming_events_count ?? 2}</div>
+          <div className="pcc-metric-card__val">{briefing?.upcoming_events_count ?? 0}</div>
           <Badge variant="primary" size="sm">Scheduled</Badge>
         </Card>
 
@@ -145,7 +145,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.overdue_reminders_count ?? 1}</div>
+          <div className="pcc-metric-card__val">{briefing?.overdue_reminders_count ?? 0}</div>
           <Badge variant="accent" size="sm">Requires Attention</Badge>
         </Card>
 
@@ -167,7 +167,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.active_projects_count ?? 4}</div>
+          <div className="pcc-metric-card__val">{briefing?.active_projects_count ?? 0}</div>
           <Badge variant="success" size="sm">In Progress</Badge>
         </Card>
       </div>

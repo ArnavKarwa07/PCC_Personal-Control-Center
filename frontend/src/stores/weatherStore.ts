@@ -23,259 +23,179 @@ interface WeatherStore {
   refreshWeather: () => Promise<void>;
 }
 
-const CITY_WEATHER_DATABASE: Record<string, WeatherData> = {
-  Pune: {
+const CITY_COORDINATES: Record<string, { lat: number; lon: number; country: string }> = {
+  Pune: { lat: 18.5204, lon: 73.8567, country: 'IN' },
+  Mumbai: { lat: 19.0760, lon: 72.8777, country: 'IN' },
+  Delhi: { lat: 28.6139, lon: 77.2090, country: 'IN' },
+  Bengaluru: { lat: 12.9716, lon: 77.5946, country: 'IN' },
+  'San Francisco': { lat: 37.7749, lon: -122.4194, country: 'US' },
+  London: { lat: 51.5074, lon: -0.1278, country: 'UK' },
+};
+
+type WeatherIconType = 'sunny' | 'partly_cloudy' | 'cloudy' | 'rain' | 'storm' | 'snow' | 'windy';
+
+function interpretWmoCode(code?: number): { condition: string; icon: WeatherIconType } {
+  if (code === undefined || code === null) return { condition: 'Partly Cloudy', icon: 'partly_cloudy' };
+  if (code === 0) return { condition: 'Clear Sky', icon: 'sunny' };
+  if (code === 1 || code === 2) return { condition: 'Partly Cloudy', icon: 'partly_cloudy' };
+  if (code === 3) return { condition: 'Overcast', icon: 'cloudy' };
+  if (code === 45 || code === 48) return { condition: 'Foggy', icon: 'cloudy' };
+  if (code >= 51 && code <= 65) return { condition: 'Rain', icon: 'rain' };
+  if (code >= 71 && code <= 77) return { condition: 'Snow', icon: 'snow' };
+  if (code >= 80 && code <= 82) return { condition: 'Showers', icon: 'rain' };
+  if (code >= 95) return { condition: 'Thunderstorm', icon: 'storm' };
+  return { condition: 'Partly Cloudy', icon: 'partly_cloudy' };
+}
+
+function getWindDirectionLabel(deg?: number): string {
+  if (deg === undefined || deg === null) return '';
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  return directions[Math.round(deg / 45) % 8];
+}
+
+function formatTimeStr(isoStr?: string): string {
+  if (!isoStr) return '--:--';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '--:--';
+  }
+}
+
+export async function fetchLiveOpenMeteo(
+  latitude: number,
+  longitude: number,
+  city: string
+): Promise<WeatherData> {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max&timezone=auto`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}`);
+  const data = await res.json();
+
+  const current = data.current || {};
+  const daily = data.daily || {};
+  const hourly = data.hourly || {};
+
+  const wmoMeta = interpretWmoCode(current.weather_code);
+
+  const timeList: string[] = hourly.time || [];
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const currentHour = now.getHours();
+  const currentHourPad = String(currentHour).padStart(2, '0');
+  const localHourISO = `${year}-${month}-${day}T${currentHourPad}`;
+
+  let startIndex = timeList.findIndex((t: string) => t.startsWith(localHourISO));
+
+  if (startIndex === -1) {
+    startIndex = timeList.findIndex((t: string) => {
+      const h = parseInt(t.split('T')[1]?.slice(0, 2) || '0', 10);
+      return h >= currentHour;
+    });
+  }
+  if (startIndex === -1) startIndex = 0;
+
+  const hourlyItems = timeList.slice(startIndex, startIndex + 24).map((t: string, offset: number) => {
+    const idx = startIndex + offset;
+    let formattedTime = '00:00';
+    if (offset === 0) {
+      formattedTime = 'Now';
+    } else {
+      const hourPart = parseInt(t.split('T')[1]?.slice(0, 2) || '0', 10);
+      const period = hourPart >= 12 ? 'PM' : 'AM';
+      const h12 = hourPart % 12 === 0 ? 12 : hourPart % 12;
+      formattedTime = `${h12} ${period}`;
+    }
+
+    return {
+      time: formattedTime,
+      temp: Math.round(hourly.temperature_2m?.[idx] ?? current.temperature_2m ?? 0),
+      condition: interpretWmoCode(hourly.weather_code?.[idx]).condition,
+      icon: interpretWmoCode(hourly.weather_code?.[idx]).icon,
+      pop: hourly.precipitation_probability?.[idx] ?? 0,
+    };
+  });
+
+  const dailyItems = (daily.time || []).slice(0, 7).map((dStr: string, idx: number) => {
+    const dObj = new Date(dStr);
+    const dayName = idx === 0 ? 'Today' : dObj.toLocaleDateString('en-US', { weekday: 'short' });
+    const meta = interpretWmoCode(daily.weather_code?.[idx]);
+    return {
+      date: dStr,
+      dayName,
+      tempMin: Math.round(daily.temperature_2m_min?.[idx] ?? 0),
+      tempMax: Math.round(daily.temperature_2m_max?.[idx] ?? 0),
+      condition: meta.condition,
+      icon: meta.icon,
+      pop: daily.precipitation_probability_max?.[idx] ?? 0,
+      humidity: Math.round(current.relative_humidity_2m ?? 0),
+    };
+  });
+
+  return {
     location: {
-      city: 'Pune',
-      country: 'IN',
-      region: 'Maharashtra',
-      timezone: 'IST (UTC+5:30)',
-      updatedAt: '2026-08-18T12:00:00Z',
+      city: city || 'Pune',
+      country: CITY_COORDINATES[city]?.country || 'IN',
+      timezone: data.timezone || 'IST (UTC+5:30)',
+      updatedAt: new Date().toISOString(),
     },
     current: {
-      temp: 27,
-      feelsLike: 28,
-      tempMin: 22,
-      tempMax: 30,
-      condition: 'Partly Cloudy',
-      icon: 'partly_cloudy',
-      description: 'Pleasant monsoonal breeze with mild sunshine over the Western Ghats plateau.',
-      humidity: 75,
-      windSpeed: 14,
-      windDirection: 'WSW',
-      uvIndex: 6,
-      aqi: 42,
-      aqiStatus: 'Good',
-      pressure: 1010,
-      visibility: 9,
-      sunrise: '06:12 AM',
-      sunset: '07:02 PM',
-    },
-    hourly: [
-      { time: '16:00', temp: 28, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 15 },
-      { time: '17:00', temp: 27, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20 },
-      { time: '18:00', temp: 26, condition: 'Light Rain', icon: 'rain', pop: 40 },
-      { time: '19:00', temp: 25, condition: 'Light Rain', icon: 'rain', pop: 35 },
-      { time: '20:00', temp: 24, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20 },
-      { time: '21:00', temp: 24, condition: 'Cloudy', icon: 'cloudy', pop: 10 },
-      { time: '22:00', temp: 23, condition: 'Cloudy', icon: 'cloudy', pop: 10 },
-      { time: '23:00', temp: 23, condition: 'Clear Sky', icon: 'sunny', pop: 5 },
-    ],
-    daily: [
-      { date: '2026-08-18', dayName: 'Today', tempMin: 22, tempMax: 30, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 30, humidity: 75 },
-      { date: '2026-08-19', dayName: 'Wed', tempMin: 21, tempMax: 29, condition: 'Light Rain', icon: 'rain', pop: 50, humidity: 80 },
-      { date: '2026-08-20', dayName: 'Thu', tempMin: 22, tempMax: 31, condition: 'Sunny', icon: 'sunny', pop: 15, humidity: 70 },
-      { date: '2026-08-21', dayName: 'Fri', tempMin: 22, tempMax: 30, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20, humidity: 72 },
-      { date: '2026-08-22', dayName: 'Sat', tempMin: 21, tempMax: 29, condition: 'Moderate Rain', icon: 'rain', pop: 60, humidity: 82 },
-    ],
-    alerts: [
-      {
-        id: 'alt-pune-01',
-        title: 'Mild Monsoon Shower Warning',
-        severity: 'info',
-        description: 'Passing monsoon showers expected in evening hours across Pune metro area.',
-        time: 'Today 18:00 - 21:00',
-      },
-    ],
-  },
-  'San Francisco': {
-    location: {
-      city: 'San Francisco',
-      country: 'US',
-      region: 'California',
-      timezone: 'PST (UTC-8)',
-      updatedAt: '2026-08-15T15:30:00Z',
-    },
-    current: {
-      temp: 21,
-      feelsLike: 20,
-      tempMin: 15,
-      tempMax: 24,
-      condition: 'Partly Cloudy',
-      icon: 'partly_cloudy',
-      description: 'Gentle marine layer rolling in from the Pacific with clear afternoon sun.',
-      humidity: 68,
-      windSpeed: 16,
-      windDirection: 'WNW',
-      uvIndex: 5,
-      aqi: 24,
-      aqiStatus: 'Good',
-      pressure: 1015,
+      temp: Math.round(current.temperature_2m ?? 0),
+      feelsLike: Math.round(current.apparent_temperature ?? 0),
+      tempMin: dailyItems[0]?.tempMin ?? 0,
+      tempMax: dailyItems[0]?.tempMax ?? 0,
+      condition: wmoMeta.condition,
+      icon: wmoMeta.icon,
+      description: `Live weather telemetry for ${city}. ${wmoMeta.condition} with ${current.relative_humidity_2m ?? 0}% humidity.`,
+      humidity: Math.round(current.relative_humidity_2m ?? 0),
+      windSpeed: Math.round(current.wind_speed_10m ?? 0),
+      windDirection: getWindDirectionLabel(current.wind_direction_10m),
+      uvIndex: Math.round(daily.uv_index_max?.[0] ?? 0),
+      aqi: 0,
+      aqiStatus: '',
+      pressure: Math.round(current.surface_pressure ?? 0),
       visibility: 10,
-      sunrise: '06:22 AM',
-      sunset: '08:08 PM',
+      sunrise: formatTimeStr(daily.sunrise?.[0]),
+      sunset: formatTimeStr(daily.sunset?.[0]),
     },
-    hourly: [
-      { time: '16:00', temp: 22, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10 },
-      { time: '17:00', temp: 21, condition: 'Sunny', icon: 'sunny', pop: 5 },
-      { time: '18:00', temp: 20, condition: 'Sunny', icon: 'sunny', pop: 0 },
-      { time: '19:00', temp: 18, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 5 },
-      { time: '20:00', temp: 17, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10 },
-      { time: '21:00', temp: 16, condition: 'Cloudy', icon: 'cloudy', pop: 15 },
-      { time: '22:00', temp: 15, condition: 'Cloudy', icon: 'cloudy', pop: 20 },
-      { time: '23:00', temp: 15, condition: 'Cloudy', icon: 'cloudy', pop: 20 },
-    ],
-    daily: [
-      { date: '2026-08-15', dayName: 'Today', tempMin: 15, tempMax: 24, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10, humidity: 68 },
-      { date: '2026-08-16', dayName: 'Sun', tempMin: 14, tempMax: 22, condition: 'Sunny', icon: 'sunny', pop: 0, humidity: 62 },
-      { date: '2026-08-17', dayName: 'Mon', tempMin: 15, tempMax: 25, condition: 'Sunny', icon: 'sunny', pop: 5, humidity: 58 },
-      { date: '2026-08-18', dayName: 'Tue', tempMin: 16, tempMax: 26, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10, humidity: 64 },
-      { date: '2026-08-19', dayName: 'Wed', tempMin: 15, tempMax: 23, condition: 'Cloudy', icon: 'cloudy', pop: 20, humidity: 70 },
-    ],
-    alerts: [
-      {
-        id: 'alt-01',
-        title: 'Moderate UV Index Notice',
-        severity: 'info',
-        description: 'UV Index peaking at 5 between 12:00 PM and 3:30 PM. Sun protection advised.',
-        time: 'Today 12:00 - 15:30',
-      },
-    ],
+    hourly: hourlyItems,
+    daily: dailyItems,
+  };
+}
+
+const DEFAULT_PUNE_WEATHER: WeatherData = {
+  location: {
+    city: 'Pune',
+    country: 'IN',
+    region: 'Maharashtra',
+    timezone: 'IST (UTC+5:30)',
+    updatedAt: new Date().toISOString(),
   },
-  'New York': {
-    location: {
-      city: 'New York',
-      country: 'US',
-      region: 'New York',
-      timezone: 'EST (UTC-5)',
-      updatedAt: '2026-08-15T18:30:00Z',
-    },
-    current: {
-      temp: 27,
-      feelsLike: 29,
-      tempMin: 22,
-      tempMax: 30,
-      condition: 'Sunny',
-      icon: 'sunny',
-      description: 'Clear warm summer day across the Manhattan skyline.',
-      humidity: 55,
-      windSpeed: 12,
-      windDirection: 'SSE',
-      uvIndex: 7,
-      aqi: 38,
-      aqiStatus: 'Good',
-      pressure: 1012,
-      visibility: 10,
-      sunrise: '06:05 AM',
-      sunset: '07:55 PM',
-    },
-    hourly: [
-      { time: '19:00', temp: 26, condition: 'Sunny', icon: 'sunny', pop: 0 },
-      { time: '20:00', temp: 25, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 5 },
-      { time: '21:00', temp: 24, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10 },
-      { time: '22:00', temp: 23, condition: 'Cloudy', icon: 'cloudy', pop: 15 },
-      { time: '23:00', temp: 22, condition: 'Cloudy', icon: 'cloudy', pop: 25 },
-      { time: '00:00', temp: 22, condition: 'Rain', icon: 'rain', pop: 40 },
-      { time: '01:00', temp: 21, condition: 'Rain', icon: 'rain', pop: 50 },
-      { time: '02:00', temp: 21, condition: 'Rain', icon: 'rain', pop: 60 },
-    ],
-    daily: [
-      { date: '2026-08-15', dayName: 'Today', tempMin: 22, tempMax: 30, condition: 'Sunny', icon: 'sunny', pop: 10, humidity: 55 },
-      { date: '2026-08-16', dayName: 'Sun', tempMin: 21, tempMax: 28, condition: 'Rain', icon: 'rain', pop: 65, humidity: 75 },
-      { date: '2026-08-17', dayName: 'Mon', tempMin: 20, tempMax: 27, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20, humidity: 60 },
-      { date: '2026-08-18', dayName: 'Tue', tempMin: 22, tempMax: 31, condition: 'Sunny', icon: 'sunny', pop: 5, humidity: 52 },
-      { date: '2026-08-19', dayName: 'Wed', tempMin: 23, tempMax: 32, condition: 'Storm', icon: 'storm', pop: 70, humidity: 80 },
-    ],
-    alerts: [
-      {
-        id: 'alt-02',
-        title: 'Overnight Rain Showers Anticipated',
-        severity: 'warning',
-        description: 'Light to moderate rainfall developing around midnight through early Sunday morning.',
-        time: 'Tonight from 23:00',
-      },
-    ],
+  current: {
+    temp: 0,
+    feelsLike: 0,
+    tempMin: 0,
+    tempMax: 0,
+    condition: 'Loading...',
+    icon: 'partly_cloudy',
+    description: 'Fetching live weather telemetry for Pune, IN...',
+    humidity: 0,
+    windSpeed: 0,
+    windDirection: '',
+    uvIndex: 0,
+    aqi: 0,
+    aqiStatus: '',
+    pressure: 0,
+    visibility: 0,
+    sunrise: '--:--',
+    sunset: '--:--',
   },
-  London: {
-    location: {
-      city: 'London',
-      country: 'UK',
-      region: 'Greater London',
-      timezone: 'BST (UTC+1)',
-      updatedAt: '2026-08-15T23:30:00Z',
-    },
-    current: {
-      temp: 19,
-      feelsLike: 18,
-      tempMin: 13,
-      tempMax: 22,
-      condition: 'Partly Cloudy',
-      icon: 'partly_cloudy',
-      description: 'Pleasant summer evening with a cool breeze along the Thames.',
-      humidity: 72,
-      windSpeed: 18,
-      windDirection: 'SW',
-      uvIndex: 3,
-      aqi: 22,
-      aqiStatus: 'Good',
-      pressure: 1018,
-      visibility: 10,
-      sunrise: '05:45 AM',
-      sunset: '08:24 PM',
-    },
-    hourly: [
-      { time: '00:00', temp: 16, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10 },
-      { time: '01:00', temp: 15, condition: 'Cloudy', icon: 'cloudy', pop: 15 },
-      { time: '02:00', temp: 14, condition: 'Cloudy', icon: 'cloudy', pop: 20 },
-      { time: '03:00', temp: 14, condition: 'Cloudy', icon: 'cloudy', pop: 20 },
-      { time: '04:00', temp: 13, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 15 },
-      { time: '05:00', temp: 13, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 10 },
-      { time: '06:00', temp: 14, condition: 'Sunny', icon: 'sunny', pop: 5 },
-      { time: '07:00', temp: 16, condition: 'Sunny', icon: 'sunny', pop: 5 },
-    ],
-    daily: [
-      { date: '2026-08-15', dayName: 'Today', tempMin: 13, tempMax: 22, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 15, humidity: 72 },
-      { date: '2026-08-16', dayName: 'Sun', tempMin: 14, tempMax: 23, condition: 'Sunny', icon: 'sunny', pop: 10, humidity: 65 },
-      { date: '2026-08-17', dayName: 'Mon', tempMin: 15, tempMax: 24, condition: 'Sunny', icon: 'sunny', pop: 5, humidity: 60 },
-      { date: '2026-08-18', dayName: 'Tue', tempMin: 14, tempMax: 21, condition: 'Rain', icon: 'rain', pop: 60, humidity: 80 },
-      { date: '2026-08-19', dayName: 'Wed', tempMin: 13, tempMax: 20, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20, humidity: 70 },
-    ],
-  },
-  Tokyo: {
-    location: {
-      city: 'Tokyo',
-      country: 'JP',
-      region: 'Kanto',
-      timezone: 'JST (UTC+9)',
-      updatedAt: '2026-08-16T07:30:00Z',
-    },
-    current: {
-      temp: 29,
-      feelsLike: 33,
-      tempMin: 25,
-      tempMax: 33,
-      condition: 'Sunny',
-      icon: 'sunny',
-      description: 'Vibrant morning sunshine with humid summer atmosphere.',
-      humidity: 78,
-      windSpeed: 10,
-      windDirection: 'S',
-      uvIndex: 8,
-      aqi: 28,
-      aqiStatus: 'Good',
-      pressure: 1009,
-      visibility: 10,
-      sunrise: '05:01 AM',
-      sunset: '06:33 PM',
-    },
-    hourly: [
-      { time: '08:00', temp: 30, condition: 'Sunny', icon: 'sunny', pop: 0 },
-      { time: '09:00', temp: 31, condition: 'Sunny', icon: 'sunny', pop: 5 },
-      { time: '10:00', temp: 32, condition: 'Sunny', icon: 'sunny', pop: 5 },
-      { time: '11:00', temp: 33, condition: 'Sunny', icon: 'sunny', pop: 10 },
-      { time: '12:00', temp: 33, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 20 },
-      { time: '13:00', temp: 32, condition: 'Storm', icon: 'storm', pop: 45 },
-      { time: '14:00', temp: 30, condition: 'Storm', icon: 'storm', pop: 60 },
-      { time: '15:00', temp: 29, condition: 'Rain', icon: 'rain', pop: 40 },
-    ],
-    daily: [
-      { date: '2026-08-16', dayName: 'Today', tempMin: 25, tempMax: 33, condition: 'Sunny', icon: 'sunny', pop: 20, humidity: 78 },
-      { date: '2026-08-17', dayName: 'Mon', tempMin: 26, tempMax: 34, condition: 'Partly Cloudy', icon: 'partly_cloudy', pop: 25, humidity: 75 },
-      { date: '2026-08-18', dayName: 'Tue', tempMin: 25, tempMax: 32, condition: 'Storm', icon: 'storm', pop: 70, humidity: 85 },
-      { date: '2026-08-19', dayName: 'Wed', tempMin: 24, tempMax: 30, condition: 'Rain', icon: 'rain', pop: 50, humidity: 80 },
-      { date: '2026-08-20', dayName: 'Thu', tempMin: 25, tempMax: 31, condition: 'Sunny', icon: 'sunny', pop: 10, humidity: 70 },
-    ],
-  },
+  hourly: [],
+  daily: [],
 };
 
 const STORAGE_KEY_CITY = 'pcc_weather_selected_city';
@@ -285,12 +205,12 @@ const initialCity = localStorage.getItem(STORAGE_KEY_CITY) || 'Pune';
 const initialUnit = (localStorage.getItem(STORAGE_KEY_UNIT) as 'C' | 'F') || 'C';
 
 export const useWeatherStore = create<WeatherStore>((set, get) => ({
-  weather: CITY_WEATHER_DATABASE[initialCity] || CITY_WEATHER_DATABASE['Pune'],
+  weather: DEFAULT_PUNE_WEATHER,
   unit: initialUnit,
   selectedCity: initialCity,
 
-  lat: 18.5204,
-  lon: 73.8567,
+  lat: CITY_COORDINATES[initialCity]?.lat || 18.5204,
+  lon: CITY_COORDINATES[initialCity]?.lon || 73.8567,
   isGpsLocated: false,
   locationStatus: 'pending',
   isLoading: false,
@@ -300,6 +220,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   requestLocation: async () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       set({ locationStatus: 'unsupported', isGpsLocated: false });
+      get().fetchWeather({ lat: 18.5204, lon: 73.8567 }, 'Pune');
       return;
     }
 
@@ -323,41 +244,59 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
           isGpsLocated: false,
           locationStatus: 'denied',
         });
+        get().fetchWeather({ lat: 18.5204, lon: 73.8567 }, 'Pune');
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 5000, enableHighAccuracy: true }
     );
   },
 
   fetchWeather: async (coords, city) => {
     const targetCity = city || get().selectedCity;
+    const targetLat = coords?.lat ?? CITY_COORDINATES[targetCity]?.lat ?? get().lat;
+    const targetLon = coords?.lon ?? CITY_COORDINATES[targetCity]?.lon ?? get().lon;
+
     set({ isLoading: true, error: null });
 
     try {
       const serverData = await weatherApi.getCurrentWeather({
-        lat: coords?.lat ?? get().lat,
-        lon: coords?.lon ?? get().lon,
+        lat: targetLat,
+        lon: targetLon,
         city: targetCity,
       });
       if (serverData && 'current' in serverData && serverData.current) {
-        set({ weather: serverData, selectedCity: targetCity, isLoading: false });
+        set({ weather: serverData, selectedCity: targetCity, lat: targetLat, lon: targetLon, isLoading: false });
         return;
       }
     } catch {
-      // Fallback to internal database
+      // Direct live Open-Meteo API fallback
     }
 
-    const localData = CITY_WEATHER_DATABASE[targetCity] || CITY_WEATHER_DATABASE['Pune'];
-    set({
-      weather: localData,
-      selectedCity: targetCity,
-      isLoading: false,
-    });
+    try {
+      const liveData = await fetchLiveOpenMeteo(targetLat, targetLon, targetCity);
+      set({
+        weather: liveData,
+        selectedCity: targetCity,
+        lat: targetLat,
+        lon: targetLon,
+        isLoading: false,
+      });
+    } catch {
+      set({
+        weather: {
+          ...DEFAULT_PUNE_WEATHER,
+          location: { ...DEFAULT_PUNE_WEATHER.location, city: targetCity, updatedAt: new Date().toISOString() },
+        },
+        selectedCity: targetCity,
+        isLoading: false,
+      });
+    }
   },
 
   setCity: async (city: string) => {
     localStorage.setItem(STORAGE_KEY_CITY, city);
     soundEffects.playPip();
-    await get().fetchWeather(undefined, city);
+    const coords = CITY_COORDINATES[city];
+    await get().fetchWeather(coords, city);
   },
 
   toggleUnit: () => {
@@ -370,22 +309,8 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   refreshWeather: async () => {
     set({ isRefreshing: true });
     soundEffects.playPip();
-    await new Promise((res) => setTimeout(res, 600));
-
     const currentCity = get().selectedCity;
-    const baseData = CITY_WEATHER_DATABASE[currentCity] || CITY_WEATHER_DATABASE['Pune'];
-
-    set({
-      weather: {
-        ...baseData,
-        location: {
-          ...baseData.location,
-          updatedAt: new Date().toISOString(),
-        },
-      },
-      isRefreshing: false,
-    });
+    await get().fetchWeather(undefined, currentCity);
+    set({ isRefreshing: false });
   },
 }));
-
-
