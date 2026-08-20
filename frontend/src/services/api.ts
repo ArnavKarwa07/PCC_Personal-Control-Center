@@ -98,7 +98,8 @@ async function request<T>(
       return {} as T;
     }
 
-    return (await response.json()) as T;
+    const rawJson = await response.json();
+    return normalizeApiResponse<T>(rawJson);
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
@@ -108,6 +109,41 @@ async function request<T>(
       code: 'NETWORK_ERROR',
     });
   }
+}
+
+function normalizeItem(item: any): any {
+  if (Array.isArray(item)) {
+    return item.map(normalizeItem);
+  }
+  if (item !== null && typeof item === 'object' && !(item instanceof Date)) {
+    const normalized: Record<string, any> = {};
+    for (const [key, val] of Object.entries(item)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+
+      if (key === 'name' && item.title === undefined) normalized['title'] = val;
+      if (key === 'deadline' && item.dueDate === undefined) normalized['dueDate'] = val;
+
+      let mappedVal = normalizeItem(val);
+
+      if (key === 'status') {
+        if (mappedVal === 'done') mappedVal = 'completed';
+        if (mappedVal === 'paused') mappedVal = 'on_hold';
+      }
+
+      normalized[camelKey] = mappedVal;
+    }
+    return normalized;
+  }
+  return item;
+}
+
+function normalizeApiResponse<T>(resJson: any): T {
+  if (!resJson) return resJson as T;
+  let data = resJson;
+  if (typeof resJson === 'object' && 'data' in resJson && resJson.data !== undefined) {
+    data = resJson.data;
+  }
+  return normalizeItem(data) as T;
 }
 
 export const apiClient = {
