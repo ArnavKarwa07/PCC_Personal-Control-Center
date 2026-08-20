@@ -266,11 +266,11 @@ export const notificationsApi = {
 
 export const integrationsApi = {
   getAll: () => apiClient.get<Integration[]>('/integrations/list_integrations'),
-  update: (id: string, data: Partial<Integration>) => apiClient.put<Integration>(`/integrations/${id}`, data),
-  connect: (id: string, config: Record<string, string>) => apiClient.post<Integration>(`/integrations/connect_integration/${id}`, config),
-  disconnect: (id: string) => apiClient.post<Integration>(`/integrations/disconnect_integration/${id}`, {}),
-  getStatus: (id: string) => apiClient.get<Integration>(`/integrations/get_integration_status/${id}`),
-  sync: (id: string) => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/sync_integration/${id}`, {}).catch(() => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/${id}/sync`, {})),
+  update: (provider: string, data: Partial<Integration>) => apiClient.put<Integration>(`/integrations/${provider}`, data),
+  connect: (provider: string, config: Record<string, string>) => apiClient.post<Integration>(`/integrations/connect_integration/${provider}`, config),
+  disconnect: (provider: string) => apiClient.post<Integration>(`/integrations/disconnect_integration/${provider}`, {}),
+  getStatus: (provider: string) => apiClient.get<Integration>(`/integrations/get_integration_status/${provider}`),
+  sync: (provider: string) => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/sync_integration/${provider}`, {}).catch(() => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/${provider}/sync`, {})),
 };
 
 export const weatherApi = {

@@ -1,7 +1,129 @@
+# Pull Request: PCC Third-Party Integrations Expansion & Security Readiness (v1.4.0)
+
+## Target Branch
+`origin/staging` (Strict compliance with `AGENTS.md` guidelines - DO NOT merge directly to `main`).
+
+## PR Title
+`feat(integrations): Add Teams Calendar, Slack, GitLab, and Jira connectors with automatic credential masking, accessible UI grid, and JSON backup/restore framework`
+
+---
+
+## Summary of Changes
+
+This pull request delivers the full enterprise third-party integration expansion for PCC, adding 4 new service connectors (**Microsoft Teams Calendar**, **Slack**, **GitLab**, and **Jira**), automatic sensitive credential masking for API keys/tokens, expanded Settings integration UI grid with custom brand SVG iconography and aria accessibility attributes, updated `pcc_data.json` backup/restore framework, Alembic database migration `b71239c8e412`, and background worker task synchronization.
+
+### Detailed Feature Inventory
+
+#### 1. Third-Party Integrations Expansion
+- **Files Modified**: `backend/app/models/integration.py`, `backend/app/services/integration_service.py`, `backend/app/api/v1/integrations.py`, `frontend/src/types/index.ts`, `frontend/src/stores/integrationStore.ts`
+- **Capabilities**:
+  - **Microsoft Teams Calendar (`teams_calendar`)**: Supports 2-way event sync, tenant ID, client ID, calendar ID configuration, and OAuth access token handling.
+  - **Slack Integration (`slack`)**: Supports user/bot tokens (`xoxb-`, `xoxp-`), default channel configuration, focus mode status sync, and daily digest delivery.
+  - **GitLab Workspace Sync (`gitlab`)**: Supports personal access tokens (`glpat-`), custom GitLab instance URLs, project ID mapping, merge request updates, and pipeline status monitoring.
+  - **Jira Sprint & Task Sync (`jira`)**: Supports Atlassian domain connection (`company.atlassian.net`), email authentication, API tokens (`jira_`), project key mapping, sprint issue imports, and Kanban status alignment.
+
+#### 2. Automatic Sensitive Credential Masking
+- **Files Modified**: `backend/app/services/integration_service.py`
+- **Capabilities**:
+  - Automatically redacts sensitive fields (`token`, `user_token`, `bot_token`, `api_token`, `access_token`, `api_key`, `secret`, `password`) in REST API outputs and diagnostic endpoints.
+  - Preserves standard key prefixes for secure UI identification (`ghp_****`, `xoxb-****`, `glpat-****`, `msteams_****`, `jira_****`).
+
+#### 3. Expanded Settings Integrations UI Grid & Accessibility
+- **Files Modified**: `frontend/src/features/settings/SettingsPage.tsx`, `frontend/src/features/settings/Settings.css`
+- **Capabilities**:
+  - Integrated 100% monochromatic vector SVG brand icons for Microsoft Teams Calendar, Slack, GitLab, and Jira.
+  - Added accessibility attributes (`aria-label`, `aria-expanded`, `aria-hidden`) across integration card action triggers and configuration modals.
+  - Dynamic connection modals with specialized field input types (`password` vs `text`) tailored for tokens, URLs, tenant IDs, and channel routing.
+
+#### 4. JSON Onboarding & Backup Restore Integration
+- **Files Modified**: `frontend/src/services/jsonImportService.ts`, `docs/DATA_SCHEMA.md`
+- **Capabilities**:
+  - Updated `validateAndCleanImportData()` and `executeDataImport()` to parse, validate, and restore integration descriptors and configurations under `integrations: []`.
+  - Full backup JSON export includes all active and preset integration states (`pcc_integrations_store_v2`).
+
+#### 5. Database Migration & Background Worker Sync
+- **Files Modified**: `backend/alembic/versions/add_new_integration_providers.py`, `backend/worker/main.py`
+- **Capabilities**:
+  - Created Alembic migration `b71239c8e412` expanding `IntegrationProvider` enum values.
+  - Registered worker background sync functions (`sync_teams_calendar`, `sync_slack`, `sync_gitlab`, `sync_jira`) in `worker/main.py`.
+
+---
+
+## Empirical Verification Results
+
+### 1. Frontend TypeScript Typecheck (`npx tsc --noEmit`)
+```text
+C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\frontend> npx tsc --noEmit
+Exit Code: 0 (Zero TypeScript errors)
+```
+
+### 2. Frontend Production Build (`npm run build`)
+```text
+C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\frontend> npm run build
+
+> pcc-frontend@1.0.0 build
+> tsc && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 216 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                               1.07 kB │ gzip:   0.53 kB
+dist/assets/index-CZ-vMPGP.js               337.50 kB │ gzip: 101.89 kB
+✓ built in 6.11s
+Exit Code: 0
+```
+
+### 3. Backend Pytest Suite (`python -m pytest`)
+```text
+C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\backend> python -m pytest
+============================= test session starts =============================
+platform win32 -- Python 3.12.9, pytest-8.3.4, pluggy-1.5.0
+rootdir: C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\backend
+configfile: pytest.ini
+testpaths: tests
+collected 104 items
+
+tests\test_assistant.py .....                                            [  4%]
+tests\test_auth.py .............                                         [ 17%]
+tests\test_calendar.py ...                                               [ 20%]
+tests\test_contacts.py .                                                 [ 21%]
+tests\test_goals.py .....                                                [ 25%]
+tests\test_health.py ..                                                  [ 27%]
+tests\test_integrations_new.py ...........                               [ 38%]
+tests\test_integrations_weather.py ......                                [ 44%]
+tests\test_notes_ideas.py .........                                      [ 52%]
+tests\test_projects.py .......                                           [ 59%]
+tests\test_recurrence.py ...                                             [ 62%]
+tests\test_reminders_alarms.py ...............                           [ 76%]
+tests\test_search.py ........                                            [ 84%]
+tests\test_tasks.py ............                                         [ 96%]
+tests\test_worker.py ....                                                [100%]
+
+============================ 104 passed in 40.25s =============================
+Exit Code: 0 (100% test pass rate)
+```
+
+---
+
+## AGENTS.md Compliance Checklist
+- [x] Code targeted strictly for `origin/staging` (never direct push or merge to `main`).
+- [x] TypeScript compiler (`npx tsc --noEmit`): 0 errors.
+- [x] Vite production build (`npm run build`): Clean build output (216 modules transformed).
+- [x] Backend test suite (`python -m pytest`): 104/104 tests passing.
+- [x] Default currency is ₹ (INR).
+- [x] Default weather location is Pune, IN.
+- [x] Light theme is default (`html[data-theme='light']`).
+- [x] Single logo identity verified (`/logo.png`).
+
+---
+
 # Pull Request: PCC Keep-Style Notes Application & Release Readiness (v1.2.0)
 
 ## Target Branch
 `origin/staging` (Strict compliance with `AGENTS.md` guidelines - DO NOT merge directly to `main`).
+
 
 ## PR Title
 `feat(notes): Keep-style Notes page refactor with h1 header, 100% vector SVG icons, mobile select block consolidation, filter accuracy fixes, and interactive checklists`

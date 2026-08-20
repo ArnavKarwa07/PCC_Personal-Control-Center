@@ -5,6 +5,34 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-20
+
+### Added
+- **Third-Party Integrations Expansion**:
+  - Integrated 4 new enterprise connectors: **Microsoft Teams Calendar** (`teams_calendar`), **Slack** (`slack`), **GitLab** (`gitlab`), and **Jira** (`jira`).
+  - **Microsoft Teams Calendar**: Supports event synchronization, tenant ID, client ID, calendar ID configuration, and OAuth access token management.
+  - **Slack Integration**: Enables user/bot tokens (`xoxb-`, `xoxp-`), default channel routing, focus mode status synchronization, and automated daily digests.
+  - **GitLab Workspace Sync**: Supports personal access tokens (`glpat-`), custom GitLab instance URLs, project ID mapping, merge request updates, and pipeline build status monitoring.
+  - **Jira Sprint & Task Sync**: Enables Atlassian domain connection (`company.atlassian.net`), email authentication, API tokens (`jira_`), project key mapping, sprint issue imports, and Kanban status alignment.
+- **Security Enhancements & Automatic Credential Masking**:
+  - Implemented automatic sensitive credential masking across backend REST endpoints (`/api/v1/integrations`) and status diagnostic responses.
+  - Recursively inspects configuration payloads and redacts secrets (`token`, `user_token`, `bot_token`, `api_token`, `access_token`, `api_key`, `secret`, `password`) into prefix-preserved masked strings (e.g. `ghp_****`, `xoxb-****`, `glpat-****`, `msteams_****`, `jira_****`).
+- **Settings Workspace Integrations UI Grid & Accessibility**:
+  - Expanded Settings Integrations grid (`SettingsPage.tsx`, `Settings.css`) with 100% monochromatic vector SVG brand icons for Teams Calendar, Slack, GitLab, and Jira.
+  - Added accessible `aria-label`, `aria-expanded`, and `aria-hidden` attributes on interactive integration cards and configuration modals.
+  - Dynamic modal configuration forms tailored with specific input types (`password` vs `text`) for tokens, URLs, tenant IDs, and channel settings.
+- **JSON Backup & Restore Framework Integration**:
+  - Updated `pcc_data.json` import/export schema and `jsonImportService.ts` to validate, seed, export, and restore third-party integration descriptors, active connection states, and sanitized configuration settings (`pcc_integrations_store_v2`).
+- **Database Migration & Async Worker Jobs**:
+  - Added Alembic migration revision `b71239c8e412` (`add_new_integration_providers`) expanding `IntegrationProvider` enum values.
+  - Registered background worker sync routines (`worker/main.py`) for periodic automated synchronization of Teams Calendar, Slack, GitLab, and Jira integrations.
+
+### Compliance & Quality Assurance
+- **Empirical Verification**:
+  - `npx tsc --noEmit`: 0 TypeScript compiler errors.
+  - `npm run build`: Vite production bundle generated successfully.
+  - `python -m pytest`: 104/104 backend unit tests passing (100% success rate).
+
 ## [1.3.1] - 2026-08-20
 
 ### Added

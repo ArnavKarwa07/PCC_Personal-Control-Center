@@ -220,7 +220,11 @@ export type IntegrationService =
   | 'telegram'
   | 'notion'
   | 'obsidian'
-  | 'discord';
+  | 'discord'
+  | 'teams_calendar'
+  | 'slack'
+  | 'gitlab'
+  | 'jira';
 
 export interface Integration {
   id: string;

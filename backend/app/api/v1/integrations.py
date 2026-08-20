@@ -76,3 +76,22 @@ def get_integration_status(
     return {
         "data": status_info.model_dump(),
     }
+
+
+@router.post("/sync_integration/{provider}", operation_id="sync_integration", summary="Sync Integration")
+@router.post("/{provider}/sync", operation_id="sync_integration_alias", summary="Sync Integration Alias", include_in_schema=False)
+def sync_integration(
+    provider: IntegrationProvider,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Trigger ad-hoc synchronization for an active integration provider."""
+    result = integration_service.sync_provider(
+        db=db,
+        user_id=current_user.id,
+        provider=provider,
+    )
+    return {
+        "data": result,
+    }
+
