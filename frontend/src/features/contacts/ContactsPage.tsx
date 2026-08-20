@@ -41,6 +41,7 @@ export const ContactsPage: React.FC = () => {
     },
   ]);
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [org, setOrg] = useState('');
   const [role, setRole] = useState('');
@@ -148,6 +149,7 @@ export const ContactsPage: React.FC = () => {
     setRole('');
     setEmail('');
     setPhone('');
+    setIsAddModalOpen(false);
   };
 
   const handleDeleteConfirm = async () => {
