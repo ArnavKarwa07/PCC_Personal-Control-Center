@@ -15,7 +15,8 @@ from app.services.contact_service import contact_service
 router = APIRouter(prefix="/contacts", tags=["Contacts"])
 
 
-@router.get("", operation_id="listContacts", summary="List Contacts")
+@router.get("/list_contacts", operation_id="list_contacts", summary="List Contacts")
+@router.get("", include_in_schema=False)
 def list_contacts(
     search: Optional[str] = None,
     overdue_only: bool = False,
@@ -34,7 +35,8 @@ def list_contacts(
     }
 
 
-@router.post("", operation_id="createContact", status_code=status.HTTP_201_CREATED, summary="Create Contact")
+@router.post("/create_contact", operation_id="create_contact", status_code=status.HTTP_201_CREATED, summary="Create Contact")
+@router.post("", include_in_schema=False, status_code=status.HTTP_201_CREATED)
 def create_contact(
     data: ContactCreate,
     current_user: User = Depends(get_current_user),
@@ -45,8 +47,23 @@ def create_contact(
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
-@router.put("/{contact_id}", operation_id="updateContactByIdPut", summary="Update Contact (PUT)")
-@router.patch("/{contact_id}", operation_id="updateContactById", summary="Update Contact (PATCH)")
+@router.get("/get_contact_by_id/{contact_id}", operation_id="get_contact_by_id", summary="Get Contact By Id")
+@router.get("/{contact_id}", include_in_schema=False)
+def get_contact_by_id(
+    contact_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieve single contact by ID."""
+    contact = contact_service.get_contact(db=db, user_id=current_user.id, contact_id=contact_id)
+    if not contact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+    return {"data": ContactRead.model_validate(contact).model_dump()}
+
+
+@router.patch("/update_contact_by_id/{contact_id}", operation_id="update_contact_by_id", summary="Update Contact By Id")
+@router.put("/{contact_id}", include_in_schema=False)
+@router.patch("/{contact_id}", include_in_schema=False)
 def update_contact(
     contact_id: uuid.UUID,
     data: ContactUpdate,
@@ -60,7 +77,8 @@ def update_contact(
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
-@router.delete("/{contact_id}", operation_id="deleteContactById", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Contact")
+@router.delete("/delete_contact_by_id/{contact_id}", operation_id="delete_contact_by_id", summary="Delete Contact By Id")
+@router.delete("/{contact_id}", include_in_schema=False, status_code=status.HTTP_204_NO_CONTENT)
 def delete_contact(
     contact_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

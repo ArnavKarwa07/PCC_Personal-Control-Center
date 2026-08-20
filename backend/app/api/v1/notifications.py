@@ -19,7 +19,8 @@ from app.services.notification_service import notification_service
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 
-@router.get("", operation_id="listNotifications")
+@router.get("/list_notifications", operation_id="list_notifications", summary="List Notifications")
+@router.get("", include_in_schema=False)
 def list_notifications(
     status: Optional[NotificationDeliveryStatus] = None,
     type: Optional[NotificationType] = None,
@@ -52,7 +53,8 @@ def list_notifications(
     }
 
 
-@router.patch("/{notification_id}/read", operation_id="markNotificationAsRead")
+@router.patch("/mark_notification_as_read/{notification_id}", operation_id="mark_notification_as_read", summary="Mark Notification As Read")
+@router.patch("/{notification_id}/read", include_in_schema=False)
 def mark_notification_read(
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -69,7 +71,8 @@ def mark_notification_read(
     }
 
 
-@router.patch("/read-all", operation_id="markAllNotificationsAsRead")
+@router.patch("/mark_all_notifications_as_read", operation_id="mark_all_notifications_as_read", summary="Mark All Notifications As Read")
+@router.patch("/read-all", include_in_schema=False)
 def mark_all_notifications_read(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -87,7 +90,8 @@ def mark_all_notifications_read(
     }
 
 
-@router.delete("/{notification_id}", operation_id="deleteNotificationById")
+@router.delete("/delete_notification_by_id/{notification_id}", operation_id="delete_notification_by_id", summary="Delete Notification By Id")
+@router.delete("/{notification_id}", include_in_schema=False)
 def delete_notification(
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

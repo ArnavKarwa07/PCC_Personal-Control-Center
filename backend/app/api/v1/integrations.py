@@ -13,7 +13,8 @@ from app.services.integration_service import integration_service
 router = APIRouter(prefix="/integrations", tags=["Integrations"])
 
 
-@router.get("", operation_id="listIntegrations")
+@router.get("/list_integrations", operation_id="list_integrations", summary="List Integrations")
+@router.get("", include_in_schema=False)
 def list_integrations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -25,7 +26,8 @@ def list_integrations(
     }
 
 
-@router.post("/{provider}/connect", operation_id="connectIntegration", status_code=status.HTTP_200_OK)
+@router.post("/connect_integration/{provider}", operation_id="connect_integration", status_code=status.HTTP_200_OK, summary="Connect Integration")
+@router.post("/{provider}/connect", include_in_schema=False, status_code=status.HTTP_200_OK)
 def connect_integration(
     provider: IntegrationProvider,
     data: IntegrationConnectRequest,
@@ -44,7 +46,8 @@ def connect_integration(
     }
 
 
-@router.post("/{provider}/disconnect", operation_id="disconnectIntegration")
+@router.post("/disconnect_integration/{provider}", operation_id="disconnect_integration", summary="Disconnect Integration")
+@router.post("/{provider}/disconnect", include_in_schema=False)
 def disconnect_integration(
     provider: IntegrationProvider,
     current_user: User = Depends(get_current_user),
@@ -61,7 +64,8 @@ def disconnect_integration(
     }
 
 
-@router.get("/{provider}/status", operation_id="getIntegrationStatus")
+@router.get("/get_integration_status/{provider}", operation_id="get_integration_status", summary="Get Integration Status")
+@router.get("/{provider}/status", include_in_schema=False)
 def get_integration_status(
     provider: IntegrationProvider,
     current_user: User = Depends(get_current_user),

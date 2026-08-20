@@ -12,7 +12,8 @@ from app.services.assistant_service import assistant_service
 router = APIRouter(prefix="/assistant", tags=["AI Executive Assistant"])
 
 
-@router.post("/process_assistant_query", operation_id="processAssistantQuery", response_model=AssistantQueryResponse, summary="Dispatch Natural Language Assistant Query")
+@router.post("/process_assistant_query", operation_id="process_assistant_query", response_model=AssistantQueryResponse, summary="Process Assistant Query")
+@router.post("/query", include_in_schema=False, response_model=AssistantQueryResponse)
 def process_assistant_query(
     request: AssistantQueryRequest,
     current_user: User = Depends(get_current_user),
@@ -22,11 +23,11 @@ def process_assistant_query(
     return assistant_service.process_query(db=db, user_id=current_user.id, request=request)
 
 
-@router.get("/get_daily_briefing", operation_id="getDailyBriefing", response_model=DailyBriefingRead, summary="Generate Executive Daily Briefing")
+@router.get("/get_daily_briefing", operation_id="get_daily_briefing", response_model=DailyBriefingRead, summary="Get Daily Briefing")
+@router.get("/briefing", include_in_schema=False, response_model=DailyBriefingRead)
 def get_daily_briefing(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Generate synthesized daily briefing and priority focus recommendations."""
     return assistant_service.generate_daily_briefing(db=db, user_id=current_user.id)
-

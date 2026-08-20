@@ -21,7 +21,8 @@ from app.services.reminder_service import reminder_service
 router = APIRouter(prefix="/reminders", tags=["Reminders"])
 
 
-@router.get("", operation_id="listReminders")
+@router.get("/list_reminders", operation_id="list_reminders", summary="List Reminders")
+@router.get("", include_in_schema=False)
 def list_reminders(
     status: Optional[ReminderStatus] = None,
     is_recurring: Optional[bool] = None,
@@ -54,7 +55,8 @@ def list_reminders(
     }
 
 
-@router.post("", operation_id="createReminder", status_code=status.HTTP_201_CREATED)
+@router.post("/create_reminder", operation_id="create_reminder", status_code=status.HTTP_201_CREATED, summary="Create Reminder")
+@router.post("", include_in_schema=False, status_code=status.HTTP_201_CREATED)
 def create_reminder(
     data: ReminderCreate,
     current_user: User = Depends(get_current_user),
@@ -67,7 +69,8 @@ def create_reminder(
     }
 
 
-@router.get("/{reminder_id}", operation_id="getReminderById")
+@router.get("/get_reminder_by_id/{reminder_id}", operation_id="get_reminder_by_id", summary="Get Reminder By Id")
+@router.get("/{reminder_id}", include_in_schema=False)
 def get_reminder(
     reminder_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -80,7 +83,8 @@ def get_reminder(
     }
 
 
-@router.patch("/{reminder_id}", operation_id="updateReminderById")
+@router.patch("/update_reminder_by_id/{reminder_id}", operation_id="update_reminder_by_id", summary="Update Reminder By Id")
+@router.patch("/{reminder_id}", include_in_schema=False)
 def update_reminder(
     reminder_id: uuid.UUID,
     data: ReminderUpdate,
@@ -99,7 +103,8 @@ def update_reminder(
     }
 
 
-@router.post("/{reminder_id}/snooze", operation_id="snoozeReminderById")
+@router.post("/snooze_reminder_by_id/{reminder_id}", operation_id="snooze_reminder_by_id", summary="Snooze Reminder By Id")
+@router.post("/{reminder_id}/snooze", include_in_schema=False)
 def snooze_reminder(
     reminder_id: uuid.UUID,
     data: Optional[ReminderSnoozeRequest] = None,
@@ -121,7 +126,8 @@ def snooze_reminder(
     }
 
 
-@router.delete("/{reminder_id}", operation_id="deleteReminderById")
+@router.delete("/delete_reminder_by_id/{reminder_id}", operation_id="delete_reminder_by_id", summary="Delete Reminder By Id")
+@router.delete("/{reminder_id}", include_in_schema=False)
 def delete_reminder(
     reminder_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
