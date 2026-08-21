@@ -1,12 +1,11 @@
 import { create } from 'zustand';
-import { Note } from '../types';
+import { Note, NoteChecklistItem } from '../types';
 import { notesApi } from '../services/api';
 import { generateId } from '../utils';
 
 interface NoteStore {
   notes: Note[];
   activeNoteId: string | null;
-  selectedCategory: string;
   searchQuery: string;
   isSaving: boolean;
   isLoading: boolean;
@@ -18,129 +17,63 @@ interface NoteStore {
   updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   togglePinNote: (id: string) => Promise<void>;
+  trashNote: (id: string) => Promise<void>;
+  restoreNote: (id: string) => Promise<void>;
+  emptyTrash: () => Promise<void>;
+  setNoteColor: (id: string, color: string) => Promise<void>;
+  addChecklistItem: (noteId: string, text?: string) => Promise<void>;
+  toggleChecklistItem: (noteId: string, itemId: string) => Promise<void>;
+  updateChecklistItem: (noteId: string, itemId: string, text: string) => Promise<void>;
+  deleteChecklistItem: (noteId: string, itemId: string) => Promise<void>;
+  reorderChecklistItems: (noteId: string, items: NoteChecklistItem[]) => Promise<void>;
   setActiveNoteId: (id: string | null) => void;
-  setSelectedCategory: (cat: string) => void;
   setSearchQuery: (query: string) => void;
   setSaving: (saving: boolean) => void;
   getActiveNote: () => Note | undefined;
 }
 
-const INITIAL_NOTES: Note[] = [
-  {
-    id: 'note-01',
-    title: 'PCC Architecture & System Design Philosophy',
-    content: `# PCC System Architecture
-
-The **Personal Control Center** is built as an ultra-responsive, offline-first personal operating cockpit.
-
-### Core Tenets
-1. **Single Pane of Glass**: Unified access to projects, tasks, calendar time blocks, and knowledge assets.
-2. **Instant Interaction**: Zero latency UI with optimistic client caching.
-3. **Design Excellence**: Deep dark theme with indigo/violet accents and WCAG AA accessibility.
-
-### Component Structure
-- \`Projects\`: High-level initiatives and milestones
-- \`Kanban Board\`: Column-based workflow progression
-- \`Notes\`: Bi-directional markdown repository
-- \`Calendar\`: Time-blocked schedule and deadline synchronization
-
-> "Simplicity is prerequisite for reliability." - Edsger W. Dijkstra
-`,
-    category: 'Engineering',
-    pinned: true,
-    tags: ['Architecture', 'PCC', 'React'],
-    createdAt: '2026-08-10T10:00:00Z',
-    updatedAt: '2026-08-15T09:30:00Z',
-  },
-  {
-    id: 'note-02',
-    title: 'Daily Deep Work Routine & Energy Management',
-    content: `# Peak Performance Daily Protocol
-
-### Morning Focus Block (08:30 - 11:30)
-- [x] Review highest-leverage task for the day
-- [x] Silence all notifications and background chats
-- [ ] Complete 2x 90-minute uninterrupted deep work blocks
-- [ ] Log output deliverables in PCC
-
-### Afternoon Collaboration & Synthesis (14:00 - 17:00)
-- Code reviews, team syncs, and architecture reviews
-- Triage inbox and backlog items
-- Review calendar schedule for tomorrow
-`,
-    category: 'Personal',
-    pinned: true,
-    tags: ['Productivity', 'Habits'],
-    createdAt: '2026-08-12T07:00:00Z',
-    updatedAt: '2026-08-15T08:00:00Z',
-  },
-  {
-    id: 'note-03',
-    title: 'FastAPI Backend Endpoints & PostgreSQL Schema Spec',
-    content: `# REST API & DB Schema Reference
-
-### Main Resources
-- \`GET /api/v1/projects\`: Returns active projects with task statistics
-- \`POST /api/v1/tasks\`: Creates task with priority and project linkage
-- \`GET /api/v1/notes\`: Markdown knowledge base notes
-- \`GET /api/v1/calendar\`: Unified events and schedule items
-
-\`\`\`sql
-CREATE TABLE IF NOT EXISTS projects (
-  id VARCHAR(64) PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  status VARCHAR(32) NOT NULL DEFAULT 'active',
-  progress INTEGER DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-\`\`\`
-`,
-    category: 'Engineering',
-    pinned: false,
-    tags: ['FastAPI', 'Backend', 'SQL'],
-    createdAt: '2026-08-13T14:15:00Z',
-    updatedAt: '2026-08-14T16:45:00Z',
-  },
-  {
-    id: 'note-04',
-    title: 'Q3 Reading List & Executive Summary Notes',
-    content: `# Q3 Curated Reading List
-
-### Books in Progress
-1. *Designing Data-Intensive Applications* by Martin Kleppmann
-2. *Staff Engineer: Leadership Beyond the Management Track* by Will Larson
-3. *Outlive: The Science and Art of Longevity* by Dr. Peter Attia
-
-### Key Takeaways
-- Resilient distributed consensus requires understanding partition boundaries.
-- Strategic technical leadership is about amplifying team leverage and removing friction.
-`,
-    category: 'Knowledge',
-    pinned: false,
-    tags: ['Books', 'Learning'],
-    createdAt: '2026-08-05T19:00:00Z',
-    updatedAt: '2026-08-11T21:00:00Z',
-  },
-];
-
-const STORAGE_KEY = 'pcc_notes_store_v1';
+const STORAGE_KEY_V1 = 'pcc_notes_store_v1';
+const STORAGE_KEY_LEGACY = 'pcc_notes';
 
 const loadStoredNotes = (): Note[] => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw);
+    const raw = localStorage.getItem(STORAGE_KEY_V1) || localStorage.getItem(STORAGE_KEY_LEGACY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const isLegacyMock = parsed.some(
+          (n: any) =>
+            n.title?.includes('PCC Architecture') ||
+            n.title?.includes('Daily Deep Work Routine') ||
+            n.title?.includes('FastAPI Backend Endpoints') ||
+            n.title?.includes('Q3 Reading List')
+        );
+        if (isLegacyMock) {
+          localStorage.removeItem(STORAGE_KEY_V1);
+          localStorage.removeItem(STORAGE_KEY_LEGACY);
+          return [];
+        }
+        return parsed.map((n) => ({
+          ...n,
+          type: n.type || 'text',
+          color: n.color || 'default',
+          archived: !!n.archived,
+          trashed: !!n.trashed,
+          checklistItems: n.checklistItems || [],
+        }));
+      }
     }
   } catch (err) {
     console.warn('Failed to parse notes from localStorage', err);
   }
-  return INITIAL_NOTES;
+  return [];
 };
 
 const saveNotes = (notes: Note[]) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    const data = JSON.stringify(notes);
+    localStorage.setItem(STORAGE_KEY_V1, data);
+    localStorage.setItem(STORAGE_KEY_LEGACY, data);
   } catch (err) {
     console.warn('Failed to save notes to localStorage', err);
   }
@@ -148,8 +81,7 @@ const saveNotes = (notes: Note[]) => {
 
 export const useNoteStore = create<NoteStore>((set, get) => ({
   notes: loadStoredNotes(),
-  activeNoteId: INITIAL_NOTES[0].id,
-  selectedCategory: 'All',
+  activeNoteId: null,
   searchQuery: '',
   isSaving: false,
   isLoading: false,
@@ -159,9 +91,17 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const serverNotes = await notesApi.getAll();
-      if (serverNotes && Array.isArray(serverNotes) && serverNotes.length > 0) {
-        set({ notes: serverNotes, isLoading: false });
-        saveNotes(serverNotes);
+      if (serverNotes && Array.isArray(serverNotes)) {
+        const processed = serverNotes.map((n: Note) => ({
+          ...n,
+          type: n.type || 'text',
+          color: n.color || 'default',
+          archived: !!n.archived,
+          trashed: !!n.trashed,
+          checklistItems: n.checklistItems || [],
+        }));
+        set({ notes: processed, isLoading: false });
+        saveNotes(processed);
         return;
       }
     } catch {
@@ -176,45 +116,43 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       id: generateId('note'),
       title: initial?.title !== undefined ? initial.title : '',
       content: initial?.content !== undefined ? initial.content : '',
-      category: initial?.category || (get().selectedCategory !== 'All' ? get().selectedCategory : 'General'),
+      category: initial?.category || 'General',
       pinned: initial?.pinned || false,
       tags: initial?.tags || [],
+      type: initial?.type || 'text',
+      checklistItems: initial?.checklistItems || [],
+      color: initial?.color || 'default',
+      archived: initial?.archived || false,
+      trashed: initial?.trashed || false,
       createdAt: now,
       updatedAt: now,
     };
-
-    try {
-      const created = await notesApi.create(newNote);
-      if (created && created.id) {
-        set((state) => {
-          const updated = [created, ...state.notes];
-          saveNotes(updated);
-          return { notes: updated, activeNoteId: created.id };
-        });
-        return created;
-      }
-    } catch {
-      // Fallback
-    }
 
     set((state) => {
       const updated = [newNote, ...state.notes];
       saveNotes(updated);
       return { notes: updated, activeNoteId: newNote.id };
     });
+
+    try {
+      const created = await notesApi.create(newNote);
+      if (created && created.id) {
+        set((state) => {
+          const updated = state.notes.map((n) => (n.id === newNote.id ? { ...created } : n));
+          saveNotes(updated);
+          return { notes: updated, activeNoteId: created.id };
+        });
+        return created;
+      }
+    } catch {
+      // Optimistic fallback: newNote is already prepended to local state
+    }
+
     return newNote;
   },
 
   updateNote: async (id, updates) => {
     const now = new Date().toISOString();
-    set({ isSaving: true });
-
-    try {
-      await notesApi.update(id, updates);
-    } catch {
-      // Ignore API offline error
-    }
-
     set((state) => {
       const updated = state.notes.map((n) =>
         n.id === id ? { ...n, ...updates, updatedAt: now } : n
@@ -222,23 +160,27 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       saveNotes(updated);
       return { notes: updated, isSaving: false };
     });
+
+    try {
+      await notesApi.update(id, updates);
+    } catch {
+      // Optimistic fallback
+    }
   },
 
   deleteNote: async (id) => {
-    try {
-      await notesApi.delete(id);
-    } catch {
-      // Ignore API offline error
-    }
-
     set((state) => {
       const updated = state.notes.filter((n) => n.id !== id);
       saveNotes(updated);
-      const nextActive = state.activeNoteId === id
-        ? (updated.length > 0 ? updated[0].id : null)
-        : state.activeNoteId;
+      const nextActive = state.activeNoteId === id ? null : state.activeNoteId;
       return { notes: updated, activeNoteId: nextActive };
     });
+
+    try {
+      await notesApi.delete(id);
+    } catch {
+      // Optimistic fallback
+    }
   },
 
   togglePinNote: async (id) => {
@@ -247,12 +189,82 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     await get().updateNote(id, { pinned: !note.pinned });
   },
 
+  trashNote: async (id) => {
+    await get().updateNote(id, { trashed: true, archived: false, pinned: false });
+  },
+
+  restoreNote: async (id) => {
+    await get().updateNote(id, { trashed: false });
+  },
+
+  emptyTrash: async () => {
+    const trashedIds = get().notes.filter((n) => n.trashed).map((n) => n.id);
+    set((state) => {
+      const updated = state.notes.filter((n) => !n.trashed);
+      saveNotes(updated);
+      const nextActive = trashedIds.includes(state.activeNoteId || '') ? null : state.activeNoteId;
+      return { notes: updated, activeNoteId: nextActive };
+    });
+
+    for (const id of trashedIds) {
+      try {
+        await notesApi.delete(id);
+      } catch {
+        // Ignore individual delete failure
+      }
+    }
+  },
+
+  setNoteColor: async (id, color) => {
+    await get().updateNote(id, { color });
+  },
+
+  addChecklistItem: async (noteId, text = '') => {
+    const note = get().notes.find((n) => n.id === noteId);
+    if (!note) return;
+    const newItem: NoteChecklistItem = {
+      id: generateId('chk'),
+      text,
+      completed: false,
+    };
+    const items = [...(note.checklistItems || []), newItem];
+    await get().updateNote(noteId, { checklistItems: items, type: 'checklist' });
+  },
+
+  toggleChecklistItem: async (noteId, itemId) => {
+    const note = get().notes.find((n) => n.id === noteId);
+    if (!note || !note.checklistItems) return;
+    const items = note.checklistItems.map((item) =>
+      item.id === itemId ? { ...item, completed: !item.completed } : item
+    );
+    await get().updateNote(noteId, { checklistItems: items });
+  },
+
+  updateChecklistItem: async (noteId, itemId, text) => {
+    const note = get().notes.find((n) => n.id === noteId);
+    if (!note || !note.checklistItems) return;
+    const items = note.checklistItems.map((item) =>
+      item.id === itemId ? { ...item, text } : item
+    );
+    await get().updateNote(noteId, { checklistItems: items });
+  },
+
+  deleteChecklistItem: async (noteId, itemId) => {
+    const note = get().notes.find((n) => n.id === noteId);
+    if (!note || !note.checklistItems) return;
+    const items = note.checklistItems.filter((item) => item.id !== itemId);
+    await get().updateNote(noteId, { checklistItems: items });
+  },
+
+  reorderChecklistItems: async (noteId, items) => {
+    await get().updateNote(noteId, { checklistItems: items });
+  },
+
   setActiveNoteId: (id) => set({ activeNoteId: id }),
-  setSelectedCategory: (selectedCategory) => set({ selectedCategory }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSaving: (isSaving) => set({ isSaving }),
   getActiveNote: () => {
     const { notes, activeNoteId } = get();
-    return notes.find((n) => n.id === activeNoteId) || (notes.length > 0 ? notes[0] : undefined);
+    return notes.find((n) => n.id === activeNoteId);
   },
 }));

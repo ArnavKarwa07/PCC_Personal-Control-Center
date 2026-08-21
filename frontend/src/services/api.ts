@@ -98,7 +98,8 @@ async function request<T>(
       return {} as T;
     }
 
-    return (await response.json()) as T;
+    const rawJson = await response.json();
+    return normalizeApiResponse<T>(rawJson);
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
@@ -108,6 +109,41 @@ async function request<T>(
       code: 'NETWORK_ERROR',
     });
   }
+}
+
+function normalizeItem(item: any): any {
+  if (Array.isArray(item)) {
+    return item.map(normalizeItem);
+  }
+  if (item !== null && typeof item === 'object' && !(item instanceof Date)) {
+    const normalized: Record<string, any> = {};
+    for (const [key, val] of Object.entries(item)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+
+      if (key === 'name' && item.title === undefined) normalized['title'] = val;
+      if (key === 'deadline' && item.dueDate === undefined) normalized['dueDate'] = val;
+
+      let mappedVal = normalizeItem(val);
+
+      if (key === 'status') {
+        if (mappedVal === 'done') mappedVal = 'completed';
+        if (mappedVal === 'paused') mappedVal = 'on_hold';
+      }
+
+      normalized[camelKey] = mappedVal;
+    }
+    return normalized;
+  }
+  return item;
+}
+
+function normalizeApiResponse<T>(resJson: any): T {
+  if (!resJson) return resJson as T;
+  let data = resJson;
+  if (typeof resJson === 'object' && 'data' in resJson && resJson.data !== undefined) {
+    data = resJson.data;
+  }
+  return normalizeItem(data) as T;
 }
 
 export const apiClient = {
@@ -132,16 +168,11 @@ export const apiClient = {
    ========================================================================== */
 
 export const projectsApi = {
-  getAll: () =>
-    apiClient.get<Project[]>('/projects/list_projects').catch(() => apiClient.get<Project[]>('/projects')),
-  getById: (id: string) =>
-    apiClient.get<Project>(`/projects/get_project_by_id/${id}`).catch(() => apiClient.get<Project>(`/projects/${id}`)),
-  create: (data: Partial<Project>) =>
-    apiClient.post<Project>('/projects/create_project', data).catch(() => apiClient.post<Project>('/projects', data)),
-  update: (id: string, data: Partial<Project>) =>
-    apiClient.patch<Project>(`/projects/update_project_by_id/${id}`, data).catch(() => apiClient.put<Project>(`/projects/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<{ success: boolean }>(`/projects/delete_project_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/projects/${id}`)),
+  getAll: () => apiClient.get<Project[]>('/projects/list_projects'),
+  getById: (id: string) => apiClient.get<Project>(`/projects/get_project_by_id/${id}`),
+  create: (data: Partial<Project>) => apiClient.post<Project>('/projects/create_project', data),
+  update: (id: string, data: Partial<Project>) => apiClient.patch<Project>(`/projects/update_project_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/projects/delete_project_by_id/${id}`),
 };
 
 export const tasksApi = {
@@ -150,56 +181,36 @@ export const tasksApi = {
     if (params?.projectId) query.append('project_id', params.projectId);
     if (params?.status) query.append('status', params.status);
     const qs = query.toString();
-    return apiClient
-      .get<Task[]>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`)
-      .catch(() => apiClient.get<Task[]>(`/tasks${qs ? `?${qs}` : ''}`));
+    return apiClient.get<Task[]>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`);
   },
-  getById: (id: string) =>
-    apiClient.get<Task>(`/tasks/get_task_by_id/${id}`).catch(() => apiClient.get<Task>(`/tasks/${id}`)),
-  create: (data: Partial<Task>) =>
-    apiClient.post<Task>('/tasks/create_task', data).catch(() => apiClient.post<Task>('/tasks', data)),
-  update: (id: string, data: Partial<Task>) =>
-    apiClient.patch<Task>(`/tasks/update_task_by_id/${id}`, data).catch(() => apiClient.put<Task>(`/tasks/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<{ success: boolean }>(`/tasks/delete_task_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/tasks/${id}`)),
+  getById: (id: string) => apiClient.get<Task>(`/tasks/get_task_by_id/${id}`),
+  create: (data: Partial<Task>) => apiClient.post<Task>('/tasks/create_task', data),
+  update: (id: string, data: Partial<Task>) => apiClient.patch<Task>(`/tasks/update_task_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/tasks/delete_task_by_id/${id}`),
 };
 
 export const notesApi = {
   getAll: (category?: string) => {
     const query = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
-    return apiClient
-      .get<Note[]>(`/notes/list_notes${query}`)
-      .catch(() => apiClient.get<Note[]>(`/notes${query}`));
+    return apiClient.get<Note[]>(`/notes/list_notes${query}`);
   },
-  getById: (id: string) =>
-    apiClient.get<Note>(`/notes/get_note_by_id/${id}`).catch(() => apiClient.get<Note>(`/notes/${id}`)),
-  create: (data: Partial<Note>) =>
-    apiClient.post<Note>('/notes/create_note', data).catch(() => apiClient.post<Note>('/notes', data)),
-  update: (id: string, data: Partial<Note>) =>
-    apiClient.patch<Note>(`/notes/update_note_by_id/${id}`, data).catch(() => apiClient.put<Note>(`/notes/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<{ success: boolean }>(`/notes/delete_note_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/notes/${id}`)),
+  getById: (id: string) => apiClient.get<Note>(`/notes/get_note_by_id/${id}`),
+  create: (data: Partial<Note>) => apiClient.post<Note>('/notes/create_note', data),
+  update: (id: string, data: Partial<Note>) => apiClient.patch<Note>(`/notes/update_note_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notes/delete_note_by_id/${id}`),
 };
 
 export const ideasApi = {
   getAll: (status?: string) => {
     const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return apiClient
-      .get<Idea[]>(`/ideas/list_ideas${query}`)
-      .catch(() => apiClient.get<Idea[]>(`/ideas${query}`));
+    return apiClient.get<Idea[]>(`/ideas/list_ideas${query}`);
   },
-  getById: (id: string) =>
-    apiClient.get<Idea>(`/ideas/get_idea_by_id/${id}`).catch(() => apiClient.get<Idea>(`/ideas/${id}`)),
-  create: (data: Partial<Idea>) =>
-    apiClient.post<Idea>('/ideas/create_idea', data).catch(() => apiClient.post<Idea>('/ideas', data)),
-  update: (id: string, data: Partial<Idea>) =>
-    apiClient.patch<Idea>(`/ideas/update_idea_by_id/${id}`, data).catch(() => apiClient.put<Idea>(`/ideas/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<{ success: boolean }>(`/ideas/delete_idea_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/ideas/${id}`)),
+  getById: (id: string) => apiClient.get<Idea>(`/ideas/get_idea_by_id/${id}`),
+  create: (data: Partial<Idea>) => apiClient.post<Idea>('/ideas/create_idea', data),
+  update: (id: string, data: Partial<Idea>) => apiClient.patch<Idea>(`/ideas/update_idea_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/ideas/delete_idea_by_id/${id}`),
   promote: (id: string, promotion: { type: 'task' | 'project'; title?: string; projectId?: string }) =>
-    apiClient
-      .post<Idea>(`/ideas/promote_idea_by_id/${id}`, promotion)
-      .catch(() => apiClient.post<Idea>(`/ideas/${id}/promote`, promotion)),
+    apiClient.post<Idea>(`/ideas/promote_idea_by_id/${id}`, promotion),
 };
 
 export const calendarApi = {
@@ -209,87 +220,57 @@ export const calendarApi = {
     if (params?.end) query.append('end_date', params.end);
     if (params?.type) query.append('event_type', params.type);
     const qs = query.toString();
-    return apiClient
-      .get<CalendarEvent[]>(`/calendar/events/list_calendar_events${qs ? `?${qs}` : ''}`)
-      .catch(() => apiClient.get<CalendarEvent[]>(`/calendar/events${qs ? `?${qs}` : ''}`));
+    return apiClient.get<CalendarEvent[]>(`/calendar/events/list_calendar_events${qs ? `?${qs}` : ''}`);
   },
-  getById: (id: string) =>
-    apiClient
-      .get<CalendarEvent>(`/calendar/events/get_calendar_event_by_id/${id}`)
-      .catch(() => apiClient.get<CalendarEvent>(`/calendar/events/${id}`)),
-  create: (data: Partial<CalendarEvent>) =>
-    apiClient
-      .post<CalendarEvent>('/calendar/events/create_calendar_event', data)
-      .catch(() => apiClient.post<CalendarEvent>('/calendar/events', data)),
-  update: (id: string, data: Partial<CalendarEvent>) =>
-    apiClient
-      .patch<CalendarEvent>(`/calendar/events/update_calendar_event_by_id/${id}`, data)
-      .catch(() => apiClient.patch<CalendarEvent>(`/calendar/events/${id}`, data)),
-  delete: (id: string) =>
-    apiClient
-      .delete<{ success: boolean }>(`/calendar/events/delete_calendar_event_by_id/${id}`)
-      .catch(() => apiClient.delete<{ success: boolean }>(`/calendar/events/${id}`)),
+  getById: (id: string) => apiClient.get<CalendarEvent>(`/calendar/events/get_calendar_event_by_id/${id}`),
+  create: (data: Partial<CalendarEvent>) => apiClient.post<CalendarEvent>('/calendar/events/create_calendar_event', data),
+  update: (id: string, data: Partial<CalendarEvent>) => apiClient.patch<CalendarEvent>(`/calendar/events/update_calendar_event_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/calendar/events/delete_calendar_event_by_id/${id}`),
 };
 
 export const remindersApi = {
-  getAll: () =>
-    apiClient.get<Reminder[]>('/reminders/list_reminders').catch(() => apiClient.get<Reminder[]>('/reminders')),
-  getById: (id: string) =>
-    apiClient.get<Reminder>(`/reminders/get_reminder_by_id/${id}`).catch(() => apiClient.get<Reminder>(`/reminders/${id}`)),
-  create: (data: Partial<Reminder>) =>
-    apiClient.post<Reminder>('/reminders/create_reminder', data).catch(() => apiClient.post<Reminder>('/reminders', data)),
-  update: (id: string, data: Partial<Reminder>) =>
-    apiClient.patch<Reminder>(`/reminders/update_reminder_by_id/${id}`, data).catch(() => apiClient.put<Reminder>(`/reminders/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<{ success: boolean }>(`/reminders/delete_reminder_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/reminders/${id}`)),
-  snooze: (id: string, snoozedUntil: string) =>
-    apiClient
-      .post<Reminder>(`/reminders/snooze_reminder_by_id/${id}`, { snoozedUntil })
-      .catch(() => apiClient.post<Reminder>(`/reminders/${id}/snooze`, { snoozedUntil })),
+  getAll: () => apiClient.get<Reminder[]>('/reminders/list_reminders'),
+  getById: (id: string) => apiClient.get<Reminder>(`/reminders/get_reminder_by_id/${id}`),
+  create: (data: Partial<Reminder>) => apiClient.post<Reminder>('/reminders/create_reminder', data),
+  update: (id: string, data: Partial<Reminder>) => apiClient.patch<Reminder>(`/reminders/update_reminder_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/reminders/delete_reminder_by_id/${id}`),
+  snooze: (id: string, snoozedUntil: string) => apiClient.post<Reminder>(`/reminders/snooze_reminder_by_id/${id}`, { snoozedUntil }),
 };
 
 export const alarmsApi = {
-  getAll: () =>
-    apiClient.get<Alarm[]>('/alarms/list_alarms').catch(() => apiClient.get<Alarm[]>('/alarms')),
-  getById: (id: string) =>
-    apiClient.get<Alarm>(`/alarms/${id}`).catch(() => apiClient.get<Alarm>(`/alarms/${id}`)),
-  create: (data: Partial<Alarm>) =>
-    apiClient.post<Alarm>('/alarms/create_alarm', data).catch(() => apiClient.post<Alarm>('/alarms', data)),
-  update: (id: string, data: Partial<Alarm>) =>
-    apiClient.patch<Alarm>(`/alarms/update_alarm_by_id/${id}`, data).catch(() => apiClient.put<Alarm>(`/alarms/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<{ success: boolean }>(`/alarms/delete_alarm_by_id/${id}`).catch(() => apiClient.delete<{ success: boolean }>(`/alarms/${id}`)),
-  toggle: (id: string, enabled: boolean) =>
-    apiClient
-      .patch<Alarm>(`/alarms/toggle_alarm_by_id/${id}`, { enabled })
-      .catch(() => apiClient.patch<Alarm>(`/alarms/${id}/toggle`, { enabled })),
+  getAll: () => apiClient.get<Alarm[]>('/alarms/list_alarms'),
+  getById: (id: string) => apiClient.get<Alarm>(`/alarms/get_alarm_by_id/${id}`),
+  create: (data: Partial<Alarm>) => apiClient.post<Alarm>('/alarms/create_alarm', data),
+  update: (id: string, data: Partial<Alarm>) => apiClient.patch<Alarm>(`/alarms/update_alarm_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/alarms/delete_alarm_by_id/${id}`),
+  toggle: (id: string, enabled: boolean) => apiClient.patch<Alarm>(`/alarms/toggle_alarm_by_id/${id}`, { enabled }),
+};
+
+export const timersApi = {
+  getAll: () => apiClient.get<Array<Record<string, unknown>>>('/timers/list_timers'),
+  getById: (id: string) => apiClient.get<Record<string, unknown>>(`/timers/get_timer_by_id/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/timers/create_timer', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch<Record<string, unknown>>(`/timers/update_timer_by_id/${id}`, data),
+  updateState: (id: string, action: string, remainingSeconds?: number) =>
+    apiClient.patch<Record<string, unknown>>(`/timers/update_timer_state_by_id/${id}`, { action, remaining_seconds: remainingSeconds }),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/timers/delete_timer_by_id/${id}`),
 };
 
 export const notificationsApi = {
-  getAll: () =>
-    apiClient.get<AppNotification[]>('/notifications/list_notifications').catch(() => apiClient.get<AppNotification[]>('/notifications')),
-  markAsRead: (id: string) =>
-    apiClient
-      .patch<AppNotification>(`/notifications/mark_notification_as_read/${id}`, {})
-      .catch(() => apiClient.patch<AppNotification>(`/notifications/${id}/read`, {})),
-  markAllAsRead: () =>
-    apiClient
-      .patch<{ success: boolean }>('/notifications/mark_all_notifications_as_read', {})
-      .catch(() => apiClient.patch<{ success: boolean }>('/notifications/read-all', {})),
-  delete: (id: string) =>
-    apiClient
-      .delete<{ success: boolean }>(`/notifications/delete_notification_by_id/${id}`)
-      .catch(() => apiClient.delete<{ success: boolean }>(`/notifications/${id}`)),
-  clearAll: () => apiClient.delete<{ success: boolean }>('/notifications'),
+  getAll: () => apiClient.get<AppNotification[]>('/notifications/list_notifications'),
+  markAsRead: (id: string) => apiClient.patch<AppNotification>(`/notifications/mark_notification_as_read/${id}`, {}),
+  markAllAsRead: () => apiClient.patch<{ success: boolean }>('/notifications/mark_all_notifications_as_read', {}),
+  delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notifications/delete_notification_by_id/${id}`),
+  clearAll: () => apiClient.delete<{ success: boolean }>('/notifications/clear_all_notifications').catch(() => apiClient.delete<{ success: boolean }>('/notifications')),
 };
 
 export const integrationsApi = {
-  getAll: () => apiClient.get<Integration[]>('/integrations'),
-  update: (id: string, data: Partial<Integration>) => apiClient.put<Integration>(`/integrations/${id}`, data),
-  connect: (id: string, config: Record<string, string>) =>
-    apiClient.post<Integration>(`/integrations/${id}/connect`, config),
-  disconnect: (id: string) => apiClient.post<Integration>(`/integrations/${id}/disconnect`, {}),
-  sync: (id: string) => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/${id}/sync`, {}),
+  getAll: () => apiClient.get<Integration[]>('/integrations/list_integrations'),
+  update: (provider: string, data: Partial<Integration>) => apiClient.put<Integration>(`/integrations/${provider}`, data),
+  connect: (provider: string, config: Record<string, string>) => apiClient.post<Integration>(`/integrations/connect_integration/${provider}`, config),
+  disconnect: (provider: string) => apiClient.post<Integration>(`/integrations/disconnect_integration/${provider}`, {}),
+  getStatus: (provider: string) => apiClient.get<Integration>(`/integrations/get_integration_status/${provider}`),
+  sync: (provider: string) => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/sync_integration/${provider}`, {}).catch(() => apiClient.post<{ success: boolean; lastSynced: string }>(`/integrations/${provider}/sync`, {})),
 };
 
 export const weatherApi = {
@@ -300,9 +281,7 @@ export const weatherApi = {
     if (params?.city) query.append('city', params.city);
     if (params?.units) query.append('units', params.units);
     const qs = query.toString();
-    return apiClient
-      .get<WeatherData | { data: WeatherData }>(`/weather/get_current_weather${qs ? `?${qs}` : ''}`)
-      .catch(() => apiClient.get<WeatherData | { data: WeatherData }>(`/weather/current${qs ? `?${qs}` : ''}`));
+    return apiClient.get<WeatherData | { data: WeatherData }>(`/weather/get_current_weather${qs ? `?${qs}` : ''}`);
   },
   getCurrentWeather: (params?: { lat?: number; lon?: number; city?: string; units?: string }) => {
     const query = new URLSearchParams();
@@ -311,9 +290,7 @@ export const weatherApi = {
     if (params?.city) query.append('city', params.city);
     if (params?.units) query.append('units', params.units);
     const qs = query.toString();
-    return apiClient
-      .get<WeatherData | { data: WeatherData }>(`/weather/get_current_weather${qs ? `?${qs}` : ''}`)
-      .catch(() => apiClient.get<WeatherData | { data: WeatherData }>(`/weather/current${qs ? `?${qs}` : ''}`));
+    return apiClient.get<WeatherData | { data: WeatherData }>(`/weather/get_current_weather${qs ? `?${qs}` : ''}`);
   },
 };
 
@@ -330,9 +307,7 @@ export const searchApi = {
     if (params.offset !== undefined) {
       query.append('offset', String(params.offset));
     }
-    return apiClient
-      .get<SearchResponse>(`/search/search_entities?${query.toString()}`)
-      .catch(() => apiClient.get<SearchResponse>(`/search?${query.toString()}`));
+    return apiClient.get<SearchResponse>(`/search/search_entities?${query.toString()}`);
   },
 };
 
@@ -370,66 +345,33 @@ export const goalsApi = {
     if (params?.page) query.append('page', String(params.page));
     if (params?.per_page) query.append('per_page', String(params.per_page));
     const qs = query.toString();
-    return apiClient
-      .get<{
-        data: GoalItem[];
-        meta: { total: number; page: number; per_page: number; total_pages: number };
-      }>(`/goals/list_goals${qs ? `?${qs}` : ''}`)
-      .catch(() =>
-        apiClient.get<{
-          data: GoalItem[];
-          meta: { total: number; page: number; per_page: number; total_pages: number };
-        }>(`/goals${qs ? `?${qs}` : ''}`)
-      );
+    return apiClient.get<{
+      data: GoalItem[];
+      meta: { total: number; page: number; per_page: number; total_pages: number };
+    }>(`/goals/list_goals${qs ? `?${qs}` : ''}`);
   },
-  create: (data: Partial<GoalItem>) =>
-    apiClient.post<{ data: GoalItem }>('/goals/create_goal', data).catch(() => apiClient.post<{ data: GoalItem }>('/goals', data)),
-  update: (id: string, data: Partial<GoalItem>) =>
-    apiClient.patch<{ data: GoalItem }>(`/goals/update_goal_by_id/${id}`, data).catch(() => apiClient.patch<{ data: GoalItem }>(`/goals/${id}`, data)),
-  delete: (id: string) =>
-    apiClient.delete<void>(`/goals/delete_goal_by_id/${id}`).catch(() => apiClient.delete<void>(`/goals/${id}`)),
+  create: (data: Partial<GoalItem>) => apiClient.post<{ data: GoalItem }>('/goals/create_goal', data),
+  update: (id: string, data: Partial<GoalItem>) => apiClient.patch<{ data: GoalItem }>(`/goals/update_goal_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<void>(`/goals/delete_goal_by_id/${id}`),
 };
 
 export const assistantApi = {
-  query: (query: string) =>
-    apiClient
-      .post<Record<string, unknown>>('/assistant/process_assistant_query', { query })
-      .catch(() => apiClient.post<Record<string, unknown>>('/assistant/query', { query })),
-  getBriefing: () =>
-    apiClient
-      .get<Record<string, unknown>>('/assistant/get_daily_briefing')
-      .catch(() => apiClient.get<Record<string, unknown>>('/assistant/briefing')),
+  query: (query: string) => apiClient.post<Record<string, unknown>>('/assistant/process_assistant_query', { query }),
+  getBriefing: () => apiClient.get<Record<string, unknown>>('/assistant/get_daily_briefing'),
 };
 
 export const contactsApi = {
-  getAll: () =>
-    apiClient
-      .get<Array<Record<string, unknown>>>('/contacts/list_contacts')
-      .catch(() => apiClient.get<Array<Record<string, unknown>>>('/contacts')),
-  getById: (id: string) =>
-    apiClient
-      .get<Record<string, unknown>>(`/contacts/get_contact_by_id/${id}`)
-      .catch(() => apiClient.get<Record<string, unknown>>(`/contacts/${id}`)),
-  create: (data: Record<string, unknown>) =>
-    apiClient
-      .post<Record<string, unknown>>('/contacts/create_contact', data)
-      .catch(() => apiClient.post<Record<string, unknown>>('/contacts', data)),
-  update: (id: string, data: Record<string, unknown>) =>
-    apiClient
-      .patch<Record<string, unknown>>(`/contacts/update_contact_by_id/${id}`, data)
-      .catch(() => apiClient.put<Record<string, unknown>>(`/contacts/${id}`, data)),
-  delete: (id: string) =>
-    apiClient
-      .delete<void>(`/contacts/delete_contact_by_id/${id}`)
-      .catch(() => apiClient.delete<void>(`/contacts/${id}`)),
+  getAll: () => apiClient.get<Array<Record<string, unknown>>>('/contacts/list_contacts'),
+  getById: (id: string) => apiClient.get<Record<string, unknown>>(`/contacts/get_contact_by_id/${id}`),
+  create: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/contacts/create_contact', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch<Record<string, unknown>>(`/contacts/update_contact_by_id/${id}`, data),
+  delete: (id: string) => apiClient.delete<void>(`/contacts/delete_contact_by_id/${id}`),
 };
 
-
-
-
-
-
-
-
-
-
+export const boardsApi = {
+  create: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/boards/create_board', data),
+  getById: (id: string) => apiClient.get<Record<string, unknown>>(`/boards/get_board_by_id/${id}`),
+  createColumn: (boardId: string, data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>(`/boards/create_board_column/${boardId}`, data),
+  createCard: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/boards/create_board_card', data),
+  moveCard: (cardId: string, data: Record<string, unknown>) => apiClient.patch<Record<string, unknown>>(`/boards/move_board_card_by_id/${cardId}`, data),
+};

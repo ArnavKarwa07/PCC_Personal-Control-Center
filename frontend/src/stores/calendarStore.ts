@@ -31,136 +31,40 @@ interface CalendarStore {
   getEventById: (id: string) => CalendarEvent | undefined;
 }
 
-// Generate events relative to current date (Aug 2026)
-const INITIAL_EVENTS: CalendarEvent[] = [
-  {
-    id: 'evt-01',
-    title: 'Deep Work: Core Engineering & Phase B Views',
-    description: 'Focused coding block for Kanban, Notes, Calendar and Task views.',
-    type: 'event',
-    startDate: '2026-08-15T09:00:00',
-    endDate: '2026-08-15T11:30:00',
-    allDay: false,
-    priority: 'urgent',
-    color: '#6366f1',
-    location: 'Office / Terminal',
-    createdAt: '2026-08-10T09:00:00Z',
-    updatedAt: '2026-08-15T09:00:00Z',
-  },
-  {
-    id: 'evt-02',
-    title: 'Architecture & UI Component Design Review',
-    description: 'Review responsive layouts and accessibility compliance with team.',
-    type: 'event',
-    startDate: '2026-08-15T14:00:00',
-    endDate: '2026-08-15T15:00:00',
-    allDay: false,
-    priority: 'high',
-    color: '#3b82f6',
-    location: 'Google Meet',
-    createdAt: '2026-08-12T10:00:00Z',
-    updatedAt: '2026-08-15T10:00:00Z',
-  },
-  {
-    id: 'evt-03',
-    title: 'Deadline: Dark-Themed Kanban Board',
-    description: 'Milestone target for drag & drop kanban with 4 status columns.',
-    type: 'task',
-    startDate: '2026-08-16T18:00:00',
-    allDay: true,
-    priority: 'urgent',
-    color: '#22c55e',
-    relatedId: 'tsk-01',
-    completed: false,
-    createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T08:00:00Z',
-  },
-  {
-    id: 'evt-04',
-    title: 'Hydration & Posture Reset Reminder',
-    description: 'Stretch, hydrate with electrolytes, and step away from the screen.',
-    type: 'reminder',
-    startDate: '2026-08-15T16:30:00',
-    allDay: false,
-    priority: 'low',
-    color: '#f59e0b',
-    completed: false,
-    createdAt: '2026-08-15T06:00:00Z',
-    updatedAt: '2026-08-15T06:00:00Z',
-  },
-  {
-    id: 'evt-05',
-    title: 'Deadline: Split-Pane Markdown Knowledge Workspace',
-    description: 'Note auto-save and category filtering deliverable.',
-    type: 'task',
-    startDate: '2026-08-17T17:00:00',
-    allDay: true,
-    priority: 'high',
-    color: '#22c55e',
-    relatedId: 'tsk-02',
-    completed: false,
-    createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T08:00:00Z',
-  },
-  {
-    id: 'evt-06',
-    title: 'Executive Portfolio Strategy Session',
-    description: 'Review case study narratives and target engineering leadership roles.',
-    type: 'event',
-    startDate: '2026-08-18T10:30:00',
-    endDate: '2026-08-18T11:45:00',
-    allDay: false,
-    priority: 'medium',
-    color: '#8b5cf6',
-    location: 'Virtual Conference',
-    createdAt: '2026-08-13T12:00:00Z',
-    updatedAt: '2026-08-13T12:00:00Z',
-  },
-  {
-    id: 'evt-07',
-    title: 'Monthly Cloud Infrastructure & Security Audit',
-    description: 'Verify IAM permissions, API keys rotation, and automated database backups.',
-    type: 'reminder',
-    startDate: '2026-08-20T09:00:00',
-    allDay: false,
-    priority: 'high',
-    color: '#f59e0b',
-    completed: false,
-    createdAt: '2026-08-01T08:00:00Z',
-    updatedAt: '2026-08-01T08:00:00Z',
-  },
-  {
-    id: 'evt-08',
-    title: 'Weekly Systems Retrospective',
-    description: 'Weekly reflection on progress, blockers, and habit consistency.',
-    type: 'event',
-    startDate: '2026-08-16T17:00:00',
-    endDate: '2026-08-16T18:00:00',
-    allDay: false,
-    priority: 'medium',
-    color: '#6366f1',
-    createdAt: '2026-08-10T12:00:00Z',
-    updatedAt: '2026-08-10T12:00:00Z',
-  },
-];
-
-const STORAGE_KEY = 'pcc_calendar_store_v1';
+const STORAGE_KEY_V1 = 'pcc_calendar_store_v1';
+const STORAGE_KEY_LEGACY = 'pcc_calendar_events';
 
 const loadStoredEvents = (): CalendarEvent[] => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw);
+    const raw = localStorage.getItem(STORAGE_KEY_V1) || localStorage.getItem(STORAGE_KEY_LEGACY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const isLegacyMock = parsed.some(
+          (e: any) =>
+            e.title?.includes('Phase E Release Standup') ||
+            e.title?.includes('OpenAPI Endpoint Specs') ||
+            e.title?.includes('Weekly Architecture Review')
+        );
+        if (isLegacyMock) {
+          localStorage.removeItem(STORAGE_KEY_V1);
+          localStorage.removeItem(STORAGE_KEY_LEGACY);
+          return [];
+        }
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Failed to parse calendar events from localStorage', err);
   }
-  return INITIAL_EVENTS;
+  return [];
 };
 
 const saveEvents = (events: CalendarEvent[]) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    const data = JSON.stringify(events);
+    localStorage.setItem(STORAGE_KEY_V1, data);
+    localStorage.setItem(STORAGE_KEY_LEGACY, data);
   } catch (err) {
     console.warn('Failed to save calendar events to localStorage', err);
   }
@@ -168,7 +72,7 @@ const saveEvents = (events: CalendarEvent[]) => {
 
 export const useCalendarStore = create<CalendarStore>((set, get) => ({
   events: loadStoredEvents(),
-  currentDate: '2026-08-15',
+  currentDate: new Date().toLocaleDateString('en-CA'),
   activeView: 'month',
   filterTypes: {
     events: true,
@@ -183,7 +87,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const serverEvents = await calendarApi.getAll();
-      if (serverEvents && Array.isArray(serverEvents) && serverEvents.length > 0) {
+      if (serverEvents && Array.isArray(serverEvents)) {
         set({ events: serverEvents, isLoading: false });
         saveEvents(serverEvents);
         return;

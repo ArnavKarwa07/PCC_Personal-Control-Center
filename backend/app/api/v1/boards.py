@@ -19,7 +19,7 @@ from app.services.project_service import project_service
 router = APIRouter(prefix="/boards", tags=["Boards"])
 
 
-@router.post("", operation_id="createBoard", status_code=status.HTTP_201_CREATED, summary="Create Board")
+@router.post("/create_board", operation_id="create_board", status_code=status.HTTP_201_CREATED, summary="Create Board")
 def create_board(
     data: BoardCreate,
     current_user: User = Depends(get_current_user),
@@ -32,7 +32,7 @@ def create_board(
     }
 
 
-@router.get("/{board_id}", operation_id="getBoardById")
+@router.get("/get_board_by_id/{board_id}", operation_id="get_board_by_id", summary="Get Board By Id")
 def get_board(
     board_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -45,7 +45,7 @@ def get_board(
     }
 
 
-@router.post("/{board_id}/columns", operation_id="createBoardColumn", status_code=status.HTTP_201_CREATED)
+@router.post("/create_board_column/{board_id}", operation_id="create_board_column", status_code=status.HTTP_201_CREATED, summary="Create Board Column")
 def create_column(
     board_id: uuid.UUID,
     data: BoardColumnCreate,
@@ -64,7 +64,7 @@ def create_column(
     }
 
 
-@router.post("/cards", operation_id="createBoardCard", status_code=status.HTTP_201_CREATED)
+@router.post("/create_board_card", operation_id="create_board_card", status_code=status.HTTP_201_CREATED, summary="Create Board Card")
 def create_card(
     data: BoardCardCreate,
     current_user: User = Depends(get_current_user),
@@ -77,7 +77,7 @@ def create_card(
     }
 
 
-@router.patch("/cards/{card_id}/move", operation_id="moveBoardCard")
+@router.patch("/move_board_card_by_id/{card_id}", operation_id="move_board_card_by_id", summary="Move Board Card By Id")
 def move_card(
     card_id: uuid.UUID,
     data: BoardCardMove,

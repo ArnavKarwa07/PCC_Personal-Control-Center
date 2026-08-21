@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../layouts/AppShell';
-import { PageLoader } from '../components/ui/PageLoader';
+import { PageLoader, RouteErrorElement } from '../components/ui';
 
 // Route Lazy Loading
 const DashboardPage = lazy(() => import('../features/dashboard'));
@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
   // Public Auth Routes (outside AppShell)
   {
     path: '/login',
+    errorElement: <RouteErrorElement />,
     element: (
       <Suspense fallback={<AuthFallback />}>
         <LoginPage />
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/register',
+    errorElement: <RouteErrorElement />,
     element: (
       <Suspense fallback={<AuthFallback />}>
         <RegisterPage />
@@ -53,6 +55,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <AppShell />,
+    errorElement: <RouteErrorElement />,
     children: [
       {
         index: true,

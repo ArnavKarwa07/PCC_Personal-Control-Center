@@ -176,7 +176,7 @@ def test_project_board_and_card_movement(client, auth_headers):
 
     # Add a new custom column
     col_res = client.post(
-        f"/api/v1/boards/{board_id}/columns",
+        f"/api/v1/boards/create_board_column/{board_id}",
         json={"name": "Testing", "color": "#a855f7"},
         headers=auth_headers,
     )
@@ -192,7 +192,7 @@ def test_project_board_and_card_movement(client, auth_headers):
     task_id = task_res.json()["data"]["id"]
 
     card_res = client.post(
-        "/api/v1/boards/cards",
+        "/api/v1/boards/create_board_card",
         json={"column_id": todo_col_id, "task_id": task_id, "position": 0},
         headers=auth_headers,
     )
@@ -201,7 +201,7 @@ def test_project_board_and_card_movement(client, auth_headers):
 
     # Move card to In Progress
     move_res = client.patch(
-        f"/api/v1/boards/cards/{card_id}/move",
+        f"/api/v1/boards/move_board_card_by_id/{card_id}",
         json={"column_id": in_prog_col_id, "position": 0},
         headers=auth_headers,
     )
@@ -209,7 +209,7 @@ def test_project_board_and_card_movement(client, auth_headers):
     assert move_res.json()["data"]["column_id"] == in_prog_col_id
 
     # Verify board state
-    updated_board = client.get(f"/api/v1/boards/{board_id}", headers=auth_headers).json()["data"]
+    updated_board = client.get(f"/api/v1/boards/get_board_by_id/{board_id}", headers=auth_headers).json()["data"]
     in_prog_col = next(c for c in updated_board["columns"] if c["id"] == in_prog_col_id)
     assert len(in_prog_col["cards"]) == 1
     assert in_prog_col["cards"][0]["id"] == card_id

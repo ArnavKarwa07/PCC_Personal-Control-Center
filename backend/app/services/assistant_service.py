@@ -103,11 +103,9 @@ class AssistantService:
 
         if not raw_bullet_points:
             raw_bullet_points = [
-                "Finalize PCC Phase E Release Verification (High Priority Task)",
-                "Sync on OpenAPI Endpoint Specs at 14:00 (Calendar Event)",
-                "Review Idea Backlog & Notes (Overdue Reminder)",
-                "Prepare Q3 OKR Progress Report for team sync (Upcoming Task)",
-                "Weekly Architecture Review meeting (Calendar Event)",
+                "Your Personal Control Center workspace is clean and ready.",
+                "Use the quick action buttons to create your first task or project.",
+                "Sync your calendar or set reminders to track upcoming events.",
             ]
 
         # Deduplicate bullet points while preserving order
@@ -119,12 +117,15 @@ class AssistantService:
                 seen.add(norm)
                 bullet_points.append(bp)
 
-        summary_text = (
-            f"Good day! You have {pending_tasks} open tasks, {upcoming_events} scheduled calendar events, "
-            f"{overdue_reminders} pending reminders, and {active_projects} active projects."
-        )
-
-        recommendation = "Focus on completing your top priority task and clearing overdue reminders first."
+        if pending_tasks == 0 and upcoming_events == 0 and active_projects == 0:
+            summary_text = "Welcome to Personal Control Center! Your workspace is completely clean with no pending items."
+            recommendation = "Start by adding your first project, task, or setting your goals in the workspace."
+        else:
+            summary_text = (
+                f"Good day! You have {pending_tasks} open tasks, {upcoming_events} scheduled calendar events, "
+                f"{overdue_reminders} pending reminders, and {active_projects} active projects."
+            )
+            recommendation = "Focus on completing your top priority task and clearing overdue reminders first."
 
         return DailyBriefingRead(
             date_str=date.today().isoformat(),

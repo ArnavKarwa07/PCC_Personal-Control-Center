@@ -265,7 +265,7 @@ html[data-theme='dark'] .pcc-ai-chat-messages {
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .pcc-ai-bubble {
-    bottom: 72px;
+    bottom: calc(var(--bottom-nav-height, 64px) + 16px + env(safe-area-inset-bottom, 0px));
     left: 16px;
     right: auto;
     z-index: 1040;
@@ -275,10 +275,11 @@ html[data-theme='dark'] .pcc-ai-chat-messages {
     width: calc(100vw - 32px);
     left: 16px;
     right: auto;
-    bottom: 80px;
-    bottom: calc(var(--bottom-nav-height, 64px) + 16px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--bottom-nav-height, 64px) + 72px + env(safe-area-inset-bottom, 0px));
     height: calc(100vh - 160px);
+    height: calc(100dvh - 160px);
     max-height: calc(100vh - 140px);
+    max-height: calc(100dvh - 140px);
     z-index: 1050;
   }
 }

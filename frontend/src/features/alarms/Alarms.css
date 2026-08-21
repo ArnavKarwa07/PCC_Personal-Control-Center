@@ -508,3 +508,21 @@ html[data-theme='dark'] .pcc-alarm-time-stepper-btn:hover {
     font-size: 1.6rem;
   }
 }
+
+@media (max-width: 360px) {
+  .pcc-alarms-digital-clock__time {
+    font-size: 2rem !important;
+  }
+  .pcc-alarms-clock-hero {
+    padding: var(--space-4) !important;
+  }
+  .pcc-alarm-day-toggle-btn {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 10px !important;
+  }
+  .pcc-alarms-card__footer {
+    flex-wrap: wrap !important;
+    gap: var(--space-2) !important;
+  }
+}

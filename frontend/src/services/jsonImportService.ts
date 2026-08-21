@@ -1,4 +1,4 @@
-import { Task, Project, Note, Idea, CalendarEvent, Reminder, Alarm, Priority, TaskStatus, ProjectStatus, KanbanColumnId, SubTask } from '../types';
+import { Task, Project, Note, Idea, CalendarEvent, Reminder, Alarm, Integration, Priority, TaskStatus, ProjectStatus, KanbanColumnId, SubTask } from '../types';
 import { generateId } from '../utils';
 
 export interface ImportValidationIssue {
@@ -20,6 +20,7 @@ export interface ImportStats {
   contacts: number;
   reminders: number;
   alarms: number;
+  integrations: number;
   weather: number;
   totalImported: number;
 }
@@ -35,6 +36,7 @@ export interface ValidatedImportPayload {
   contacts: Record<string, any>[];
   reminders: Reminder[];
   alarms: Alarm[];
+  integrations: Integration[];
   weather?: { selectedCity: string; unit: 'C' | 'F' };
   finances?: Record<string, any>;
 }
@@ -372,7 +374,29 @@ export function validateAndCleanImportData(input: string | Record<string, any>):
     });
   }
 
-  // 11. Weather preferences
+  // 11. Integrations validation
+  const rawIntegrations = raw.integrations;
+  if (rawIntegrations && Array.isArray(rawIntegrations)) {
+    rawIntegrations.forEach((item: any) => {
+      if (!item || typeof item !== 'object') return;
+
+      const service = item.service || item.provider || 'github';
+      const cleanedIntegration: Integration = {
+        id: item.id || `int-${service}`,
+        service: service as any,
+        name: item.name || `${service} Integration`,
+        description: item.description || '',
+        connected: Boolean(item.connected || item.isConnected),
+        category: item.category || 'developer',
+        config: typeof item.config === 'object' ? item.config : {},
+        lastSynced: item.lastSynced || item.last_synced,
+      };
+
+      payload.integrations.push(cleanedIntegration);
+    });
+  }
+
+  // 12. Weather preferences
   if (raw.weather && typeof raw.weather === 'object') {
     payload.weather = {
       selectedCity: raw.weather.selectedCity || raw.weather.city || 'Pune',
@@ -380,7 +404,7 @@ export function validateAndCleanImportData(input: string | Record<string, any>):
     };
   }
 
-  // 12. Finances
+  // 13. Finances
   if (raw.finances && typeof raw.finances === 'object') {
     payload.finances = {
       income: raw.finances.income || 0,
@@ -401,6 +425,7 @@ export function validateAndCleanImportData(input: string | Record<string, any>):
     contacts: payload.contacts.length,
     reminders: payload.reminders.length,
     alarms: payload.alarms.length,
+    integrations: payload.integrations.length,
     weather: payload.weather ? 1 : 0,
     totalImported:
       (payload.user ? 1 : 0) +
@@ -413,6 +438,7 @@ export function validateAndCleanImportData(input: string | Record<string, any>):
       payload.contacts.length +
       payload.reminders.length +
       payload.alarms.length +
+      payload.integrations.length +
       (payload.weather ? 1 : 0),
   };
 
@@ -451,6 +477,9 @@ export function executeDataImport(payload: ValidatedImportPayload): void {
   if (payload.alarms.length > 0) {
     localStorage.setItem('pcc_alarms', JSON.stringify(payload.alarms));
   }
+  if (payload.integrations && payload.integrations.length > 0) {
+    localStorage.setItem('pcc_integrations_store_v2', JSON.stringify(payload.integrations));
+  }
   if (payload.goals.length > 0) {
     localStorage.setItem('pcc_goals', JSON.stringify(payload.goals));
   }
@@ -482,6 +511,7 @@ function createEmptyStats(): ImportStats {
     contacts: 0,
     reminders: 0,
     alarms: 0,
+    integrations: 0,
     weather: 0,
     totalImported: 0,
   };
@@ -498,5 +528,6 @@ function createEmptyPayload(): ValidatedImportPayload {
     contacts: [],
     reminders: [],
     alarms: [],
+    integrations: [],
   };
 }

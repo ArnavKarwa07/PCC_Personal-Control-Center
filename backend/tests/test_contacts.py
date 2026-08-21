@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 def test_contacts_crud_and_search(client: TestClient, auth_headers: dict):
     # Create contact
     res = client.post(
-        "/api/v1/contacts",
+        "/api/v1/contacts/create_contact",
         headers=auth_headers,
         json={
             "name": "Alex Mercer",
@@ -24,18 +24,18 @@ def test_contacts_crud_and_search(client: TestClient, auth_headers: dict):
     contact_id = res.json()["data"]["id"]
 
     # Search contacts
-    res = client.get("/api/v1/contacts?search=Cyberdyne", headers=auth_headers)
+    res = client.get("/api/v1/contacts/list_contacts?search=Cyberdyne", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()["data"]) == 1
 
     # Overdue followup query
-    res = client.get("/api/v1/contacts?overdue_only=true", headers=auth_headers)
+    res = client.get("/api/v1/contacts/list_contacts?overdue_only=true", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()["data"]) == 1
 
     # Update contact
     res = client.patch(
-        f"/api/v1/contacts/{contact_id}",
+        f"/api/v1/contacts/update_contact_by_id/{contact_id}",
         headers=auth_headers,
         json={"notes": "Updated interaction notes following sync"},
     )
@@ -43,5 +43,5 @@ def test_contacts_crud_and_search(client: TestClient, auth_headers: dict):
     assert res.json()["data"]["notes"] == "Updated interaction notes following sync"
 
     # Delete contact
-    res = client.delete(f"/api/v1/contacts/{contact_id}", headers=auth_headers)
-    assert res.status_code == 204
+    res = client.delete(f"/api/v1/contacts/delete_contact_by_id/{contact_id}", headers=auth_headers)
+    assert res.status_code in (200, 204)

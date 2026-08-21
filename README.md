@@ -52,7 +52,6 @@ PCC_Personal-Control-Center/
 │   ├── requirements.txt      # Python dependencies
 │   └── Dockerfile            # Backend container configuration
 │
-├── worker/                   # Root worker forwarder package
 ├── docs/                     # PRD v1.0 & TRD v1.0 baseline documentation
 ├── docker-compose.yml        # SQLite 3 + FastAPI + Worker manifest
 ├── Makefile                  # Project orchestration commands

@@ -29,96 +29,41 @@ interface ReminderStore {
   getReminderById: (id: string) => Reminder | undefined;
 }
 
-const STORAGE_KEY = 'pcc_reminders_store_v1';
-
-const INITIAL_REMINDERS: Reminder[] = [
-  {
-    id: 'rem-01',
-    title: 'Review Sprint Velocity & Phase C Release Milestones',
-    notes: 'Verify TypeScript compilation, check test suites, and review documentation.',
-    dueDate: '2026-08-15',
-    dueTime: '15:30',
-    priority: 'high',
-    completed: false,
-    recurrence: 'none',
-    category: 'Work',
-    tags: ['Sprint', 'PhaseC'],
-    createdAt: '2026-08-15T08:00:00Z',
-    updatedAt: '2026-08-15T08:00:00Z',
-  },
-  {
-    id: 'rem-02',
-    title: 'Hydration & Posture Reset',
-    notes: 'Drink 500ml water and do 2 minutes spinal decompression stretch.',
-    dueDate: '2026-08-15',
-    dueTime: '16:00',
-    priority: 'medium',
-    completed: false,
-    recurrence: 'daily',
-    category: 'Health',
-    tags: ['Habit', 'Health'],
-    createdAt: '2026-08-15T08:00:00Z',
-    updatedAt: '2026-08-15T08:00:00Z',
-  },
-  {
-    id: 'rem-03',
-    title: 'Submit Bi-weekly Cloud Infrastructure Invoices',
-    notes: 'Check AWS and Neon billing dashboard for usage anomalies.',
-    dueDate: '2026-08-16',
-    dueTime: '10:00',
-    priority: 'urgent',
-    completed: false,
-    recurrence: 'monthly',
-    category: 'Finance',
-    tags: ['Bills', 'DevOps'],
-    createdAt: '2026-08-14T10:00:00Z',
-    updatedAt: '2026-08-14T10:00:00Z',
-  },
-  {
-    id: 'rem-04',
-    title: 'Weekly Systems Retrospective Reflection',
-    notes: 'Review weekly logs, score goal completion, recalibrate focus priorities.',
-    dueDate: '2026-08-16',
-    dueTime: '18:00',
-    priority: 'medium',
-    completed: false,
-    recurrence: 'weekly',
-    category: 'Personal',
-    tags: ['Review', 'Routine'],
-    createdAt: '2026-08-14T12:00:00Z',
-    updatedAt: '2026-08-14T12:00:00Z',
-  },
-  {
-    id: 'rem-05',
-    title: 'Morning Focus Block Standup',
-    notes: 'Pick top 3 high-impact deliverables for the morning.',
-    dueDate: '2026-08-15',
-    dueTime: '08:30',
-    priority: 'urgent',
-    completed: true,
-    recurrence: 'daily',
-    category: 'Work',
-    tags: ['Focus', 'Morning'],
-    createdAt: '2026-08-15T07:00:00Z',
-    updatedAt: '2026-08-15T08:35:00Z',
-  },
-];
+const STORAGE_KEY_V1 = 'pcc_reminders_store_v1';
+const STORAGE_KEY_LEGACY = 'pcc_reminders';
 
 const loadStoredReminders = (): Reminder[] => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw);
+    const raw = localStorage.getItem(STORAGE_KEY_V1) || localStorage.getItem(STORAGE_KEY_LEGACY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const isLegacyMock = parsed.some(
+          (r: any) =>
+            r.title?.includes('Review Sprint Velocity') ||
+            r.title?.includes('Hydration & Posture Reset') ||
+            r.title?.includes('Submit Bi-weekly Cloud') ||
+            r.title?.includes('Weekly Systems Retrospective')
+        );
+        if (isLegacyMock) {
+          localStorage.removeItem(STORAGE_KEY_V1);
+          localStorage.removeItem(STORAGE_KEY_LEGACY);
+          return [];
+        }
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Failed to load reminders from localStorage', err);
   }
-  return INITIAL_REMINDERS;
+  return [];
 };
 
 const saveReminders = (reminders: Reminder[]) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reminders));
+    const data = JSON.stringify(reminders);
+    localStorage.setItem(STORAGE_KEY_V1, data);
+    localStorage.setItem(STORAGE_KEY_LEGACY, data);
   } catch (err) {
     console.warn('Failed to save reminders to localStorage', err);
   }
@@ -137,7 +82,7 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const serverData = await remindersApi.getAll();
-      if (serverData && Array.isArray(serverData) && serverData.length > 0) {
+      if (serverData && Array.isArray(serverData)) {
         set({ reminders: serverData, isLoading: false });
         saveReminders(serverData);
         return;

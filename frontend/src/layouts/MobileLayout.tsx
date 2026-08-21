@@ -8,6 +8,10 @@ import { MOBILE_NAV_ITEMS, ALL_PCC_PAGES, renderNavIcon } from './navConfig';
 import { cn } from '../utils';
 import './MobileLayout.css';
 
+import { useTaskStore } from '../stores/taskStore';
+import { useProjectStore } from '../stores/projectStore';
+import { useNoteStore } from '../stores/noteStore';
+
 export const MobileLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,10 +26,24 @@ export const MobileLayout: React.FC = () => {
   const [quickTitle, setQuickTitle] = useState('');
   const [quickType, setQuickType] = useState<'task' | 'project' | 'note'>('task');
 
-  const handleQuickAddSubmit = (e: React.FormEvent) => {
+  const handleQuickAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickTitle.trim()) return;
-    toast.success(`Created new ${quickType}: "${quickTitle}"`);
+    const title = quickTitle.trim();
+    if (!title) return;
+
+    try {
+      if (quickType === 'task') {
+        await useTaskStore.getState().addTask({ title, status: 'todo', priority: 'medium' });
+      } else if (quickType === 'project') {
+        await useProjectStore.getState().addProject({ title, status: 'active', category: 'General' });
+      } else if (quickType === 'note') {
+        await useNoteStore.getState().addNote({ title, content: '', category: 'General' });
+      }
+      toast.success(`Created new ${quickType}: "${title}"`);
+    } catch {
+      toast.error(`Failed to create ${quickType}`);
+    }
+
     setQuickTitle('');
     setIsQuickAddOpen(false);
   };
@@ -73,7 +91,6 @@ export const MobileLayout: React.FC = () => {
             className="pcc-mobile-header__logo-img"
             style={{ width: 26, height: 26, borderRadius: 5, objectFit: 'contain' }}
           />
-          <span className="pcc-mobile-header__title">PCC</span>
         </div>
 
         <div className="pcc-mobile-header__actions">

@@ -319,8 +319,9 @@
 .pcc-task-item__due-badge--today { color: var(--color-warning); font-weight: var(--font-weight-semibold); }
 .pcc-task-item__due-badge--future { color: var(--color-text-tertiary); }
 
-/* Filter Select Dropdowns */
-.pcc-tasks__filter-select {
+/* Filter Select Dropdowns & Mobile View Select */
+.pcc-tasks__filter-select,
+.pcc-tasks-view-select {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
@@ -333,12 +334,14 @@
   transition: all var(--transition-fast);
 }
 
-.pcc-tasks__filter-select:hover {
+.pcc-tasks__filter-select:hover,
+.pcc-tasks-view-select:hover {
   border-color: var(--color-border-hover);
   background: var(--color-bg-tertiary);
 }
 
-.pcc-tasks__filter-select:focus {
+.pcc-tasks__filter-select:focus,
+.pcc-tasks-view-select:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-glow);
   background: var(--color-bg-tertiary);
@@ -365,9 +368,13 @@ textarea.pcc-input__field {
 }
 
 /* Mobile Stacking Rules */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .pcc-tasks-page {
     gap: var(--space-4);
+  }
+
+  .pcc-tasks__stats-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .pcc-tasks__filter-bar {
@@ -389,15 +396,13 @@ textarea.pcc-input__field {
 
   .pcc-tasks__filter-controls-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
     gap: var(--space-2);
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
     width: 100%;
     max-width: 100%;
-    padding-bottom: 2px;
   }
 
   .pcc-tasks__filter-controls-row::-webkit-scrollbar {
@@ -406,17 +411,25 @@ textarea.pcc-input__field {
 
   .pcc-tasks__filter-selects {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-    flex-shrink: 0;
+    flex: 1 1 auto;
+    width: 100%;
   }
 
-  .pcc-tasks__filter-select {
-    flex-shrink: 0;
+  .pcc-tasks__filter-select,
+  .pcc-tasks-view-select--mobile {
+    flex: 1 1 calc(50% - var(--space-2));
+    min-width: 120px;
   }
 
-  .pcc-tasks-view-modes {
-    flex-shrink: 0;
+  .pcc-tasks-view-modes--desktop {
+    display: none !important;
+  }
+
+  .pcc-tasks-view-select--mobile {
+    display: block !important;
   }
 
   .pcc-tasks-view-btn {

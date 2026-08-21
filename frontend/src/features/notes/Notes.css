@@ -1,98 +1,108 @@
 /* ==========================================================================
-   Notes & Knowledge Base Styles - Split Pane & Markdown Editor
+   Keep-Style Notes Application Redesign - CSS Styles
    ========================================================================== */
 
-.pcc-notes-page {
+.pcc-notes-redesign-root {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  height: calc(100vh - 120px);
-  min-height: 550px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: var(--space-6);
   animation: fadeIn var(--transition-base);
 }
 
-.pcc-notes-workspace {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: var(--space-4);
+.pcc-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.pcc-notes-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   1. Quick Note Input Bar
+   -------------------------------------------------------------------------- */
+.pcc-notes-quick-bar-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.pcc-notes-quick-bar {
+  width: 100%;
+  max-width: 620px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.pcc-notes-quick-bar:focus-within,
+.pcc-notes-quick-bar--expanded {
+  border-color: var(--color-accent);
+  box-shadow: 0 6px 24px var(--color-accent-glow);
+}
+
+.pcc-notes-quick-bar__title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  padding: var(--space-2) 0;
+  margin-bottom: var(--space-1);
+}
+
+.pcc-notes-quick-bar__main-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pcc-notes-quick-bar__input {
   flex: 1;
-  min-height: 0; /* Enable scroll in flex/grid children */
-  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
 }
 
-.pcc-notes-mobile-toggle-bar {
-  display: none;
+.pcc-notes-quick-bar__input::placeholder {
+  color: var(--color-text-tertiary);
 }
 
-@media (max-width: 900px) {
-  .pcc-notes-workspace {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
+.pcc-notes-quick-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
 
-  .pcc-notes-mobile-toggle-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    background: var(--glass-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-  }
-
-  .pcc-notes-mobile-active-note {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
-  }
-
-  .pcc-notes-list-pane--mobile-collapsed {
-    display: none !important;
-  }
-
-  .pcc-notes-editor__body-container--split {
-    grid-template-columns: 1fr;
+@media (max-width: 520px) {
+  .pcc-notes-quick-btn-label {
+    display: none;
   }
 }
 
-@media (max-width: 768px) {
-  .pcc-notes-page {
-    height: auto;
-    min-height: auto;
-  }
-
-  .pcc-notes-view-mode-btn--split {
-    display: none !important;
-  }
-
-  .pcc-notes-editor__toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-3);
-    padding: var(--space-3);
-  }
-
-  .pcc-notes-editor__toolbar-left {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .pcc-notes-editor__toolbar-right {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-}
-
-/* Left Pane: Notes Navigation & List */
-.pcc-notes-list-pane {
+/* --------------------------------------------------------------------------
+   2. Controls & Search & Navigation Bar
+   -------------------------------------------------------------------------- */
+.pcc-notes-controls-container {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -100,247 +110,721 @@
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  min-height: 0;
-  height: 100%;
+  padding: var(--space-3) var(--space-4);
 }
 
-.pcc-notes-list__header {
+.pcc-notes-search-row {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pcc-notes-search-row .pcc-input-wrapper {
+  flex: 1;
+}
+
+.pcc-notes-view-switcher {
+  display: flex;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.pcc-notes-view-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 36px;
+  display: inline-flex;
   align-items: center;
 }
 
-.pcc-notes-list__title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+.pcc-notes-view-btn:hover {
   color: var(--color-text-primary);
-  margin: 0;
 }
 
-.pcc-notes-list__categories {
+.pcc-notes-view-btn--active {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Filter Tabs */
+.pcc-notes-filter-tabs {
   display: flex;
-  flex-wrap: nowrap;
-  gap: var(--space-1);
+  align-items: center;
+  gap: var(--space-2);
   overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--space-2);
   scrollbar-width: none;
-  max-width: 100%;
+  padding-bottom: 2px;
 }
 
-.pcc-notes-list__categories::-webkit-scrollbar {
+.pcc-notes-filter-tabs::-webkit-scrollbar {
   display: none;
 }
 
-.pcc-notes-category-chip {
-  flex-shrink: 0;
-  padding: 4px 10px;
+.pcc-notes-tab {
+  padding: 8px 16px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  background: var(--color-bg-elevated);
+  background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
-  white-space: nowrap;
   cursor: pointer;
+  white-space: nowrap;
   transition: all var(--transition-fast);
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.pcc-notes-category-chip:hover {
-  background: var(--color-surface);
+.pcc-notes-tab:hover {
+  background: var(--color-bg-elevated);
   color: var(--color-text-primary);
 }
 
-.pcc-notes-category-chip--active {
-  background: var(--color-accent-subtle);
+.pcc-notes-tab--active {
+  background: var(--color-accent);
+  color: #ffffff;
   border-color: var(--color-accent);
-  color: var(--color-accent-hover);
-}
-
-.pcc-notes-items-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  overflow-y: auto;
-  flex: 1;
-  padding-right: var(--space-1);
-}
-
-.pcc-notes-section-title {
-  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex;
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+}
+
+/* Mobile Filter Select & View Switcher Row */
+.pcc-notes-mobile-controls-row {
+  display: none;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
+  width: 100%;
   margin-top: var(--space-2);
 }
 
-.pcc-note-item-card {
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
+.pcc-notes-mobile-filter-select {
+  display: none;
+  width: 100%;
+  padding: 10px 14px;
   background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  outline: none;
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+@media (max-width: 768px) {
+  .pcc-notes-filter-tabs {
+    display: none !important;
+  }
+  .pcc-notes-mobile-controls-row {
+    display: flex !important;
+  }
+  .pcc-notes-mobile-filter-select {
+    display: block !important;
+    flex: 1;
+  }
+  .pcc-notes-search-row .pcc-notes-view-switcher {
+    display: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Trash Banner Header
+   -------------------------------------------------------------------------- */
+.pcc-notes-trash-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+/* --------------------------------------------------------------------------
+   4. Note Gallery Grid & Cards
+   -------------------------------------------------------------------------- */
+.pcc-notes-gallery-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-6);
+}
+
+.pcc-notes-gallery-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcc-notes-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+}
+
+.pcc-notes-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.pcc-notes-gallery--list {
+  grid-template-columns: 1fr !important;
+}
+
+/* Color Palettes for Cards */
+.pcc-note-color-default {
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
+}
+
+.pcc-note-color-lavender {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+}
+
+.pcc-note-color-emerald {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+}
+
+.pcc-note-color-amber {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.pcc-note-color-rose {
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(251, 113, 133, 0.35);
+}
+
+.pcc-note-color-sky {
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+/* Card Container */
+.pcc-note-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  cursor: pointer;
   transition: all var(--transition-fast);
-  text-align: left;
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
 }
 
-.pcc-note-item-card:hover {
-  border-color: var(--color-border-hover);
-  background: var(--color-bg-elevated);
-  transform: translateX(2px);
+.pcc-note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-.pcc-note-item-card--active {
-  border-color: var(--color-accent);
-  background: var(--color-bg-elevated);
-  box-shadow: 0 0 12px var(--color-accent-glow);
+.pcc-note-card--selected {
+  outline: 2px solid var(--color-accent);
 }
 
-.pcc-note-item-card__header {
+.pcc-note-card__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-2);
 }
 
-.pcc-note-item-card__title {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+.pcc-note-card__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin: 0;
+  line-height: 1.3;
+}
+
+.pcc-note-card__pin-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-xs);
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcc-note-card:hover .pcc-note-card__pin-btn,
+.pcc-note-card__pin-btn--pinned {
+  opacity: 1;
+}
+
+.pcc-note-card__body {
+  margin: var(--space-2) 0;
+  flex: 1;
+}
+
+.pcc-note-card__snippet {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pcc-note-card__checklist-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pcc-note-card__checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.pcc-note-card__checklist-row--completed .pcc-note-card__checklist-text {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
+}
+
+.pcc-note-card__checkbox {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.pcc-note-card__checklist-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.pcc-note-item-card__snippet {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  line-height: 1.3;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.pcc-note-card__more-items {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
 }
 
-.pcc-note-item-card__footer {
+.pcc-note-card__empty-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.pcc-note-card__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 4px;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.pcc-note-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcc-note-card__date {
   font-size: 11px;
   color: var(--color-text-tertiary);
 }
 
-/* Right Pane: Markdown Editor & Preview */
-.pcc-notes-editor-pane {
+.pcc-note-card__actions {
   display: flex;
-  flex-direction: column;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  height: 100%;
-  min-height: 0;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
 }
 
-.pcc-notes-editor__toolbar {
+.pcc-note-card:hover .pcc-note-card__actions,
+.pcc-note-card:focus-within .pcc-note-card__actions {
+  opacity: 1;
+}
+
+.pcc-note-card__action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcc-note-card__action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   5. Streamlined Note Editor Overlay Modal
+   -------------------------------------------------------------------------- */
+.pcc-note-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: fadeIn var(--transition-fast);
+}
+
+.pcc-note-editor-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: scaleIn var(--transition-fast);
+}
+
+/* Modal Header Bar */
+.pcc-note-editor-modal__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-.pcc-notes-editor__toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-.pcc-notes-editor__toolbar-right {
+.pcc-note-editor-modal__header-left {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
-.pcc-notes-editor__autosave-badge {
-  display: inline-flex;
+.pcc-note-type-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.pcc-note-type-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.pcc-note-type-btn--active {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.pcc-note-editor-modal__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Color Palette Picker & Touch Targets */
+.pcc-note-color-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pcc-note-color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  transition: transform var(--transition-fast);
+}
+
+.pcc-note-color-dot::after {
+  content: '';
+  position: absolute;
+  top: -11px;
+  bottom: -11px;
+  left: -11px;
+  right: -11px;
+}
+
+.pcc-note-color-dot:hover {
+  transform: scale(1.2);
+}
+
+.pcc-note-color-dot--active {
+  border-color: #ffffff !important;
+  transform: scale(1.15);
+}
+
+.pcc-note-color-dot--default { background: #6366f1; }
+.pcc-note-color-dot--lavender { background: #8b5cf6; }
+.pcc-note-color-dot--emerald { background: #10b981; }
+.pcc-note-color-dot--amber { background: #f59e0b; }
+.pcc-note-color-dot--rose { background: #f43f5e; }
+.pcc-note-color-dot--sky { background: #0ea5e9; }
+
+/* Autosave Badge */
+.pcc-note-autosave-badge {
+  display: flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
   color: var(--color-text-tertiary);
 }
 
-.pcc-notes-editor__autosave-dot {
-  width: 7px;
-  height: 7px;
+.pcc-note-autosave-dot {
+  width: 6px;
+  height: 6px;
   border-radius: var(--radius-full);
   background: var(--color-success);
 }
 
-.pcc-notes-editor__autosave-dot--saving {
+.pcc-note-autosave-dot--saving {
   background: var(--color-warning);
   animation: pulseGlow 1s infinite alternate;
 }
 
-.pcc-notes-editor__content-area {
+.pcc-note-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  min-width: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+/* Modal Body */
+.pcc-note-editor-modal__body {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-5);
   overflow-y: auto;
+  flex: 1;
   gap: var(--space-4);
 }
 
-.pcc-notes-editor__title-input {
-  font-size: var(--font-size-2xl);
+.pcc-note-editor__title-input {
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   background: transparent;
   border: none;
   outline: none;
   width: 100%;
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
 }
 
-.pcc-notes-editor__title-input::placeholder {
+.pcc-note-editor__title-input::placeholder {
   color: var(--color-text-tertiary);
 }
 
-.pcc-notes-editor__body-container {
-  display: grid;
-  grid-template-columns: 1fr;
-  flex: 1;
-  min-height: 350px;
+/* Checklist Mode Editor */
+.pcc-checklist-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.pcc-notes-editor__body-container--split {
+.pcc-checklist-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pcc-checklist-progress-info {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.pcc-checklist-progress-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.pcc-checklist-progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
+
+.pcc-checklist-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pcc-checklist-item-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcc-checklist-checkbox {
+  accent-color: var(--color-accent);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.pcc-checklist-item-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  padding: 4px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.pcc-checklist-item-row--completed .pcc-checklist-item-input {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
+}
+
+.pcc-checklist-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  opacity: 0.5;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcc-checklist-delete-btn:hover {
+  opacity: 1;
+  color: var(--color-error);
+}
+
+.pcc-checklist-add-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--color-accent-hover);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  min-height: 36px;
+}
+
+/* Text Mode Editor */
+.pcc-text-editor-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.pcc-text-editor-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcc-text-tab {
+  padding: 4px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border: none;
+  cursor: pointer;
+  min-height: 30px;
+}
+
+.pcc-text-tab--active {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.pcc-text-word-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.pcc-text-editor-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 250px;
+  flex: 1;
+}
+
+.pcc-text-editor-content--split {
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
 }
 
-.pcc-notes-editor__textarea {
+.pcc-text-textarea {
   width: 100%;
   height: 100%;
-  min-height: 350px;
+  min-height: 250px;
   background: transparent;
   border: none;
   outline: none;
@@ -351,122 +835,99 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Markdown Preview Styling */
-.pcc-notes-preview {
-  font-family: var(--font-family);
-  color: var(--color-text-primary);
-  line-height: var(--line-height-relaxed);
+.pcc-text-preview-pane {
   overflow-y: auto;
-  height: 100%;
-  padding: var(--space-2);
+  max-height: 400px;
 }
 
-.pcc-notes-preview h1 {
-  font-size: var(--font-size-2xl);
-  margin-bottom: var(--space-3);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+/* Modal Footer Actions Bar */
+.pcc-note-editor-modal__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.pcc-notes-preview h2 {
-  font-size: var(--font-size-xl);
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-2);
+.pcc-note-footer-actions-left,
+.pcc-note-footer-actions-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.pcc-notes-preview h3 {
-  font-size: var(--font-size-lg);
-  margin-top: var(--space-3);
-  margin-bottom: var(--space-2);
-  color: var(--color-accent-hover);
+/* --------------------------------------------------------------------------
+   6. Focus Visible & Accessibility Ring Styles
+   -------------------------------------------------------------------------- */
+.pcc-notes-tab:focus-visible,
+.pcc-notes-mobile-filter-select:focus-visible,
+.pcc-notes-view-btn:focus-visible,
+.pcc-note-card:focus-visible,
+.pcc-note-color-dot:focus-visible,
+.pcc-note-type-btn:focus-visible,
+.pcc-note-modal-close-btn:focus-visible,
+.pcc-note-card__action-btn:focus-visible,
+.pcc-note-card__pin-btn:focus-visible,
+.pcc-checklist-item-input:focus-visible,
+.pcc-checklist-delete-btn:focus-visible,
+.pcc-text-tab:focus-visible {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 2px !important;
 }
 
-.pcc-notes-preview p {
-  margin-bottom: var(--space-3);
-  color: var(--color-text-secondary);
+/* --------------------------------------------------------------------------
+   7. Mobile & Responsive Breakpoint Rules (320px, 375px, 414px, 768px, 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .pcc-notes-redesign-root {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+
+  .pcc-notes-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .pcc-note-editor-modal {
+    max-height: 96vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .pcc-note-btn-text {
+    display: none;
+  }
+
+  .pcc-note-editor-modal__header {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .pcc-note-editor-modal__footer {
+    padding: var(--space-2) var(--space-3);
+  }
 }
 
-.pcc-notes-preview ul, .pcc-notes-preview ol {
-  padding-left: var(--space-5);
-  margin-bottom: var(--space-3);
-  color: var(--color-text-secondary);
-}
+@media (max-width: 768px) {
+  .pcc-notes-filter-tabs {
+    display: none;
+  }
 
-.pcc-notes-preview li {
-  margin-bottom: 4px;
-}
+  .pcc-notes-mobile-filter-select {
+    display: block;
+  }
 
-.pcc-notes-preview blockquote {
-  border-left: 3px solid var(--color-accent);
-  padding-left: var(--space-3);
-  margin: var(--space-4) 0;
-  color: var(--color-text-secondary);
-  font-style: italic;
-  background: var(--color-accent-subtle);
-  padding-top: var(--space-2);
-  padding-bottom: var(--space-2);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
+  .pcc-notes-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.pcc-notes-preview pre {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  overflow-x: auto;
-  margin-bottom: 0;
-  max-width: 100%;
-}
+  .pcc-notes-view-switcher {
+    align-self: flex-end;
+  }
 
-.pcc-notes-preview code {
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-xs);
-  color: #818cf8;
-  background: var(--color-bg-secondary);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-}
-
-.pcc-notes-preview pre code {
-  background: transparent;
-  padding: 0;
-  color: var(--color-text-primary);
-}
-
-/* Markdown Code & Table Overflow Wrappers */
-.pcc-markdown-code-wrapper,
-.pcc-markdown-table-wrapper {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: var(--space-4);
-  border-radius: var(--radius-md);
-}
-
-.pcc-markdown-code-wrapper pre {
-  margin: 0;
-  white-space: pre;
-  word-break: normal;
-}
-
-.pcc-markdown-table {
-  width: 100%;
-  min-width: 400px;
-  border-collapse: collapse;
-  margin: 0;
-  font-size: var(--font-size-sm);
-}
-
-.pcc-markdown-table th,
-.pcc-markdown-table td {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  text-align: left;
-}
-
-.pcc-markdown-table th {
-  background: var(--color-bg-tertiary);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  .pcc-text-editor-content--split {
+    grid-template-columns: 1fr;
+  }
 }

@@ -560,36 +560,76 @@ html[data-theme='dark'] .pcc-calendar-event-chip--reminder,
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-3);
+    padding: var(--space-3) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .pcc-calendar__nav {
+    width: 100% !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
   }
 
   .pcc-calendar__controls-right {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-2);
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: var(--space-2) !important;
+    box-sizing: border-box !important;
   }
 
   .pcc-calendar__filters {
-    justify-content: space-between;
-    overflow-x: auto;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 4px !important;
+    padding: 3px !important;
+  }
+
+  .pcc-calendar-filter-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
   }
 
   .pcc-calendar-view-toggle {
-    width: 100%;
-    justify-content: space-between;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 2px !important;
+    padding: 3px !important;
   }
 
   .pcc-calendar-view-btn {
-    flex: 1;
-    text-align: center;
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
   }
 
   .pcc-calendar-grid-container {
-    overflow-x: auto;
+    overflow-x: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   .pcc-calendar-weekday-header,
   .pcc-calendar-month-grid {
-    min-width: 580px;
+    min-width: 480px;
   }
 
   .pcc-calendar-week-grid {

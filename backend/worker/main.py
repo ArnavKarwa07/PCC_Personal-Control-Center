@@ -197,7 +197,12 @@ def poll_external_sync(db: Session) -> Dict[str, Any]:
 
     stats = {
         "github_synced": 0,
+        "google_calendar_synced": 0,
         "calendar_synced": 0,
+        "teams_calendar_synced": 0,
+        "slack_synced": 0,
+        "gitlab_synced": 0,
+        "jira_synced": 0,
         "weather_synced": 0,
         "total_synced": 0,
     }
@@ -210,10 +215,10 @@ def poll_external_sync(db: Session) -> Dict[str, Any]:
                 provider=integration.provider,
             )
             provider_key = f"{integration.provider.value}_synced"
-            if provider_key in stats:
-                stats[provider_key] += 1
+            stats[provider_key] = stats.get(provider_key, 0) + 1
             stats["total_synced"] += 1
         except Exception as e:
+            db.rollback()
             logger.warning(f"Error syncing {integration.provider.value} for user {integration.user_id}: {e}")
 
     return stats

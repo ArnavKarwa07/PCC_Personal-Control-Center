@@ -1,10 +1,11 @@
-"""Weather service integrating Open-Meteo with deterministic fallback."""
+"""Weather service integrating OpenWeatherMap and Open-Meteo with deterministic fallback."""
 
 from datetime import date, datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 import httpx
 
+from app.core.config import settings
 from app.schemas.weather import (
     WeatherCurrentResponse,
     WeatherForecastDay,
@@ -37,8 +38,9 @@ WMO_CODE_MAP: Dict[int, Dict[str, str]] = {
 
 
 class WeatherService:
-    """Service fetching real-time weather and forecasts with offline fallback."""
+    """Service fetching real-time weather and forecasts using OpenWeatherMap, Open-Meteo, with offline fallback."""
 
+    OPENWEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5"
     OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 
     @classmethod
@@ -133,6 +135,43 @@ class WeatherService:
         temperature_unit = "fahrenheit" if units == "imperial" else "celsius"
         wind_speed_unit = "mph" if units == "imperial" else "kmh"
 
+        # 1. Try OpenWeatherMap API first if API key available
+        api_key = settings.WEATHER_API_KEY
+        if api_key:
+            try:
+                owm_params = {
+                    "lat": latitude,
+                    "lon": longitude,
+                    "appid": api_key,
+                    "units": units,
+                }
+                with httpx.Client(timeout=3.0) as client:
+                    res = client.get(f"{cls.OPENWEATHER_BASE_URL}/weather", params=owm_params)
+                    if res.status_code == 200:
+                        owm = res.json()
+                        main = owm.get("main", {})
+                        weather_arr = owm.get("weather", [{}])
+                        w_info = weather_arr[0] if weather_arr else {}
+                        wind = owm.get("wind", {})
+                        return WeatherCurrentResponse(
+                            location=location_label,
+                            latitude=latitude,
+                            longitude=longitude,
+                            temperature=float(main.get("temp", 20.0)),
+                            temperature_unit=temperature_unit,
+                            condition=str(w_info.get("main", "Clear Sky")),
+                            weather_code=int(w_info.get("id", 800)),
+                            humidity=int(main.get("humidity", 50)),
+                            wind_speed=float(wind.get("speed", 10.0)),
+                            wind_unit="mph" if units == "imperial" else "km/h",
+                            feels_like=float(main.get("feels_like", 20.0)),
+                            icon="sunny" if "clear" in str(w_info.get("main", "")).lower() else "partly_cloudy",
+                            updated_at=datetime.now(timezone.utc),
+                        )
+            except Exception:
+                pass
+
+        # 2. Fallback to Open-Meteo API
         params = {
             "latitude": latitude,
             "longitude": longitude,
@@ -260,3 +299,4 @@ class WeatherService:
 
 
 weather_service = WeatherService()
+

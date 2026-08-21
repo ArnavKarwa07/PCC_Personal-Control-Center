@@ -22,19 +22,28 @@
 }
 
 .pcc-contacts-toolbar {
-  max-width: 450px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 600px;
+  width: 100%;
+}
+
+.pcc-contacts-toolbar .pcc-input-container {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.pcc-add-contact-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .pcc-contacts-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-6);
-}
-
-@media (max-width: 900px) {
-  .pcc-contacts-content {
-    grid-template-columns: 1fr;
-  }
+  width: 100%;
 }
 
 .pcc-contacts-list {
@@ -218,11 +227,18 @@
   height: 28px !important;
 }
 
-/* Add Contact Form */
+/* Add Contact Form & Modal */
 .pcc-add-contact-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.pcc-add-contact-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
   margin-top: var(--space-4);
 }
 

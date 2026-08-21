@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     CORS_ORIGINS: str = "http://localhost:5173"
+    WEATHER_API_KEY: str = "29b21b5a2f9aca2282088c7c61c30ea2"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 

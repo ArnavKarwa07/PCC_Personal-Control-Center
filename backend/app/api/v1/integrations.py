@@ -13,7 +13,7 @@ from app.services.integration_service import integration_service
 router = APIRouter(prefix="/integrations", tags=["Integrations"])
 
 
-@router.get("", operation_id="listIntegrations")
+@router.get("/list_integrations", operation_id="list_integrations", summary="List Integrations")
 def list_integrations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -25,7 +25,7 @@ def list_integrations(
     }
 
 
-@router.post("/{provider}/connect", operation_id="connectIntegration", status_code=status.HTTP_200_OK)
+@router.post("/connect_integration/{provider}", operation_id="connect_integration", status_code=status.HTTP_200_OK, summary="Connect Integration")
 def connect_integration(
     provider: IntegrationProvider,
     data: IntegrationConnectRequest,
@@ -44,7 +44,7 @@ def connect_integration(
     }
 
 
-@router.post("/{provider}/disconnect", operation_id="disconnectIntegration")
+@router.post("/disconnect_integration/{provider}", operation_id="disconnect_integration", summary="Disconnect Integration")
 def disconnect_integration(
     provider: IntegrationProvider,
     current_user: User = Depends(get_current_user),
@@ -61,7 +61,7 @@ def disconnect_integration(
     }
 
 
-@router.get("/{provider}/status", operation_id="getIntegrationStatus")
+@router.get("/get_integration_status/{provider}", operation_id="get_integration_status", summary="Get Integration Status")
 def get_integration_status(
     provider: IntegrationProvider,
     current_user: User = Depends(get_current_user),
@@ -76,3 +76,22 @@ def get_integration_status(
     return {
         "data": status_info.model_dump(),
     }
+
+
+@router.post("/sync_integration/{provider}", operation_id="sync_integration", summary="Sync Integration")
+@router.post("/{provider}/sync", operation_id="sync_integration_alias", summary="Sync Integration Alias", include_in_schema=False)
+def sync_integration(
+    provider: IntegrationProvider,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Trigger ad-hoc synchronization for an active integration provider."""
+    result = integration_service.sync_provider(
+        db=db,
+        user_id=current_user.id,
+        provider=provider,
+    )
+    return {
+        "data": result,
+    }
+

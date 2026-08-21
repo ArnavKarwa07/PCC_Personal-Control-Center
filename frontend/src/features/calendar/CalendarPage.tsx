@@ -391,7 +391,7 @@ export const CalendarPage: React.FC = () => {
             <div className="pcc-calendar-day-details-header">
               <h3>Schedule for {clickedDate}</h3>
               <Button size="sm" variant="secondary" onClick={() => setIsCreateModalOpen(true)}>
-                + Add for this Day
+                + Add
               </Button>
             </div>
 

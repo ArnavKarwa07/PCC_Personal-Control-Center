@@ -96,6 +96,12 @@ export interface Project {
   updatedAt: string;
 }
 
+export interface NoteChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface Note {
   id: string;
   title: string;
@@ -103,6 +109,11 @@ export interface Note {
   category: string;
   pinned: boolean;
   tags?: string[];
+  type?: 'text' | 'checklist';
+  checklistItems?: NoteChecklistItem[];
+  color?: string;
+  archived?: boolean;
+  trashed?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -209,7 +220,11 @@ export type IntegrationService =
   | 'telegram'
   | 'notion'
   | 'obsidian'
-  | 'discord';
+  | 'discord'
+  | 'teams_calendar'
+  | 'slack'
+  | 'gitlab'
+  | 'jira';
 
 export interface Integration {
   id: string;

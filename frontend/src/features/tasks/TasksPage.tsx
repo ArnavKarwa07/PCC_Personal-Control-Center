@@ -341,7 +341,7 @@ export const TasksPage: React.FC = () => {
       {/* Header */}
       <div className="pcc-tasks__header">
         <div className="pcc-tasks__title-group">
-          <h1>Tasks & Action Items</h1>
+          <h1>Tasks</h1>
         </div>
         <Button
           variant="primary"
@@ -363,7 +363,7 @@ export const TasksPage: React.FC = () => {
       <div className="pcc-tasks__stats-bar">
         <div className="pcc-tasks__stat-card">
           <span className="pcc-tasks__stat-val">{totalTasks}</span>
-          <span className="pcc-tasks__stat-label">Total Pipeline</span>
+          <span className="pcc-tasks__stat-label">Total Tasks</span>
         </div>
         <div className="pcc-tasks__stat-card">
           <span className="pcc-tasks__stat-val" style={{ color: 'var(--color-accent)' }}>{inProgressTasks}</span>
@@ -403,6 +403,7 @@ export const TasksPage: React.FC = () => {
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="pcc-tasks__filter-select"
+              aria-label="Filter by status"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -414,6 +415,7 @@ export const TasksPage: React.FC = () => {
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
               className="pcc-tasks__filter-select"
+              aria-label="Filter by priority"
             >
               <option value="all">All Priorities</option>
               <option value="urgent">Urgent</option>
@@ -426,6 +428,7 @@ export const TasksPage: React.FC = () => {
               value={filterDueDate}
               onChange={(e) => setFilterDueDate(e.target.value)}
               className="pcc-tasks__filter-select"
+              aria-label="Filter by due date"
             >
               <option value="all">All Dates</option>
               <option value="today">Due Today</option>
@@ -433,8 +436,8 @@ export const TasksPage: React.FC = () => {
             </select>
           </div>
 
-          {/* View Mode Switcher */}
-          <div className="pcc-tasks-view-modes">
+          {/* Desktop View Mode Switcher */}
+          <div className="pcc-tasks-view-modes pcc-tasks-view-modes--desktop">
             <button
               type="button"
               className={cn(
@@ -476,6 +479,20 @@ export const TasksPage: React.FC = () => {
               By Priority
             </button>
           </div>
+
+          {/* Mobile View Switcher Select */}
+          <select
+            id="tasks-mobile-view-switcher"
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value as any)}
+            className="pcc-tasks-view-select pcc-tasks-view-select--mobile"
+            aria-label="Select view mode"
+          >
+            <option value="list">List View</option>
+            <option value="kanban">Kanban Board</option>
+            <option value="project">By Project</option>
+            <option value="priority">By Priority</option>
+          </select>
         </div>
       </div>
 

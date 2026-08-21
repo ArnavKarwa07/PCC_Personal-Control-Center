@@ -1,37 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { OKRProgressRing } from '../../components/OKRProgressRing';
 import { EditGoalModal, Goal } from './EditGoalModal';
+import { goalsApi } from '../../services/api';
 import './GoalsPage.css';
 
 export const GoalsPage: React.FC = () => {
   const { toast } = useToast();
-  const [goals, setGoals] = useState<Goal[]>([
-    {
-      id: '1',
-      title: 'Architect Personal Control Center OS',
-      period: '2026-09-30',
-      progress: 67,
-      status: 'In Progress',
-      milestones: [
-        { id: '1-1', text: 'Design Glassmorphic Token System', completed: true },
-        { id: '1-2', text: 'FastAPI Deduplication', completed: true },
-        { id: '1-3', text: 'Stitch UI Redesign', completed: false },
-      ],
-    },
-    {
-      id: '2',
-      title: 'Master Distributed Consensus & Raft Protocols',
-      period: '2026-12-31',
-      progress: 50,
-      status: 'In Progress',
-      milestones: [
-        { id: '2-1', text: 'Implement Raft Leader Election', completed: true },
-        { id: '2-2', text: 'Log Replication Engine', completed: false },
-      ],
-    },
-  ]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+
+  const fetchGoals = async () => {
+    try {
+      const res = await goalsApi.getAll();
+      const rawData = (res as any)?.data || (Array.isArray(res) ? res : []);
+      if (Array.isArray(rawData)) {
+        setGoals(
+          rawData.map((g: any) => ({
+            id: String(g.id),
+            title: g.title || g.name || 'Untitled Goal',
+            period: g.period || g.target_date || g.time_period || 'Q3 2026',
+            progress: typeof g.progress === 'number' ? g.progress : 0,
+            status: g.status === 'completed' || g.status === 'Completed' ? 'Completed' : 'In Progress',
+            milestones: Array.isArray(g.milestones)
+              ? g.milestones.map((m: any, idx: number) => ({
+                  id: String(m.id || idx),
+                  text: typeof m === 'string' ? m : m.text || m.title || 'Milestone',
+                  completed: !!m.completed,
+                }))
+              : [],
+          }))
+        );
+      }
+    } catch {
+      // Keep empty array on error
+    }
+  };
+
+  useEffect(() => {
+    fetchGoals();
+  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -51,21 +59,48 @@ export const GoalsPage: React.FC = () => {
     setEditingGoal(null);
   };
 
-  const handleSaveGoal = (savedGoal: Goal) => {
+  const handleSaveGoal = async (savedGoal: Goal) => {
+    const payload = {
+      name: savedGoal.title,
+      time_period: savedGoal.period,
+      status: savedGoal.status === 'Completed' ? 'completed' : 'in_progress',
+      progress: savedGoal.progress,
+      milestones: savedGoal.milestones.map((m) => ({ name: m.text })),
+    };
+
+    try {
+      if (goals.some((g) => g.id === savedGoal.id)) {
+        await goalsApi.update(savedGoal.id, {
+          name: savedGoal.title,
+          time_period: savedGoal.period,
+          status: savedGoal.status === 'Completed' ? 'completed' : 'in_progress',
+          progress: savedGoal.progress,
+        } as any).catch(() => {});
+        toast.success(`Updated Goal: "${savedGoal.title}"`);
+      } else {
+        await goalsApi.create(payload as any).catch(() => {});
+        toast.success(`Created OKR Goal: "${savedGoal.title}"`);
+      }
+    } catch {
+      // Optimistic update
+    }
     setGoals((prev) => {
       const exists = prev.some((g) => g.id === savedGoal.id);
       if (exists) {
-        toast.success(`Updated Goal: "${savedGoal.title}"`);
         return prev.map((g) => (g.id === savedGoal.id ? savedGoal : g));
       } else {
-        toast.success(`Created OKR Goal: "${savedGoal.title}"`);
         return [savedGoal, ...prev];
       }
     });
     handleCloseModal();
   };
 
-  const handleDeleteGoal = (goalId: string, title: string) => {
+  const handleDeleteGoal = async (goalId: string, title: string) => {
+    try {
+      await goalsApi.delete(goalId).catch(() => {});
+    } catch {
+      // Optimistic delete
+    }
     setGoals((prev) => prev.filter((g) => g.id !== goalId));
     toast.info(`Deleted Goal: "${title}"`);
   };
@@ -81,12 +116,14 @@ export const GoalsPage: React.FC = () => {
         const completedMilestones = updatedMilestones.filter((m) => m.completed).length;
         const progress = totalMilestones === 0 ? 0 : Math.round((completedMilestones / totalMilestones) * 100);
         const status: 'In Progress' | 'Completed' = progress === 100 ? 'Completed' : 'In Progress';
-        return {
+        const updated = {
           ...g,
           milestones: updatedMilestones,
           progress,
           status,
         };
+        goalsApi.update(goalId, { progress, status: status === 'Completed' ? 'completed' : 'in_progress' } as any).catch(() => {});
+        return updated;
       })
     );
     toast.info('Updated milestone status');
@@ -96,7 +133,7 @@ export const GoalsPage: React.FC = () => {
     <div className="pcc-goals-page">
       <div className="pcc-goals-header">
         <div className="pcc-goals-header__main">
-          <h1 className="pcc-goals-title">Goals & OKRs Matrix</h1>
+          <h1 className="pcc-goals-title">OKRs</h1>
         </div>
         <Button
           variant="primary"
@@ -115,8 +152,26 @@ export const GoalsPage: React.FC = () => {
 
       <div className="pcc-goals-grid">
         <div className="pcc-goals-list">
-          {goals.map((g) => (
-            <Card key={g.id} glass padding="lg" className="pcc-goal-card">
+          {goals.length === 0 ? (
+            <Card glass padding="lg" className="pcc-goal-empty-card">
+              <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.5, marginBottom: '0.75rem' }}>
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>No Objectives or OKRs Yet</h3>
+                <p style={{ margin: '0 0 1.5rem 0', color: 'var(--text-muted, #888)', fontSize: '0.9rem' }}>
+                  Define strategic focus areas and track quarterly milestones with visual progress rings.
+                </p>
+                <Button variant="primary" onClick={handleOpenAddModal}>
+                  + Set Your First OKR Goal
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            goals.map((g) => (
+              <Card key={g.id} glass padding="lg" className="pcc-goal-card">
               <div className="pcc-goal-card__top">
                 <OKRProgressRing progress={g.progress} status={g.status} size={88} strokeWidth={8} />
                 <div className="pcc-goal-card__meta">
@@ -175,7 +230,8 @@ export const GoalsPage: React.FC = () => {
                 </div>
               </div>
             </Card>
-          ))}
+          ))
+        )}
         </div>
       </div>
 

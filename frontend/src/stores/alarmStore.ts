@@ -21,70 +21,41 @@ interface AlarmStore {
   getNextAlarmText: () => string;
 }
 
-const STORAGE_KEY = 'pcc_alarms_store_v1';
-
-const INITIAL_ALARMS: Alarm[] = [
-  {
-    id: 'alm-01',
-    time: '06:30',
-    label: 'Morning Sunlight & Hydration Wakeup',
-    enabled: true,
-    days: [1, 2, 3, 4, 5], // Mon-Fri
-    sound: 'radiant',
-    snoozeMinutes: 10,
-    createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T08:00:00Z',
-  },
-  {
-    id: 'alm-02',
-    time: '08:45',
-    label: 'Engineering Standup & Daily Calibration',
-    enabled: true,
-    days: [1, 2, 3, 4, 5], // Mon-Fri
-    sound: 'digital',
-    snoozeMinutes: 5,
-    createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T08:00:00Z',
-  },
-  {
-    id: 'alm-03',
-    time: '13:00',
-    label: 'Post-Lunch Deep Work Sprint Start',
-    enabled: false,
-    days: [1, 2, 3, 4, 5],
-    sound: 'gentle',
-    snoozeMinutes: 10,
-    createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T08:00:00Z',
-  },
-  {
-    id: 'alm-04',
-    time: '22:30',
-    label: 'Evening Blue-Light Wind Down & Sleep Routine',
-    enabled: true,
-    days: [0, 1, 2, 3, 4, 5, 6], // Everyday
-    sound: 'gentle',
-    snoozeMinutes: 15,
-    createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T08:00:00Z',
-  },
-];
+const STORAGE_KEY_V1 = 'pcc_alarms_store_v1';
+const STORAGE_KEY_LEGACY = 'pcc_alarms';
 
 const loadStoredAlarms = (): Alarm[] => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw);
+    const raw = localStorage.getItem(STORAGE_KEY_V1) || localStorage.getItem(STORAGE_KEY_LEGACY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const isLegacyMock = parsed.some(
+          (a: any) =>
+            a.label?.includes('Morning Sunlight') ||
+            a.label?.includes('Engineering Standup') ||
+            a.label?.includes('Post-Lunch Deep Work') ||
+            a.label?.includes('Evening Blue-Light')
+        );
+        if (isLegacyMock) {
+          localStorage.removeItem(STORAGE_KEY_V1);
+          localStorage.removeItem(STORAGE_KEY_LEGACY);
+          return [];
+        }
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Failed to load alarms from localStorage', err);
   }
-  return INITIAL_ALARMS;
+  return [];
 };
 
 const saveAlarms = (alarms: Alarm[]) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(alarms));
+    const data = JSON.stringify(alarms);
+    localStorage.setItem(STORAGE_KEY_V1, data);
+    localStorage.setItem(STORAGE_KEY_LEGACY, data);
   } catch (err) {
     console.warn('Failed to save alarms to localStorage', err);
   }
@@ -99,7 +70,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const serverAlarms = await alarmsApi.getAll();
-      if (serverAlarms && Array.isArray(serverAlarms) && serverAlarms.length > 0) {
+      if (serverAlarms && Array.isArray(serverAlarms)) {
         set({ alarms: serverAlarms, isLoading: false });
         saveAlarms(serverAlarms);
         return;
@@ -225,6 +196,6 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
 
     // Simple nearest enabled alarm finder
     const sorted = [...enabledAlarms].sort((a, b) => a.time.localeCompare(b.time));
-    return `Next at ${sorted[0].time} (${sorted[0].label})`;
+    return `Next at ${sorted[0].time}`;
   },
 }));

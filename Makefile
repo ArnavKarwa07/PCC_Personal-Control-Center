@@ -42,3 +42,8 @@ init-db:
 reset-db:
 	cd backend && del /f pcc.db 2>nul & alembic upgrade head
 
+clean:
+	@rmdir /s /q .pytest_cache .ruff_cache 2>nul || true
+	@cd backend && rmdir /s /q .pytest_cache .ruff_cache 2>nul || true
+
+

@@ -10,6 +10,10 @@ import { DESKTOP_NAV_CATEGORIES, renderNavIcon } from './navConfig';
 import { cn } from '../utils';
 import './DesktopLayout.css';
 
+import { useTaskStore } from '../stores/taskStore';
+import { useProjectStore } from '../stores/projectStore';
+import { useNoteStore } from '../stores/noteStore';
+
 export const DesktopLayout: React.FC = () => {
   const navigate = useNavigate();
   const { sidebarCollapsed, toggleSidebar, toggleCommandPalette, theme, setTheme } = useUIStore();
@@ -24,10 +28,24 @@ export const DesktopLayout: React.FC = () => {
   const [quickTitle, setQuickTitle] = useState('');
   const [quickType, setQuickType] = useState<'task' | 'project' | 'note'>('task');
 
-  const handleQuickAddSubmit = (e: React.FormEvent) => {
+  const handleQuickAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickTitle.trim()) return;
-    toast.success(`Created new ${quickType}: "${quickTitle}"`);
+    const title = quickTitle.trim();
+    if (!title) return;
+
+    try {
+      if (quickType === 'task') {
+        await useTaskStore.getState().addTask({ title, status: 'todo', priority: 'medium' });
+      } else if (quickType === 'project') {
+        await useProjectStore.getState().addProject({ title, status: 'active', category: 'General' });
+      } else if (quickType === 'note') {
+        await useNoteStore.getState().addNote({ title, content: '', category: 'General' });
+      }
+      toast.success(`Created new ${quickType}: "${title}"`);
+    } catch {
+      toast.error(`Failed to create ${quickType}`);
+    }
+
     setQuickTitle('');
     setIsQuickAddOpen(false);
   };
@@ -104,11 +122,6 @@ export const DesktopLayout: React.FC = () => {
         <div className="pcc-sidebar__header">
           <div className="pcc-sidebar__logo" onClick={() => navigate('/')}>
             <img src="/logo.png" alt="PCC Logo" className="pcc-sidebar__logo-img" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain' }} />
-            {!sidebarCollapsed && (
-              <div className="pcc-sidebar__logo-text">
-                <span className="pcc-sidebar__logo-title">PCC</span>
-              </div>
-            )}
           </div>
         </div>
 

@@ -13,7 +13,7 @@ import { Button, Input, Badge, Modal } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
-import { apiClient } from '../../services/api';
+import { integrationsApi } from '../../services/api';
 import { validateAndCleanImportData, executeDataImport } from '../../services/jsonImportService';
 import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
@@ -27,7 +27,7 @@ const ACCENT_OPTIONS: { id: AccentColor; label: string; gradient: string }[] = [
   { id: 'amber', label: 'Amber', gradient: 'linear-gradient(135deg, #d97706 0%, #ea580c 100%)' },
 ];
 
-const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'text' | 'password' }[]> = {
+const BASE_INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'text' | 'password' }[]> = {
   github: [
     { key: 'token', label: 'Personal Access Token', type: 'password' },
     { key: 'repositories', label: 'Repositories (comma-separated)', type: 'text' },
@@ -36,9 +36,29 @@ const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'te
     { key: 'account', label: 'Google Account', type: 'text' },
     { key: 'calendars', label: 'Calendars', type: 'text' },
   ],
+  teams_calendar: [
+    { key: 'tenantId', label: 'Tenant ID', type: 'text' },
+    { key: 'clientId', label: 'Client ID', type: 'text' },
+    { key: 'calendarId', label: 'Calendar ID', type: 'text' },
+  ],
   telegram: [
     { key: 'botToken', label: 'Bot Token', type: 'password' },
     { key: 'chatId', label: 'Chat ID', type: 'text' },
+  ],
+  slack: [
+    { key: 'userToken', label: 'User Token', type: 'password' },
+    { key: 'defaultChannel', label: 'Default Channel', type: 'text' },
+  ],
+  gitlab: [
+    { key: 'token', label: 'Personal Access Token', type: 'password' },
+    { key: 'gitlabUrl', label: 'GitLab URL', type: 'text' },
+    { key: 'projectIds', label: 'Project IDs', type: 'text' },
+  ],
+  jira: [
+    { key: 'domain', label: 'Domain (e.g. company.atlassian.net)', type: 'text' },
+    { key: 'email', label: 'Email', type: 'text' },
+    { key: 'apiToken', label: 'API Token', type: 'password' },
+    { key: 'projectKey', label: 'Project Key', type: 'text' },
   ],
   notion: [
     { key: 'integrationToken', label: 'Integration Token', type: 'password' },
@@ -47,20 +67,24 @@ const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'te
   discord: [
     { key: 'webhookUrl', label: 'Webhook URL', type: 'text' },
   ],
-  openweather: [
-    { key: 'apiKey', label: 'API Key', type: 'password' },
-    { key: 'defaultCity', label: 'Default City', type: 'text' },
-    { key: 'units', label: 'Units', type: 'text' },
-  ],
-  weather: [
-    { key: 'apiKey', label: 'API Key', type: 'password' },
-    { key: 'defaultCity', label: 'Default City', type: 'text' },
-    { key: 'units', label: 'Units', type: 'text' },
-  ],
+};
+
+const INTEGRATION_FIELDS: Record<string, { key: string; label: string; type: 'text' | 'password' }[]> = {
+  ...BASE_INTEGRATION_FIELDS,
+  'int-github': BASE_INTEGRATION_FIELDS.github,
+  'int-gcal': BASE_INTEGRATION_FIELDS.google_calendar,
+  'int-teams-calendar': BASE_INTEGRATION_FIELDS.teams_calendar,
+  'int-telegram': BASE_INTEGRATION_FIELDS.telegram,
+  'int-slack': BASE_INTEGRATION_FIELDS.slack,
+  'int-gitlab': BASE_INTEGRATION_FIELDS.gitlab,
+  'int-jira': BASE_INTEGRATION_FIELDS.jira,
+  'int-notion': BASE_INTEGRATION_FIELDS.notion,
+  'int-discord': BASE_INTEGRATION_FIELDS.discord,
 };
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [openSection, setOpenSection] = useState<string | null>('general');
 
   const { user, setUser } = useAuthStore();
   const { theme, setTheme, accentColor, setAccentColor } = useUIStore();
@@ -99,13 +123,13 @@ export const SettingsPage: React.FC = () => {
     setIsConnecting(true);
     setConnectError(null);
     try {
-      await apiClient.post(`/integrations/${connectModal.provider}/connect`, connectConfig);
+      await integrationsApi.connect(connectModal.provider, connectConfig);
       await fetchIntegrations();
       const matching = integrations.find(
         (i) => ((i as any).provider || i.service) === connectModal.provider || i.id === connectModal.id
       );
       if (matching && !matching.connected) {
-        await toggleConnect(matching.id, connectConfig);
+        await toggleConnect(matching.service || matching.id, connectConfig);
       }
       soundEffects.playChime();
       toast.success(`Connected to ${connectModal.name}`);
@@ -130,54 +154,17 @@ export const SettingsPage: React.FC = () => {
   };
 
   const renderServiceIcon = (service: IntegrationService) => {
-    switch (service) {
-      case 'github':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-          </svg>
-        );
-      case 'google_calendar':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        );
-      case 'weather':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2v2" />
-            <path d="M4.93 4.93l1.41 1.41" />
-            <path d="M20 12h2" />
-            <path d="M15.5 13a4.5 4.5 0 1 0-8.9 1A4 4 0 0 0 8 22h10a4 4 0 0 0 0-8c-.8 0-1.6.2-2.5.5z" />
-          </svg>
-        );
-      case 'telegram':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        );
-      case 'notion':
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-        );
-      case 'discord':
-      default:
-        return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        );
-    }
+    return (
+      <img
+        src={`/logos/${service}.svg`}
+        alt={`${service} logo`}
+        className="pcc-integration-card__logo-img"
+        aria-hidden="true"
+        onError={(e) => {
+          (e.target as HTMLElement).style.display = 'none';
+        }}
+      />
+    );
   };
 
   // Full backup JSON export
@@ -229,7 +216,7 @@ export const SettingsPage: React.FC = () => {
         soundEffects.playChime();
         const s = result.stats;
         toast.success(
-          `Imported ${s.tasks} tasks, ${s.projects} projects, ${s.notes} notes, ${s.ideas} ideas, ${s.calendarEvents} events, ${s.reminders} reminders successfully with 0 errors!`
+          `Imported ${s.tasks} tasks, ${s.projects} projects, ${s.notes} notes, ${s.ideas} ideas, ${s.calendarEvents} events, ${s.reminders} reminders, ${s.integrations} integrations successfully with 0 errors!`
         );
         setTimeout(() => window.location.reload(), 600);
       } catch (err: any) {
@@ -239,11 +226,413 @@ export const SettingsPage: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const renderGeneralContent = (idPrefix = '') => (
+    <div className="pcc-settings-grid">
+      {/* Profile Info */}
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Profile Information
+          </span>
+        </div>
+
+        <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <Input
+            id={`${idPrefix}profile-name`}
+            label="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            id={`${idPrefix}profile-email`}
+            label="Email Address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            id={`${idPrefix}profile-role`}
+            label="Role / Title"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="primary" size="sm" type="submit">
+              Save Profile
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Appearance & Preferences */}
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+            </svg>
+            Appearance & Regional
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label">Theme Mode</label>
+            <div
+              className={cn('pcc-theme-switch', theme === 'dark' ? 'pcc-theme-switch--dark' : 'pcc-theme-switch--light')}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label="Toggle dark or light theme mode"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setTheme(theme === 'dark' ? 'light' : 'dark');
+                }
+              }}
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+            >
+              <div className="pcc-theme-switch__option pcc-theme-switch__option--light">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <span>Light</span>
+              </div>
+
+              <div className="pcc-theme-switch__option pcc-theme-switch__option--dark">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+                <span>Dark</span>
+              </div>
+
+              <div className="pcc-theme-switch__knob" />
+            </div>
+          </div>
+
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label">Accent Color Palette</label>
+            <div className="pcc-accent-swatches">
+              {ACCENT_OPTIONS.map((opt) => {
+                const isSelected = accentColor === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={cn('pcc-accent-swatch', isSelected && 'pcc-accent-swatch--active')}
+                    onClick={() => {
+                      setAccentColor(opt.id);
+                      soundEffects.playPip();
+                      toast.success(`Accent color set to ${opt.label}`);
+                    }}
+                    title={`Select ${opt.label} accent color`}
+                    aria-label={`Select ${opt.label} accent color`}
+                  >
+                    <span
+                      className="pcc-accent-swatch__preview"
+                      style={{ background: opt.gradient }}
+                    />
+                    <span className="pcc-accent-swatch__label">{opt.label}</span>
+                    {isSelected && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        aria-hidden="true"
+                        className="pcc-accent-swatch__check"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="pcc-settings-field-row">
+            <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor={`${idPrefix}settings-tz`}>
+              Primary Timezone
+            </label>
+            <select
+              id={`${idPrefix}settings-tz`}
+              className="pcc-reminder-form__select pcc-settings-select"
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+            >
+              <option value="America/Los_Angeles">Pacific Time (UTC-8)</option>
+              <option value="America/New_York">Eastern Time (UTC-5)</option>
+              <option value="Europe/London">London (UTC+0)</option>
+              <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+              <option value="Asia/Kolkata">India (UTC+5:30)</option>
+            </select>
+          </div>
+
+          <div className="pcc-settings-field-row">
+            <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor={`${idPrefix}settings-date-format`}>
+              Date Display Format
+            </label>
+            <select
+              id={`${idPrefix}settings-date-format`}
+              className="pcc-reminder-form__select pcc-settings-select"
+              value={dateFormat}
+              onChange={(e) => setDateFormat(e.target.value)}
+            >
+              <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601)</option>
+              <option value="MM/DD/YYYY">MM/DD/YYYY (US Standard)</option>
+              <option value="DD/MM/YYYY">DD/MM/YYYY (EU Standard)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderIntegrationsContent = (idPrefix = '') => (
+    <div className="pcc-integrations-grid">
+      {integrations.map((item: Integration) => {
+        const isItemSyncing = isSyncing[item.id];
+
+        return (
+          <div
+            key={item.id}
+            id={`integration-${idPrefix}${item.id}`}
+            className={cn(
+              'pcc-integration-card',
+              item.connected && 'pcc-integration-card--connected'
+            )}
+          >
+            <div>
+              <div className="pcc-integration-card__header">
+                <div className="pcc-integration-card__brand">
+                  <div className="pcc-integration-card__icon">{renderServiceIcon(item.service)}</div>
+                  <div className="pcc-integration-card__title-area">
+                    <span className="pcc-integration-card__name">{item.name}</span>
+                    <span className="pcc-integration-card__category">{item.category}</span>
+                  </div>
+                </div>
+
+                <Badge variant={item.connected ? 'success' : 'default'} size="sm">
+                  {item.connected ? 'Connected' : 'Disconnected'}
+                </Badge>
+              </div>
+
+              <p className="pcc-integration-card__desc" style={{ marginTop: 'var(--space-3)' }}>
+                {item.description}
+              </p>
+            </div>
+
+            {/* Config Box if connected */}
+            {item.connected && item.config && (
+              <div className="pcc-integration-card__config-box">
+                {Object.entries(item.config).map(([key, val]) => (
+                  <div key={key} className="pcc-integration-card__config-row">
+                    <span className="pcc-integration-card__config-label">{key}:</span>
+                    <input
+                      className="pcc-integration-card__config-input"
+                      aria-label={`${item.name} ${key}`}
+                      value={val}
+                      onChange={(e) =>
+                        updateConfig(item.id, { [key]: e.target.value })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Footer Actions */}
+            <div className="pcc-integration-card__footer">
+              <span className="pcc-integration-card__synced-text">
+                {item.lastSynced
+                  ? `Synced: ${item.lastSynced.slice(11, 16)} UTC`
+                  : 'Not synced yet'}
+              </span>
+
+              <div className="pcc-integration-card__actions">
+                {item.connected ? (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={isItemSyncing}
+                      onClick={async () => {
+                        await syncIntegration(item.id);
+                        toast.success(`Synced ${item.name}`);
+                      }}
+                    >
+                      Sync
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        toggleConnect(item.id);
+                        toast.info(`Disconnected from ${item.name}`);
+                      }}
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={async () => {
+                        await testConnection(item.id);
+                        toast.info('Connection test succeeded');
+                      }}
+                    >
+                      Test
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        const provider = (item as any).provider || item.service;
+                        setConnectModal({
+                          provider,
+                          name: item.name,
+                          id: item.id,
+                        });
+                        setConnectConfig({});
+                        setConnectError(null);
+                      }}
+                    >
+                      Connect
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderAudioContent = (idPrefix = '') => (
+    <div className="pcc-settings-grid">
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+            </svg>
+            Sound & Tone Preferences
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="pcc-reminder-form__group">
+            <label className="pcc-reminder-form__label" htmlFor={`${idPrefix}sound-preset`}>
+              Default Alarm Tone
+            </label>
+            <select
+              id={`${idPrefix}sound-preset`}
+              className="pcc-reminder-form__select"
+              value={selectedTone}
+              onChange={(e) => setSelectedTone(e.target.value)}
+            >
+              <option value="radiant">Radiant Bell (Polyphonic Harmonic)</option>
+              <option value="gentle">Gentle Chime (Smooth Sine)</option>
+              <option value="digital">Digital Pulse (Triple Beep)</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                soundEffects.playAlarm(
+                  selectedTone === 'digital'
+                    ? 'digital'
+                    : selectedTone === 'gentle'
+                    ? 'gentle'
+                    : 'radiant'
+                );
+                toast.info(`Playing tone: ${selectedTone}`);
+              }}
+            >
+              ▶ Test Selected Tone
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                soundEffects.playTimerComplete();
+                toast.info('Playing Pomodoro chime');
+              }}
+            >
+              🔔 Test Timer Bell
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDataContent = (idPrefix = '') => (
+    <div className="pcc-data-panel">
+      <div className="pcc-backup-action-card">
+        <h3>Export Complete PCC Archive</h3>
+        <p>
+          Download your tasks, projects, notes, ideas, calendar schedules, reminders, and alarm
+          configurations as a portable, standardized JSON backup archive.
+        </p>
+        <div>
+          <Button id={`${idPrefix}btn-export-json`} variant="primary" size="sm" onClick={handleExportJSON}>
+            Export JSON Backup
+          </Button>
+        </div>
+      </div>
+
+      <div className="pcc-backup-action-card">
+        <h3>Import & Restore Backup</h3>
+        <p>Restore your system database from an existing PCC JSON archive backup file.</p>
+        <div>
+          <label className="pcc-upload-btn" style={{ cursor: 'pointer' }}>
+            📂 Choose Backup File
+            <input
+              type="file"
+              accept=".json"
+              aria-label="Upload Backup JSON File"
+              onChange={handleImportJSONFile}
+              style={{ display: 'none' }}
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="pcc-settings-page">
       {/* Header */}
       <div className="pcc-settings-header">
-        <h1>Settings & Integrations</h1>
+        <h1>Settings</h1>
       </div>
 
       {/* Navigation Tabs */}
@@ -253,7 +642,7 @@ export const SettingsPage: React.FC = () => {
           className={cn('pcc-settings-nav-btn', activeTab === 'general' && 'pcc-settings-nav-btn--active')}
           onClick={() => setActiveTab('general')}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
@@ -265,7 +654,7 @@ export const SettingsPage: React.FC = () => {
           className={cn('pcc-settings-nav-btn', activeTab === 'integrations' && 'pcc-settings-nav-btn--active')}
           onClick={() => setActiveTab('integrations')}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polyline points="16 18 22 12 16 6" />
             <polyline points="8 6 2 12 8 18" />
           </svg>
@@ -277,7 +666,7 @@ export const SettingsPage: React.FC = () => {
           className={cn('pcc-settings-nav-btn', activeTab === 'audio' && 'pcc-settings-nav-btn--active')}
           onClick={() => setActiveTab('audio')}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
           </svg>
@@ -289,10 +678,10 @@ export const SettingsPage: React.FC = () => {
           className={cn('pcc-settings-nav-btn', activeTab === 'data' && 'pcc-settings-nav-btn--active')}
           onClick={() => setActiveTab('data')}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
+            <line x1="12" y1="1" x2="12" y2="3" />
           </svg>
           Data & Export
         </button>
@@ -301,389 +690,117 @@ export const SettingsPage: React.FC = () => {
       {/* TAB 1: GENERAL */}
       {activeTab === 'general' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-settings-grid">
-            {/* Profile Info */}
-            <div className="pcc-settings-card">
-              <div className="pcc-settings-card__header">
-                <span className="pcc-settings-card__title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Profile Information
-                </span>
-              </div>
-
-              <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <Input
-                  id="profile-name"
-                  label="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <Input
-                  id="profile-email"
-                  label="Email Address"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <Input
-                  id="profile-role"
-                  label="Role / Title"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                />
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button variant="primary" size="sm" type="submit">
-                    Save Profile
-                  </Button>
-                </div>
-              </form>
-            </div>
-
-            {/* Appearance & Preferences */}
-            <div className="pcc-settings-card">
-              <div className="pcc-settings-card__header">
-                <span className="pcc-settings-card__title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                  </svg>
-                  Appearance & Regional
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label">Theme Mode</label>
-                  <div className="pcc-theme-toggle-group">
-                    <Button
-                      variant={theme === 'dark' ? 'primary' : 'secondary'}
-                      size="sm"
-                      onClick={() => setTheme('dark')}
-                    >
-                      Dark Mode
-                    </Button>
-                    <Button
-                      variant={theme === 'light' ? 'primary' : 'secondary'}
-                      size="sm"
-                      onClick={() => setTheme('light')}
-                    >
-                      Light Mode
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label">Accent Color Palette</label>
-                  <div className="pcc-accent-swatches">
-                    {ACCENT_OPTIONS.map((opt) => {
-                      const isSelected = accentColor === opt.id;
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          className={cn('pcc-accent-swatch', isSelected && 'pcc-accent-swatch--active')}
-                          onClick={() => {
-                            setAccentColor(opt.id);
-                            soundEffects.playPip();
-                            toast.success(`Accent color set to ${opt.label}`);
-                          }}
-                          title={`Select ${opt.label} accent color`}
-                        >
-                          <span
-                            className="pcc-accent-swatch__preview"
-                            style={{ background: opt.gradient }}
-                          />
-                          <span className="pcc-accent-swatch__label">{opt.label}</span>
-                          {isSelected && (
-                            <svg
-                              viewBox="0 0 24 24"
-                              width="14"
-                              height="14"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              className="pcc-accent-swatch__check"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="pcc-settings-field-row">
-                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-tz">
-                    Primary Timezone
-                  </label>
-                  <select
-                    id="settings-tz"
-                    className="pcc-reminder-form__select pcc-settings-select"
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                  >
-                    <option value="America/Los_Angeles">Pacific Time (UTC-8)</option>
-                    <option value="America/New_York">Eastern Time (UTC-5)</option>
-                    <option value="Europe/London">London (UTC+0)</option>
-                    <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
-                    <option value="Asia/Kolkata">India (UTC+5:30)</option>
-                  </select>
-                </div>
-
-                <div className="pcc-settings-field-row">
-                  <label className="pcc-reminder-form__label pcc-settings-field-label" htmlFor="settings-date-format">
-                    Date Display Format
-                  </label>
-                  <select
-                    id="settings-date-format"
-                    className="pcc-reminder-form__select pcc-settings-select"
-                    value={dateFormat}
-                    onChange={(e) => setDateFormat(e.target.value)}
-                  >
-                    <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601)</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY (US Standard)</option>
-                    <option value="DD/MM/YYYY">DD/MM/YYYY (EU Standard)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderGeneralContent()}
         </div>
       )}
 
       {/* TAB 2: INTEGRATIONS */}
       {activeTab === 'integrations' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-integrations-grid">
-            {integrations.map((item: Integration) => {
-              const isItemSyncing = isSyncing[item.id];
-
-              return (
-                <div
-                  key={item.id}
-                  id={`integration-${item.id}`}
-                  className={cn(
-                    'pcc-integration-card',
-                    item.connected && 'pcc-integration-card--connected'
-                  )}
-                >
-                  <div>
-                    <div className="pcc-integration-card__header">
-                      <div className="pcc-integration-card__brand">
-                        <div className="pcc-integration-card__icon">{renderServiceIcon(item.service)}</div>
-                        <div className="pcc-integration-card__title-area">
-                          <span className="pcc-integration-card__name">{item.name}</span>
-                          <span className="pcc-integration-card__category">{item.category}</span>
-                        </div>
-                      </div>
-
-                      <Badge variant={item.connected ? 'success' : 'default'} size="sm">
-                        {item.connected ? 'Connected' : 'Disconnected'}
-                      </Badge>
-                    </div>
-
-                    <p className="pcc-integration-card__desc" style={{ marginTop: 'var(--space-3)' }}>
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Config Box if connected */}
-                  {item.connected && item.config && (
-                    <div className="pcc-integration-card__config-box">
-                      {Object.entries(item.config).map(([key, val]) => (
-                        <div key={key} className="pcc-integration-card__config-row">
-                          <span className="pcc-integration-card__config-label">{key}:</span>
-                          <input
-                            className="pcc-integration-card__config-input"
-                            value={val}
-                            onChange={(e) =>
-                              updateConfig(item.id, { [key]: e.target.value })
-                            }
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Footer Actions */}
-                  <div className="pcc-integration-card__footer">
-                    <span className="pcc-integration-card__synced-text">
-                      {item.lastSynced
-                        ? `Synced: ${item.lastSynced.slice(11, 16)} UTC`
-                        : 'Not synced yet'}
-                    </span>
-
-                    <div className="pcc-integration-card__actions">
-                      {item.connected ? (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            loading={isItemSyncing}
-                            onClick={async () => {
-                              await syncIntegration(item.id);
-                              toast.success(`Synced ${item.name}`);
-                            }}
-                          >
-                            Sync
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              toggleConnect(item.id);
-                              toast.info(`Disconnected from ${item.name}`);
-                            }}
-                          >
-                            Disconnect
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={async () => {
-                              await testConnection(item.id);
-                              toast.info('Connection test succeeded');
-                            }}
-                          >
-                            Test
-                          </Button>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => {
-                              const provider = (item as any).provider || item.service;
-                              setConnectModal({
-                                provider,
-                                name: item.name,
-                                id: item.id,
-                              });
-                              setConnectConfig({});
-                              setConnectError(null);
-                            }}
-                          >
-                            Connect
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {renderIntegrationsContent()}
         </div>
       )}
 
       {/* TAB 3: AUDIO & ALARMS */}
       {activeTab === 'audio' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-settings-grid">
-            <div className="pcc-settings-card">
-              <div className="pcc-settings-card__header">
-                <span className="pcc-settings-card__title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  </svg>
-                  Sound & Tone Preferences
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                <div className="pcc-reminder-form__group">
-                  <label className="pcc-reminder-form__label" htmlFor="sound-preset">
-                    Default Alarm Tone
-                  </label>
-                  <select
-                    id="sound-preset"
-                    className="pcc-reminder-form__select"
-                    value={selectedTone}
-                    onChange={(e) => setSelectedTone(e.target.value)}
-                  >
-                    <option value="radiant">Radiant Bell (Polyphonic Harmonic)</option>
-                    <option value="gentle">Gentle Chime (Smooth Sine)</option>
-                    <option value="digital">Digital Pulse (Triple Beep)</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      soundEffects.playAlarm(
-                        selectedTone === 'digital'
-                          ? 'digital'
-                          : selectedTone === 'gentle'
-                          ? 'gentle'
-                          : 'radiant'
-                      );
-                      toast.info(`Playing tone: ${selectedTone}`);
-                    }}
-                  >
-                    ▶ Test Selected Tone
-                  </Button>
-
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      soundEffects.playTimerComplete();
-                      toast.info('Playing Pomodoro chime');
-                    }}
-                  >
-                    🔔 Test Timer Bell
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderAudioContent()}
         </div>
       )}
 
       {/* TAB 4: DATA & EXPORT */}
       {activeTab === 'data' && (
         <div className="pcc-settings-panel">
-          <div className="pcc-data-panel">
-            <div className="pcc-backup-action-card">
-              <h3>Export Complete PCC Archive</h3>
-              <p>
-                Download your tasks, projects, notes, ideas, calendar schedules, reminders, and alarm
-                configurations as a portable, standardized JSON backup archive.
-              </p>
-              <div>
-                <Button id="btn-export-json" variant="primary" size="sm" onClick={handleExportJSON}>
-                  Export JSON Backup
-                </Button>
-              </div>
-            </div>
-
-            <div className="pcc-backup-action-card">
-              <h3>Import & Restore Backup</h3>
-              <p>Restore your system database from an existing PCC JSON archive backup file.</p>
-              <div>
-                <label className="pcc-upload-btn" style={{ cursor: 'pointer' }}>
-                  📂 Choose Backup File
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleImportJSONFile}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
+          {renderDataContent()}
         </div>
       )}
+
+      {/* Mobile View: 4 Single-Open Expandable Accordion Sections */}
+      <div className="pcc-settings-mobile-container">
+        {[
+          {
+            id: 'general',
+            num: '1',
+            title: 'General',
+            content: () => renderGeneralContent('m-'),
+          },
+          {
+            id: 'integrations',
+            num: '2',
+            title: 'Integrations',
+            content: () => renderIntegrationsContent('m-'),
+          },
+          {
+            id: 'audio',
+            num: '3',
+            title: 'Audio & Alarms',
+            content: () => renderAudioContent('m-'),
+          },
+          {
+            id: 'data',
+            num: '4',
+            title: 'Data & Export',
+            content: () => renderDataContent('m-'),
+          },
+        ].map((sec) => {
+          const isOpen = openSection === sec.id;
+          return (
+            <div
+              key={sec.id}
+              className={cn(
+                'pcc-settings-accordion-card',
+                isOpen && 'pcc-settings-accordion-card--open'
+              )}
+            >
+              <button
+                type="button"
+                id={`pcc-accordion-header-${sec.id}`}
+                className="pcc-settings-accordion-trigger"
+                onClick={() => setOpenSection(isOpen ? null : sec.id)}
+                aria-expanded={isOpen}
+                aria-controls={`pcc-accordion-content-${sec.id}`}
+              >
+                <div className="pcc-settings-accordion-trigger__left">
+                  <span className="pcc-settings-accordion-trigger__badge">{sec.num}</span>
+                  <span className="pcc-settings-accordion-trigger__title">{sec.title}</span>
+                </div>
+                <div className="pcc-settings-accordion-trigger__right">
+                  <span className="pcc-settings-accordion-trigger__state">
+                    {isOpen ? 'Collapse' : 'Expand'}
+                  </span>
+                  <svg
+                    className={cn(
+                      'pcc-settings-accordion-chevron',
+                      isOpen && 'pcc-settings-accordion-chevron--open'
+                    )}
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </button>
+
+              {isOpen && (
+                <div
+                  id={`pcc-accordion-content-${sec.id}`}
+                  role="region"
+                  aria-labelledby={`pcc-accordion-header-${sec.id}`}
+                  className="pcc-settings-accordion-content"
+                >
+                  {sec.content()}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Connect Integration Modal */}
       {connectModal && (
         <Modal
@@ -707,6 +824,7 @@ export const SettingsPage: React.FC = () => {
                 <label htmlFor={`config-${field.key}`}>{field.label}</label>
                 <input
                   id={`config-${field.key}`}
+                  aria-label={field.label}
                   type={field.type}
                   value={connectConfig[field.key] || ''}
                   onChange={(e) =>

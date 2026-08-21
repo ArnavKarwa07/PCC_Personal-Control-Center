@@ -153,14 +153,14 @@ export const TimersPage: React.FC = () => {
     }
     setCountdownDuration(totalSecs, 'Custom Timer');
     setIsEditingCustom(false);
-    toast.success(`Countdown set to ${formatTime(totalSecs)}`);
+    toast.success(`Timer set to ${formatTime(totalSecs)}`);
   };
 
   return (
     <div className="pcc-timers-page">
       {/* Header */}
       <div className="pcc-timers-header">
-        <h1>Focus Timers & Intervals</h1>
+        <h1>Timers</h1>
       </div>
 
       {/* Navigation Switcher */}
@@ -188,7 +188,7 @@ export const TimersPage: React.FC = () => {
             <path d="M5 3L2 6" />
             <path d="M22 6l-3-3" />
           </svg>
-          Countdown
+          Timer
         </button>
 
         <button
@@ -351,7 +351,7 @@ export const TimersPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: COUNTDOWN TIMER */}
+      {/* TAB 2: TIMER */}
       {activeTab === 'countdown' && (
         <div className="pcc-timer-container">
           <div className="pcc-timer-ring-wrapper">
@@ -455,6 +455,7 @@ export const TimersPage: React.FC = () => {
                 value={customHours}
                 onChange={(e) => setCustomHours(Number(e.target.value))}
                 placeholder="HH"
+                aria-label="Hours"
               />
               <span>:</span>
               <input
@@ -466,6 +467,7 @@ export const TimersPage: React.FC = () => {
                 value={customMins}
                 onChange={(e) => setCustomMins(Number(e.target.value))}
                 placeholder="MM"
+                aria-label="Minutes"
               />
               <span>:</span>
               <input
@@ -477,6 +479,7 @@ export const TimersPage: React.FC = () => {
                 value={customSecs}
                 onChange={(e) => setCustomSecs(Number(e.target.value))}
                 placeholder="SS"
+                aria-label="Seconds"
               />
               <Button size="sm" variant="primary" type="submit">
                 Apply

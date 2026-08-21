@@ -19,7 +19,7 @@ from app.services.alarm_service import alarm_service
 router = APIRouter(prefix="/alarms", tags=["Alarms"])
 
 
-@router.get("", operation_id="listAlarms")
+@router.get("/list_alarms", operation_id="list_alarms", summary="List Alarms")
 def list_alarms(
     is_enabled: Optional[bool] = None,
     page: int = Query(1, ge=1, description="Page number"),
@@ -46,7 +46,7 @@ def list_alarms(
     }
 
 
-@router.post("", operation_id="createAlarm", status_code=status.HTTP_201_CREATED)
+@router.post("/create_alarm", operation_id="create_alarm", status_code=status.HTTP_201_CREATED, summary="Create Alarm")
 def create_alarm(
     data: AlarmCreate,
     current_user: User = Depends(get_current_user),
@@ -59,7 +59,7 @@ def create_alarm(
     }
 
 
-@router.get("/{alarm_id}", operation_id="getAlarmById")
+@router.get("/get_alarm_by_id/{alarm_id}", operation_id="get_alarm_by_id", summary="Get Alarm By Id")
 def get_alarm(
     alarm_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -72,7 +72,7 @@ def get_alarm(
     }
 
 
-@router.patch("/{alarm_id}", operation_id="updateAlarmById")
+@router.patch("/update_alarm_by_id/{alarm_id}", operation_id="update_alarm_by_id", summary="Update Alarm By Id")
 def update_alarm(
     alarm_id: uuid.UUID,
     data: AlarmUpdate,
@@ -91,7 +91,7 @@ def update_alarm(
     }
 
 
-@router.patch("/{alarm_id}/toggle", operation_id="toggleAlarmById")
+@router.patch("/toggle_alarm_by_id/{alarm_id}", operation_id="toggle_alarm_by_id", summary="Toggle Alarm By Id")
 def toggle_alarm(
     alarm_id: uuid.UUID,
     data: Optional[AlarmToggleRequest] = None,
@@ -111,7 +111,7 @@ def toggle_alarm(
     }
 
 
-@router.delete("/{alarm_id}", operation_id="deleteAlarmById")
+@router.delete("/delete_alarm_by_id/{alarm_id}", operation_id="delete_alarm_by_id", summary="Delete Alarm By Id")
 def delete_alarm(
     alarm_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
