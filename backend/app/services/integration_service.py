@@ -20,7 +20,6 @@ from app.schemas.integration import (
     IntegrationStatusResponse,
 )
 
-
 SENSITIVE_KEYS = {
     "token",
     "user_token",

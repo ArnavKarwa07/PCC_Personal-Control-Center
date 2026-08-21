@@ -7,7 +7,6 @@ Create Date: 2026-08-20 23:30:00.000000
 """
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -19,10 +18,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # No-op schema modification for SQLite compatibility as VARCHAR handles Enum strings
-    with op.batch_alter_table('integrations', schema=None) as batch_op:
+    with op.batch_alter_table('integrations', schema=None):
         pass
 
 
 def downgrade() -> None:
-    with op.batch_alter_table('integrations', schema=None) as batch_op:
+    with op.batch_alter_table('integrations', schema=None):
         pass
