@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production-super-secret-key-32-chars-min"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    CORS_ORIGINS: str = "http://localhost:5173"
+    CORS_ORIGINS: str = "http://localhost:5173,capacitor://localhost,https://localhost,http://tauri.localhost,https://tauri.localhost,tauri://localhost,http://localhost"
     WEATHER_API_KEY: str = "29b21b5a2f9aca2282088c7c61c30ea2"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True

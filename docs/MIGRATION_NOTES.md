@@ -1,3 +1,108 @@
+# PCC Migration Notes - Release v1.5.0
+
+## Release Overview
+Release `v1.5.0` establishes production deployment infrastructure and cross-platform native application packaging for PCC (Personal Control Center). Key features include Neon serverless PostgreSQL database support with SSL connection management, 24/7 backend containerization via Docker and Docker Compose, Capacitor v6 mobile packaging for Android APK builds, Tauri v2 desktop application packaging for Windows (`.exe`), macOS (`.dmg`), and Linux (`.AppImage`/`.deb`), and automated GitHub Actions CI/CD release workflow pipelines.
+
+---
+
+## Key Changes & Migration Requirements
+
+### 1. Database Migration & Neon PostgreSQL Cloud Support
+- **Engine**: Fully compatible with both **Neon Serverless PostgreSQL** for production and **SQLite 3** for local offline development.
+- **Connection String Schema**:
+  - **Neon PostgreSQL**: `DATABASE_URL=postgresql://<user>:<password>@<ep-id>.<region>.aws.neon.tech/<dbname>?sslmode=require`
+  - **Local SQLite Fallback**: `DATABASE_URL=sqlite:///./pcc.db` or `sqlite:///./data/pcc.db`
+- **SSL Connection Requirement**: Neon PostgreSQL connections require `sslmode=require` parameter in the connection string to enforce encrypted TLS traffic.
+- **Database Migration Execution**:
+  ```bash
+  cd backend
+  # Run Alembic migrations against target database (Neon PostgreSQL or SQLite)
+  alembic upgrade head
+  ```
+- **SQLAlchemy 2.0 Engine Updates**: `backend/app/core/database.py` dynamically handles SQLite-specific `connect_args` (`check_same_thread`, `PRAGMA foreign_keys=ON`, `PRAGMA journal_mode=WAL`) while allowing PostgreSQL native connection pooling for cloud deployments.
+
+### 2. Environment Variables & System Configuration
+Comprehensive list of required and optional environment variables (`.env.example` reference):
+
+| Variable | Description | Default / Example Value | Target Scope |
+| :--- | :--- | :--- | :--- |
+| `DATABASE_URL` | PostgreSQL or SQLite connection URI | `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require` | Backend |
+| `SECRET_KEY` | JWT signing secret key (32+ chars) | `change-me-in-production-super-secret-key-32-chars-min` | Backend |
+| `ALGORITHM` | JWT signature algorithm | `HS256` | Backend |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Authentication token validity duration (minutes) | `30` | Backend |
+| `CORS_ORIGINS` | Comma-separated allowed HTTP/app origins | `http://localhost:5173,capacitor://localhost,tauri://localhost,http://localhost` | Backend |
+| `WEATHER_API_KEY` | OpenWeatherMap API key fallback | `29b21b5a2f9aca2282088c7c61c30ea2` | Backend |
+| `VAPID_PRIVATE_KEY` | Web push notification private key | Optional string | Backend |
+| `VAPID_PUBLIC_KEY` | Web push notification public key | Optional string | Backend |
+| `ENVIRONMENT` | Application deployment environment | `production` / `development` | Backend |
+| `DEBUG` | Verbose debug log & SQL echo flag | `false` (prod) / `true` (dev) | Backend |
+| `PORT` | Container HTTP binding port | `7860` (HuggingFace) / `8000` (Local/Docker) | Backend |
+| `VITE_API_URL` | Frontend REST API endpoint URL | `http://localhost:8000` / `https://api.yourdomain.com` | Frontend |
+
+---
+
+## Developer Instructions & Build Pipelines
+
+### 1. Production Docker Container & 24/7 Backend Deployment
+- **Single Container Build**:
+  ```bash
+  cd backend
+  docker build -t pcc-backend .
+  docker run -d -p 8000:7860 -e DATABASE_URL="postgresql://..." -e SECRET_KEY="your-secret" pcc-backend
+  ```
+- **Multi-Container Stack (Docker Compose)**:
+  ```bash
+  # Starts FastAPI backend container and async background worker process
+  docker-compose up -d --build
+  ```
+- **Continuous Hosting Platforms**:
+  - **Hugging Face Spaces / Koyeb**: Set container `$PORT` (default `7860`) and inject environment variables via dashboard secret manager.
+  - **Data Volume Mounting**: Persistent directory `/app/data` configured with `chmod 777` permissions for containerized SQLite/file storage.
+
+### 2. Capacitor v6 Android Application Packaging Pipeline
+- **Prerequisites**: Node.js 20+, JDK 17, Android SDK / Android Studio.
+- **Build Sequence**:
+  ```bash
+  cd frontend
+  # 1. Install dependencies
+  npm ci
+  # 2. Build Vite production bundle into dist/
+  npm run build
+  # 3. Add Android platform & sync web assets
+  npx cap add android
+  npx cap sync android
+  # 4. Compile Android Debug APK
+  cd android
+  chmod +x gradlew
+  ./gradlew assembleDebug
+  ```
+- **Output Artifact**: `frontend/android/app/build/outputs/apk/debug/app-debug.apk`
+
+### 3. Tauri v2 Desktop Application Packaging Pipeline
+- **Prerequisites**: Node.js 20+, Rust stable toolchain (`rustc`, `cargo`), OS build tools:
+  - **Windows**: Visual C++ Build Tools & Windows SDK.
+  - **Linux**: `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `libappindicator3-dev`, `librsvg2-dev`, `patchelf`.
+  - **macOS**: Xcode Command Line Tools.
+- **Build Commands**:
+  ```bash
+  cd frontend
+  # 1. Live desktop app preview
+  npm run tauri dev
+  # 2. Build production desktop bundles (.exe, .dmg, .AppImage, .deb)
+  npm run tauri build
+  ```
+- **Output Artifacts**: `frontend/src-tauri/target/release/bundle/`
+
+### 4. GitHub Actions CI/CD Release Pipeline
+- **Workflow File**: `.github/workflows/build-release.yml`
+- **Trigger**: Automatic on `push` to `main` branch.
+- **Jobs**:
+  - `build-android`: Builds Android APK on `ubuntu-latest` with Java 17 and uploads artifact `app-debug.apk` to GitHub Release.
+  - `build-desktop`: Runs matrix builds on `windows-latest`, `macos-latest`, and `ubuntu-latest`, compiles native installer packages using `tauri-apps/tauri-action@v2`, and publishes installers to GitHub Release.
+- **Release Verification**: Check [GitHub Repository Releases](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/releases) for generated build tags (`release-${SHA}`) and attached binaries.
+
+---
+
 # PCC Migration Notes - Release v1.4.0
 
 ## Release Overview

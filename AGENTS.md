@@ -1,6 +1,6 @@
 # Antigravity Agent Guidelines & Workflow Rules - PCC Project
 
-## 1. Branching & Git Release Rules
+## 1. Branching & Git Release Rules ( THIS IS TO BE IGNORED DURING DEPLOYMENTS AND PROD BUILDS )
 - **CRITICAL**: Code must **ONLY** be committed and pushed to the `staging` branch (`origin/staging`).
 - **NEVER** push directly to or merge with `main`. The user manually handles all production merges to `main`.
 - Every push to `staging` must be accompanied by empirical verification (zero TypeScript errors, 100% passing pytest suite).

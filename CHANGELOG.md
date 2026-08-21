@@ -5,6 +5,33 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-22
+
+### Added
+- **Neon PostgreSQL Cloud Database Integration**:
+  - Configured SQLAlchemy 2.0 and Alembic database migrations to support Neon serverless PostgreSQL (`postgresql://...sslmode=require`) alongside SQLite for production cloud persistence.
+  - Enabled SSL connection parameter handling (`sslmode=require`), query timeout optimization, and dynamic database URI parsing via `backend/app/core/config.py` and `backend/app/core/database.py`.
+- **24/7 Backend Production Docker Containerization**:
+  - Standardized lightweight `backend/Dockerfile` using `python:3.12-slim` base image for continuous 24/7 cloud execution on platforms such as Koyeb, Hugging Face Spaces, or Docker Compose.
+  - Added dynamic environment `$PORT` binding (defaulting to `7860` for Hugging Face / `8000` for Docker Compose), non-root `/app/data` permission configuration, and unbuffered production log output.
+  - Updated `docker-compose.yml` for multi-container stack management (FastAPI backend API + async background worker process).
+- **Capacitor v6 Native Android Application Packaging**:
+  - Integrated Capacitor v6 framework (`@capacitor/core`, `@capacitor/android`, `@capacitor/cli` v6.0.0) in `frontend/package.json` and `frontend/capacitor.config.json`.
+  - Configured `androidScheme: "https"`, cleartext traffic support, and splash screen customization for seamless Android mobile web view rendering and cross-origin REST API communication.
+  - Added npm build scripts (`cap:sync`, `cap:android`) and Gradle build setup (`frontend/android/gradlew assembleDebug`) for packaging standalone Android APKs.
+- **Tauri v2 Native Desktop Application Packaging**:
+  - Configured Tauri v2 framework (`@tauri-apps/cli` v2.0.0) with desktop bundle manifest `frontend/src-tauri/tauri.conf.json`.
+  - Enabled multi-platform desktop application packaging targeting Windows (`.exe` NSIS installer), macOS (`.dmg`), and Linux (`.AppImage` / `.deb`).
+  - Added `tauri` CLI script integration to `package.json` for live development (`npm run tauri dev`) and desktop release builds (`npm run tauri build`).
+- **GitHub Actions Automated Cross-Platform Release Workflow**:
+  - Created `.github/workflows/build-release.yml` automating production build and release distribution upon pushes to the `main` branch.
+  - **Android Job (`build-android`)**: Automatically sets up Java 17 and Node.js 20, builds Vite web assets, performs Capacitor sync, compiles debug Android APK via Gradle, and publishes `app-debug.apk` to GitHub Releases via `softprops/action-gh-release@v2`.
+  - **Desktop Job (`build-desktop`)**: Executes matrix builds across `windows-latest`, `macos-latest`, and `ubuntu-latest`, installs Rust toolchain and Linux GTK/WebKit dependencies, and bundles native installers published to GitHub Releases via `tauri-apps/tauri-action@v2`.
+
+### Migration & Developer Documentation
+- Added Release v1.5.0 documentation to `docs/MIGRATION_NOTES.md` covering Neon PostgreSQL configuration, environment variable specifications (`.env.example`), Docker deployment instructions, Capacitor v6 Android build steps, Tauri v2 Desktop packaging workflows, and GitHub Actions CI/CD release pipeline documentation.
+- Updated root `README.md` to detail cross-platform packaging commands, environment variable schemas, and production release pipelines.
+
 ## [1.4.1] - 2026-08-20
 
 ### Removed
