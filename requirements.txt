@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0.0
+alembic
+pydantic>=2.0.0
+pydantic-settings
+python-jose[cryptography]
+python-multipart
+httpx
+email-validator
+psycopg2-binary
+google-generativeai>=0.8.0
