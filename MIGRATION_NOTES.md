@@ -43,25 +43,20 @@ Comprehensive list of required and optional environment variables (`.env.example
 | `ENVIRONMENT` | Application deployment environment | `production` / `development` | Backend |
 | `DEBUG` | Verbose debug log & SQL echo flag | `false` (prod) / `true` (dev) | Backend |
 | `PORT` | Container HTTP binding port | `7860` (HuggingFace) / `8000` (Local/Docker) | Backend |
-| `VITE_API_URL` | Frontend REST API endpoint URL | `http://localhost:8000` / `https://api.yourdomain.com` | Frontend |
+| `VITE_API_URL` | Frontend REST API endpoint URL | `http://localhost:8000` / `https://pcc-backend-ten.vercel.app` | Frontend |
 
-### 3. GCP US-Central Cloud Run Migration & Zero-Cost Configuration
-- **Region Migration**: Scaled backend service deployment target to region `us-central1`.
-- **Zero-Cost Scaling Policy**:
-  - **`minScale` = `0`**: Service scales down to 0 instances when idle, incurring \$0 base compute costs during periods of inactivity.
-  - **`maxScale` = `5`**: Limits maximum container instances to 5 to prevent bill shocks and cap burst resource usage.
-- **Manual CI/CD Dispatch Workflow**:
-  - Disabled automatic GitHub Actions triggers on push events (`push: branches: [main, staging]`).
-  - Releases and deployments are executed strictly via manual `workflow_dispatch` triggers to maintain explicit control over build executions and avoid unnecessary workflow runs.
-- **Cloud Run Deployment Command**:
+### 3. Vercel Serverless Python Deployment & Complete GCP Removal
+- **Production Serverless Backend Host**: `https://pcc-backend-ten.vercel.app`
+- **Vercel Serverless Architecture (`@vercel/python`)**:
+  - Root `vercel.json` routes all wildcard API requests (`/(.*)`) to `api/index.py`.
+  - `api/index.py` dynamically appends `backend/` to `sys.path` and imports `app` from `backend.app.main`, enabling seamless FastAPI execution on Vercel Serverless Functions.
+- **Complete GCP Removal**:
+  - Completely decommissioned Google Cloud Run (`pcc-backend`) services and Google Container Registry (`gcr.io`) image repositories.
+  - Removed container build dependencies and GCP CLI deployment scripts, eliminating GCP compute costs and maintenance overhead.
+- **Vercel Deployment Workflow**:
   ```bash
-  gcloud run deploy pcc-backend \
-    --image gcr.io/<PROJECT_ID>/pcc-backend:latest \
-    --region us-central1 \
-    --min-instances 0 \
-    --max-instances 5 \
-    --platform managed \
-    --allow-unauthenticated
+  # Deploy backend updates directly via Vercel CLI
+  vercel --prod
   ```
 
 ---

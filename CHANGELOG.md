@@ -40,11 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Streamlined backend REST architecture into a zero-friction single-tenant mode for Arnav Karwa (`arnavkarwa07@gmail.com` / `00000000-0000-0000-0000-000000000001`), eliminating redundant multi-user login, register, and token management overhead.
   - Removed client-side `authStore.ts`, login/register modals, and authorization bearer header blockers across API calls (`frontend/src/services/api.ts`).
   - Retained database-level user isolation with automatic default owner provisioning in dependency injections (`backend/app/core/dependencies.py`).
-- **GCP US-Central Migration & Manual CI/CD Dispatch Workflow**:
-  - Migrated GCP Cloud Run backend service deployment target to `us-central1` region to align with zero-cost scaling infrastructure.
-  - Disabled automatic GitHub Actions CI/CD pipeline triggers, transitioning build and deployment runs to manual `workflow_dispatch` execution to optimize workflow resource utilization and control deployment timing.
+- **Vercel Serverless Python Deployment & Complete GCP Removal**:
+  - Migrated backend API serverless deployment to Vercel Serverless Python (`@vercel/python`) hosted at `https://pcc-backend-ten.vercel.app`.
+  - Added root `vercel.json` routing configuration and `api/index.py` entrypoint delegating requests to FastAPI application instance (`backend/app/main.py`).
+  - Completely decommissioned and removed Google Cloud Platform (GCP Cloud Run / GCR) infrastructure, transitioning to zero-overhead serverless execution on Vercel.
 
 ### Removed
+- **Complete GCP Cloud Infrastructure Removal**:
+  - Decommissioned legacy GCP Cloud Run (`pcc-backend`) service and Google Container Registry artifacts.
 - **Financial & Fitness Modules Cleanup (Database Migration)**:
   - Created Alembic database migration `drop_deprecated_tables` (`backend/alembic/versions/drop_deprecated_tables.py`) to drop legacy `finances` table.
   - Purged obsolete auth endpoints (`backend/app/api/v1/auth.py`, `backend/app/api/v1/users.py`), auth schemas (`backend/app/schemas/auth.py`, `backend/app/schemas/user.py`), and test modules (`backend/tests/test_auth.py`).
