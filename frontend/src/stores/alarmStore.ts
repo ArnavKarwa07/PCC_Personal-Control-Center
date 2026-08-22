@@ -1,3 +1,4 @@
+import { syncQueue } from '../services/syncQueue';
 import { create } from 'zustand';
 import type { Alarm } from '../types';
 import { alarmsApi } from '../services/api';
@@ -143,8 +144,15 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
       if (created && created.id) {
         resultAlarm = created;
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'alarm',
+          action: 'create',
+          entityId: newAlarm.id,
+          payload: newAlarm
+        });
+      }
     }
 
     set((state) => {
@@ -161,8 +169,15 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     const now = new Date().toISOString();
     try {
       await alarmsApi.update(id, updates);
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'alarm',
+          action: 'update',
+          entityId: id,
+          payload: updates
+        });
+      }
     }
 
     set((state) => {
@@ -183,8 +198,15 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
   deleteAlarm: async (id) => {
     try {
       await alarmsApi.delete(id);
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'alarm',
+          action: 'delete',
+          entityId: id,
+          payload: undefined
+        });
+      }
     }
 
     alarmScheduler.cancelAlarmNotification(id);

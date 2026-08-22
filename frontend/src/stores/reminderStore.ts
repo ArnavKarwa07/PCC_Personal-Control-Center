@@ -1,3 +1,4 @@
+import { syncQueue } from '../services/syncQueue';
 import { create } from 'zustand';
 import type { Reminder } from '../types';
 import { remindersApi } from '../services/api';
@@ -133,8 +134,15 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
     const now = new Date().toISOString();
     try {
       await remindersApi.update(id, updates);
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'reminder',
+          action: 'update',
+          entityId: id,
+          payload: updates
+        });
+      }
     }
 
     set((state) => {
@@ -149,8 +157,15 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
   deleteReminder: async (id) => {
     try {
       await remindersApi.delete(id);
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'reminder',
+          action: 'delete',
+          entityId: id,
+          payload: undefined
+        });
+      }
     }
 
     set((state) => {

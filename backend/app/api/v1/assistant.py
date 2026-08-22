@@ -1,5 +1,6 @@
 """AI Executive Assistant REST API endpoints."""
 
+from app.core.config import settings
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,7 @@ def process_assistant_query(
     db: Session = Depends(get_db),
 ):
     """Process natural language request and dispatch autonomous actions or queries."""
-    return assistant_service.process_query(db=db, user_id=current_user.id, request=request)
+    return assistant_service.process_query(db=db, user_id=settings.DEFAULT_OWNER_ID, request=request)
 
 
 @router.get("/get_daily_briefing", operation_id="get_daily_briefing", response_model=DailyBriefingRead, summary="Get Daily Briefing")
@@ -28,4 +29,4 @@ def get_daily_briefing(
     db: Session = Depends(get_db),
 ):
     """Generate synthesized daily briefing and priority focus recommendations."""
-    return assistant_service.generate_daily_briefing(db=db, user_id=current_user.id)
+    return assistant_service.generate_daily_briefing(db=db, user_id=settings.DEFAULT_OWNER_ID)

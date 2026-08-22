@@ -1,5 +1,6 @@
 """Global Search REST API endpoint for cross-entity discovery."""
 
+from app.core.config import settings
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -29,7 +30,7 @@ def search(
     """Execute full-text cross-entity search across tasks, projects, notes, ideas, calendar, contacts, goals, and reminders."""
     return search_service.search(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         q=q,
         types=types,
         limit=limit,

@@ -1,5 +1,6 @@
 """Unified Timers REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -32,7 +33,7 @@ def list_timers(
     """Retrieve all timers for the authenticated user."""
     timers, total, total_pages = timer_service.list_timers(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         timer_type=timer_type,
         page=page,
@@ -56,7 +57,7 @@ def create_timer(
     db: Session = Depends(get_db),
 ):
     """Create a new countdown, stopwatch, or pomodoro timer."""
-    timer = timer_service.create_timer(db=db, user_id=current_user.id, data=data)
+    timer = timer_service.create_timer(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": timer.model_dump(),
     }
@@ -69,7 +70,7 @@ def get_timer(
     db: Session = Depends(get_db),
 ):
     """Get a single timer by ID."""
-    timer = timer_service.get_timer_response(db=db, user_id=current_user.id, timer_id=timer_id)
+    timer = timer_service.get_timer_response(db=db, user_id=settings.DEFAULT_OWNER_ID, timer_id=timer_id)
     return {
         "data": timer.model_dump(),
     }
@@ -85,7 +86,7 @@ def update_timer(
     """Update timer configuration."""
     timer = timer_service.update_timer(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         timer_id=timer_id,
         data=data,
     )
@@ -104,7 +105,7 @@ def update_timer_state(
     """Trigger a state transition on the timer (start, pause, reset, complete)."""
     timer = timer_service.update_timer_state(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         timer_id=timer_id,
         action=data.action,
         remaining_seconds=data.remaining_seconds,
@@ -121,7 +122,7 @@ def delete_timer(
     db: Session = Depends(get_db),
 ):
     """Soft delete a timer."""
-    timer_service.delete_timer(db=db, user_id=current_user.id, timer_id=timer_id)
+    timer_service.delete_timer(db=db, user_id=settings.DEFAULT_OWNER_ID, timer_id=timer_id)
     return {
         "data": {
             "message": "Timer deleted successfully.",

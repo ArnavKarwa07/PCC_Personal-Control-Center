@@ -1,5 +1,6 @@
 """Third-Party Integrations REST API endpoints."""
 
+from app.core.config import settings
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,7 @@ def list_integrations(
     db: Session = Depends(get_db),
 ):
     """List all available third-party integration connectors with connection statuses."""
-    integrations = integration_service.list_integrations(db=db, user_id=current_user.id)
+    integrations = integration_service.list_integrations(db=db, user_id=settings.DEFAULT_OWNER_ID)
     return {
         "data": [i.model_dump() for i in integrations],
     }
@@ -35,7 +36,7 @@ def connect_integration(
     """Connect and authenticate a third-party service provider."""
     integration = integration_service.connect_integration(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         provider=provider,
         data=data,
     )
@@ -53,7 +54,7 @@ def disconnect_integration(
     """Disconnect and revoke credentials for a third-party provider."""
     integration = integration_service.disconnect_integration(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         provider=provider,
     )
     return {
@@ -70,7 +71,7 @@ def get_integration_status(
     """Retrieve detailed synchronization and diagnostic status for a provider."""
     status_info = integration_service.get_integration_status(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         provider=provider,
     )
     return {
@@ -88,7 +89,7 @@ def sync_integration(
     """Trigger ad-hoc synchronization for an active integration provider."""
     result = integration_service.sync_provider(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         provider=provider,
     )
     return {

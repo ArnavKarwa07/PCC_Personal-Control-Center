@@ -1,5 +1,6 @@
 """Idea management and promotion REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -29,7 +30,7 @@ def list_ideas(
     """Retrieve paginated ideas for authenticated user."""
     ideas, total, total_pages = idea_service.list_ideas(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         category=category,
         search=search,
@@ -54,7 +55,7 @@ def create_idea(
     db: Session = Depends(get_db),
 ):
     """Capture a new idea under authenticated user."""
-    idea = idea_service.create_idea(db=db, user_id=current_user.id, data=data)
+    idea = idea_service.create_idea(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": idea.model_dump(),
     }
@@ -67,7 +68,7 @@ def get_idea_by_id(
     db: Session = Depends(get_db),
 ):
     """Retrieve a single idea by ID."""
-    idea = idea_service.get_idea_response(db=db, user_id=current_user.id, idea_id=idea_id)
+    idea = idea_service.get_idea_response(db=db, user_id=settings.DEFAULT_OWNER_ID, idea_id=idea_id)
     return {
         "data": idea.model_dump(),
     }
@@ -83,7 +84,7 @@ def update_idea_by_id(
     """Update idea details."""
     idea = idea_service.update_idea(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         idea_id=idea_id,
         data=data,
     )
@@ -102,7 +103,7 @@ def promote_idea_by_id(
     """Promote an idea into a Project or Task."""
     idea, created_entity = idea_service.promote_idea(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         idea_id=idea_id,
         data=data,
     )
@@ -121,7 +122,7 @@ def delete_idea_by_id(
     db: Session = Depends(get_db),
 ):
     """Soft delete an idea."""
-    idea_service.delete_idea(db=db, user_id=current_user.id, idea_id=idea_id)
+    idea_service.delete_idea(db=db, user_id=settings.DEFAULT_OWNER_ID, idea_id=idea_id)
     return {
         "data": {
             "message": "Idea deleted successfully.",

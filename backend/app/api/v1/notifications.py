@@ -1,5 +1,6 @@
 """Unified Notifications REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -33,7 +34,7 @@ def list_notifications(
     """Retrieve in-app notifications for the authenticated user."""
     notifications, total, total_pages = notification_service.list_notifications(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         type=type,
         channel=channel,
@@ -61,7 +62,7 @@ def mark_notification_read(
     """Mark a specific notification as read."""
     notification = notification_service.mark_as_read(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         notification_id=notification_id,
     )
     return {
@@ -77,7 +78,7 @@ def mark_all_notifications_read(
     """Mark all pending or sent notifications as read."""
     count = notification_service.mark_all_as_read(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
     )
     return {
         "data": {
@@ -96,7 +97,7 @@ def delete_notification(
     """Soft delete a notification."""
     notification_service.delete_notification(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         notification_id=notification_id,
     )
     return {

@@ -1,5 +1,6 @@
 """Goals & OKRs REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -27,7 +28,7 @@ def list_goals(
 ):
     """Retrieve goals and OKR hierarchy."""
     goals, total, total_pages = goal_service.list_goals(
-        db=db, user_id=current_user.id, status=status, time_period=time_period, page=page, per_page=per_page
+        db=db, user_id=settings.DEFAULT_OWNER_ID, status=status, time_period=time_period, page=page, per_page=per_page
     )
     return {
         "data": [GoalRead.model_validate(g).model_dump() for g in goals],
@@ -42,7 +43,7 @@ def create_goal(
     db: Session = Depends(get_db),
 ):
     """Create a new goal or OKR objective with milestones."""
-    goal = goal_service.create_goal(db=db, user_id=current_user.id, data=data)
+    goal = goal_service.create_goal(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
@@ -53,7 +54,7 @@ def get_goal_by_id(
     db: Session = Depends(get_db),
 ):
     """Retrieve a single goal by ID."""
-    goal = goal_service.get_goal(db=db, user_id=current_user.id, goal_id=goal_id)
+    goal = goal_service.get_goal(db=db, user_id=settings.DEFAULT_OWNER_ID, goal_id=goal_id)
     if not goal:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Goal not found")
     return {"data": GoalRead.model_validate(goal).model_dump()}
@@ -67,7 +68,7 @@ def update_goal_by_id(
     db: Session = Depends(get_db),
 ):
     """Update goal status or progress percentage."""
-    goal = goal_service.update_goal(db=db, user_id=current_user.id, goal_id=goal_id, data=data)
+    goal = goal_service.update_goal(db=db, user_id=settings.DEFAULT_OWNER_ID, goal_id=goal_id, data=data)
     if not goal:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Goal not found")
     return {"data": GoalRead.model_validate(goal).model_dump()}
@@ -80,6 +81,6 @@ def delete_goal_by_id(
     db: Session = Depends(get_db),
 ):
     """Delete a goal."""
-    success = goal_service.delete_goal(db=db, user_id=current_user.id, goal_id=goal_id)
+    success = goal_service.delete_goal(db=db, user_id=settings.DEFAULT_OWNER_ID, goal_id=goal_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Goal not found")

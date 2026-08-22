@@ -2,23 +2,31 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Geolocation } from '@capacitor/geolocation';
 
-export interface SystemPermissionStatus {
+const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
+export interface PermissionReport {
   notifications: 'granted' | 'denied' | 'prompt' | 'unsupported';
   location: 'granted' | 'denied' | 'prompt' | 'unsupported';
+  exactAlarm: 'granted' | 'denied' | 'prompt' | 'unsupported';
 }
 
 export const permissionService = {
-  async checkPermissions(): Promise<SystemPermissionStatus> {
+  async getPermissionStatus(): Promise<PermissionReport> {
     const isNative = Capacitor.isNativePlatform();
-
-    let notifications: SystemPermissionStatus['notifications'] = 'prompt';
-    let location: SystemPermissionStatus['location'] = 'prompt';
+    let notifications: PermissionReport['notifications'] = 'prompt';
+    let location: PermissionReport['location'] = 'prompt';
+    let exactAlarm: PermissionReport['exactAlarm'] = 'unsupported';
 
     // Check Notifications
     try {
       if (isNative) {
         const status = await LocalNotifications.checkPermissions();
         notifications = status.display === 'granted' ? 'granted' : status.display === 'denied' ? 'denied' : 'prompt';
+        exactAlarm = notifications;
+      } else if (isTauri()) {
+        const { isPermissionGranted } = await import('@tauri-apps/plugin-notification');
+        const granted = await isPermissionGranted();
+        notifications = granted ? 'granted' : 'prompt';
       } else if (typeof window !== 'undefined' && 'Notification' in window) {
         const perm = Notification.permission;
         notifications = perm === 'granted' ? 'granted' : perm === 'denied' ? 'denied' : 'prompt';
@@ -48,7 +56,7 @@ export const permissionService = {
       console.warn('Error checking location permissions:', err);
     }
 
-    return { notifications, location };
+    return { notifications, location, exactAlarm };
   },
 
   async requestNotificationPermission(): Promise<boolean> {
@@ -57,6 +65,14 @@ export const permissionService = {
       if (isNative) {
         const result = await LocalNotifications.requestPermissions();
         return result.display === 'granted';
+      } else if (isTauri()) {
+        const { requestPermission, isPermissionGranted } = await import('@tauri-apps/plugin-notification');
+        let granted = await isPermissionGranted();
+        if (!granted) {
+          const permission = await requestPermission();
+          granted = permission === 'granted';
+        }
+        return granted;
       } else if (typeof window !== 'undefined' && 'Notification' in window) {
         const perm = await Notification.requestPermission();
         return perm === 'granted';
@@ -108,11 +124,12 @@ export const permissionService = {
     return false;
   },
 
-  async requestAllPermissions(): Promise<SystemPermissionStatus> {
+  async requestAllPermissions(): Promise<PermissionReport> {
     await Promise.allSettled([
       this.requestNotificationPermission(),
       this.requestLocationPermission(),
     ]);
-    return this.checkPermissions();
+    return this.getPermissionStatus();
   },
 };
+

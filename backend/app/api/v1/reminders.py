@@ -1,5 +1,6 @@
 """Unified Reminders REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -35,7 +36,7 @@ def list_reminders(
     """Retrieve all reminders for the authenticated user."""
     reminders, total, total_pages = reminder_service.list_reminders(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         is_recurring=is_recurring,
         remind_before=remind_before,
@@ -61,7 +62,7 @@ def create_reminder(
     db: Session = Depends(get_db),
 ):
     """Create a new reminder scheduled for alerting."""
-    reminder = reminder_service.create_reminder(db=db, user_id=current_user.id, data=data)
+    reminder = reminder_service.create_reminder(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": reminder.model_dump(),
     }
@@ -74,7 +75,7 @@ def get_reminder(
     db: Session = Depends(get_db),
 ):
     """Get a single reminder by ID."""
-    reminder = reminder_service.get_reminder_response(db=db, user_id=current_user.id, reminder_id=reminder_id)
+    reminder = reminder_service.get_reminder_response(db=db, user_id=settings.DEFAULT_OWNER_ID, reminder_id=reminder_id)
     return {
         "data": reminder.model_dump(),
     }
@@ -90,7 +91,7 @@ def update_reminder(
     """Update reminder configuration and scheduled trigger time."""
     reminder = reminder_service.update_reminder(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         reminder_id=reminder_id,
         data=data,
     )
@@ -111,7 +112,7 @@ def snooze_reminder(
     snooze_until = data.snooze_until if data else None
     reminder = reminder_service.snooze_reminder(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         reminder_id=reminder_id,
         snooze_minutes=snooze_minutes,
         snooze_until=snooze_until,
@@ -128,7 +129,7 @@ def delete_reminder(
     db: Session = Depends(get_db),
 ):
     """Soft delete a reminder."""
-    reminder_service.delete_reminder(db=db, user_id=current_user.id, reminder_id=reminder_id)
+    reminder_service.delete_reminder(db=db, user_id=settings.DEFAULT_OWNER_ID, reminder_id=reminder_id)
     return {
         "data": {
             "message": "Reminder deleted successfully.",

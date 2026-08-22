@@ -1,3 +1,4 @@
+import { syncQueue } from '../services/syncQueue';
 import { create } from 'zustand';
 import { Task, KanbanColumnId, TaskStatus, SubTask } from '../types';
 import { tasksApi } from '../services/api';
@@ -131,8 +132,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         });
         return created;
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'task',
+          action: 'create',
+          entityId: newTask.id,
+          payload: newTask,
+        });
+      }
     }
 
     set((state) => {

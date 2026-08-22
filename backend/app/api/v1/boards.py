@@ -1,5 +1,6 @@
 """Kanban Boards, Columns, and Cards REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 
 from fastapi import APIRouter, Depends, status
@@ -26,7 +27,7 @@ def create_board(
     db: Session = Depends(get_db),
 ):
     """Create a new standalone or project Kanban board."""
-    board = project_service.create_board(db=db, user_id=current_user.id, data=data)
+    board = project_service.create_board(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": board.model_dump(),
     }
@@ -39,7 +40,7 @@ def get_board(
     db: Session = Depends(get_db),
 ):
     """Retrieve Kanban board by ID with its columns and cards."""
-    board = project_service.get_board(db=db, user_id=current_user.id, board_id=board_id)
+    board = project_service.get_board(db=db, user_id=settings.DEFAULT_OWNER_ID, board_id=board_id)
     return {
         "data": board.model_dump(),
     }
@@ -55,7 +56,7 @@ def create_column(
     """Add a new column to a Kanban board."""
     column = project_service.create_column(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         board_id=board_id,
         data=data,
     )
@@ -71,7 +72,7 @@ def create_card(
     db: Session = Depends(get_db),
 ):
     """Place a task card in a board column."""
-    card = project_service.create_card(db=db, user_id=current_user.id, data=data)
+    card = project_service.create_card(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": card.model_dump(),
     }
@@ -87,7 +88,7 @@ def move_card(
     """Move a card to a new column and/or position."""
     card = project_service.move_card(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         card_id=card_id,
         data=data,
     )

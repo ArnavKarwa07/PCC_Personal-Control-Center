@@ -1,5 +1,6 @@
 """Personal CRM & Contacts REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -26,7 +27,7 @@ def list_contacts(
 ):
     """Retrieve contacts directory with search and catch-up follow-up filtering."""
     contacts, total, total_pages = contact_service.list_contacts(
-        db=db, user_id=current_user.id, search=search, overdue_only=overdue_only, page=page, per_page=per_page
+        db=db, user_id=settings.DEFAULT_OWNER_ID, search=search, overdue_only=overdue_only, page=page, per_page=per_page
     )
     return {
         "data": [ContactRead.model_validate(c).model_dump() for c in contacts],
@@ -41,7 +42,7 @@ def create_contact(
     db: Session = Depends(get_db),
 ):
     """Create a new personal contact record."""
-    contact = contact_service.create_contact(db=db, user_id=current_user.id, data=data)
+    contact = contact_service.create_contact(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
@@ -52,7 +53,7 @@ def get_contact_by_id(
     db: Session = Depends(get_db),
 ):
     """Retrieve single contact by ID."""
-    contact = contact_service.get_contact(db=db, user_id=current_user.id, contact_id=contact_id)
+    contact = contact_service.get_contact(db=db, user_id=settings.DEFAULT_OWNER_ID, contact_id=contact_id)
     if not contact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     return {"data": ContactRead.model_validate(contact).model_dump()}
@@ -66,7 +67,7 @@ def update_contact(
     db: Session = Depends(get_db),
 ):
     """Update contact details or record last interaction date."""
-    contact = contact_service.update_contact(db=db, user_id=current_user.id, contact_id=contact_id, data=data)
+    contact = contact_service.update_contact(db=db, user_id=settings.DEFAULT_OWNER_ID, contact_id=contact_id, data=data)
     if not contact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     return {"data": ContactRead.model_validate(contact).model_dump()}
@@ -79,6 +80,6 @@ def delete_contact(
     db: Session = Depends(get_db),
 ):
     """Delete a contact record."""
-    success = contact_service.delete_contact(db=db, user_id=current_user.id, contact_id=contact_id)
+    success = contact_service.delete_contact(db=db, user_id=settings.DEFAULT_OWNER_ID, contact_id=contact_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")

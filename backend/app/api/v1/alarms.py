@@ -1,5 +1,6 @@
 """Unified Alarms REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -30,7 +31,7 @@ def list_alarms(
     """Retrieve all configured alarms for the authenticated user."""
     alarms, total, total_pages = alarm_service.list_alarms(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         is_enabled=is_enabled,
         page=page,
         per_page=per_page,
@@ -53,7 +54,7 @@ def create_alarm(
     db: Session = Depends(get_db),
 ):
     """Create a new wake/trigger alarm."""
-    alarm = alarm_service.create_alarm(db=db, user_id=current_user.id, data=data)
+    alarm = alarm_service.create_alarm(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": alarm.model_dump(),
     }
@@ -66,7 +67,7 @@ def get_alarm(
     db: Session = Depends(get_db),
 ):
     """Get a single alarm by ID."""
-    alarm = alarm_service.get_alarm_response(db=db, user_id=current_user.id, alarm_id=alarm_id)
+    alarm = alarm_service.get_alarm_response(db=db, user_id=settings.DEFAULT_OWNER_ID, alarm_id=alarm_id)
     return {
         "data": alarm.model_dump(),
     }
@@ -82,7 +83,7 @@ def update_alarm(
     """Update alarm properties."""
     alarm = alarm_service.update_alarm(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         alarm_id=alarm_id,
         data=data,
     )
@@ -102,7 +103,7 @@ def toggle_alarm(
     is_enabled = data.is_enabled if data else None
     alarm = alarm_service.toggle_alarm(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         alarm_id=alarm_id,
         is_enabled=is_enabled,
     )
@@ -118,7 +119,7 @@ def delete_alarm(
     db: Session = Depends(get_db),
 ):
     """Soft delete an alarm."""
-    alarm_service.delete_alarm(db=db, user_id=current_user.id, alarm_id=alarm_id)
+    alarm_service.delete_alarm(db=db, user_id=settings.DEFAULT_OWNER_ID, alarm_id=alarm_id)
     return {
         "data": {
             "message": "Alarm deleted successfully.",

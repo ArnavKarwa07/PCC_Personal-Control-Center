@@ -25,15 +25,6 @@ const PageFallback: React.FC = () => <PageLoader message="Loading module..." />;
 
 export const router = createBrowserRouter([
   // Single-Tenant Redirects for legacy /login or /register URLs
-  {
-    path: '/login',
-    element: <Navigate to="/" replace />,
-  },
-  {
-    path: '/register',
-    element: <Navigate to="/" replace />,
-  },
-
   // Main Application Protected Routes (inside AppShell layout)
   {
     path: '/',

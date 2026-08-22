@@ -5,6 +5,53 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.1beta] - 2026-08-23
+
+### Added
+- **Offline-First Mutation Queue & Background Auto-Sync**:
+  - Implemented client-side persistent mutation queue service (`frontend/src/services/syncQueue.ts`) backed by `localStorage` (`pcc_sync_queue`).
+  - Supports non-blocking optimistic UI mutations for 9 core domain entities (`tasks`, `notes`, `projects`, `ideas`, `calendar`, `reminders`, `alarms`, `goals`, `contacts`) across `create`, `update`, and `delete` actions.
+  - Intelligent mutation deduplication and batch merging to coalesce successive edits or prune cancelled creation mutations prior to sync.
+  - Automatic background queue flush on reconnection (`window.addEventListener('online')`), app visibility changes, or periodic sync triggers, featuring exponential backoff with a 3-retry threshold and 404 dead-letter pruning.
+  - Global event notifications (`syncQueueChanged`) keeping UI synchronization indicators real-time reactive.
+- **Native Desktop Alarm Scheduling & System Tray Integration (Tauri v2)**:
+  - Configured Tauri v2 desktop runtime (`frontend/src-tauri/src/lib.rs`, `tauri.conf.json`) with native system tray menu integration featuring "Show PCC" and "Quit" options.
+  - Close-to-tray background persistence (`tauri::WindowEvent::CloseRequested` with `window.hide()` and `api.prevent_close()`), ensuring continuous background alarm monitoring without terminal interruption.
+  - Integrated `@tauri-apps/plugin-notification` and `@tauri-apps/plugin-autostart` for persistent desktop alerts and automatic system startup.
+  - Exact timeout scheduling for alarms and reminders within Tauri runtime (`alarmScheduler.ts`).
+- **Capacitor 6 Native Notification Channels & Custom Audio Asset (Android)**:
+  - Configured dedicated high-priority native notification channel (`pcc_alarms_channel`) with MAX importance (level 5), public lockscreen visibility, custom vibration patterns, and bundled `alarm.wav` audio asset (`frontend/android/app/src/main/res/raw/alarm.wav`).
+  - Low-power OS doze-mode wakeup support via `allowWhileIdle: true` on `@capacitor/local-notifications` to guarantee on-time wake-up alerts on mobile devices.
+  - Deterministic numeric notification ID generation via FNV-1a hashing algorithm (`100000000+` namespace for alarms, `200000000+` for reminders).
+- **Proactive Startup Permission Management Banner**:
+  - Added proactive, non-intrusive startup permissions prompt (`AppShell.tsx`, `permissionService.ts`) to request notification access, background alarm execution, and Open-Meteo geolocation telemetry on initial launch.
+  - Unified multi-platform permission queries handling Capacitor native Android, Tauri v2 desktop, and modern standard browser environments with automatic 3000ms race safeguards.
+- **AI Executive Assistant Service & Gemini 2.0 Flash Integration**:
+  - Overhauled the AI Executive Assistant floating widget (`AIAssistantWidget.tsx`), restoring direct endpoint routing to `/api/v1/assistant/process_assistant_query`.
+  - Integrated Google Gemini 2.0 Flash (`gemini-2.0-flash` via `google.generativeai`) within `backend/app/services/assistant_service.py` for high-speed conversational querying, contextual workspace reasoning, and task/note auto-dispatch.
+  - Added natural language intent detection (`CREATE_TASK`, `CREATE_NOTE`, `GENERAL_QUERY`) and automated executive morning briefing generation (`/assistant/get_daily_briefing`).
+- **Standardized CI/CD Cross-Platform Release Pipeline (`v1.0.1beta`)**:
+  - Upgraded GitHub Actions release workflow (`.github/workflows/build-release.yml`) with automated tag extraction and dynamic semver propagation.
+  - Automatically synchronizes release version tags (`v1.0.1beta` -> `1.0.1`) across `frontend/package.json`, `frontend/src-tauri/tauri.conf.json`, `frontend/src-tauri/Cargo.toml`, and `frontend/android/app/build.gradle` (`versionCode` & `versionName`) during build matrix execution.
+  - Produces and publishes signed cross-platform artifacts to GitHub Releases: Android debug APK (`PCC_v1.0.1beta.apk`) and desktop binaries (`.exe` NSIS installer, `.dmg`, `.AppImage`, `.deb`).
+
+### Changed
+- **Transition to Single-Tenant Owner Architecture**:
+  - Streamlined backend REST architecture into a zero-friction single-tenant mode for Arnav Karwa (`arnavkarwa07@gmail.com` / `00000000-0000-0000-0000-000000000001`), eliminating redundant multi-user login, register, and token management overhead.
+  - Removed client-side `authStore.ts`, login/register modals, and authorization bearer header blockers across API calls (`frontend/src/services/api.ts`).
+  - Retained database-level user isolation with automatic default owner provisioning in dependency injections (`backend/app/core/dependencies.py`).
+
+### Removed
+- **Financial & Fitness Modules Cleanup (Database Migration)**:
+  - Created Alembic database migration `drop_deprecated_tables` (`backend/alembic/versions/drop_deprecated_tables.py`) to drop legacy `finances` table.
+  - Purged obsolete auth endpoints (`backend/app/api/v1/auth.py`, `backend/app/api/v1/users.py`), auth schemas (`backend/app/schemas/auth.py`, `backend/app/schemas/user.py`), and test modules (`backend/tests/test_auth.py`).
+
+### Compliance & Quality Assurance
+- **Empirical Verification**:
+  - `npx tsc --noEmit`: 0 TypeScript compiler errors.
+  - `npm run build`: Vite production bundle generated successfully (232 modules transformed, 0 errors).
+  - `python -m pytest`: 79/79 backend unit tests passing (100% success rate).
+
 ## [1.5.0] - 2026-08-22
 
 ### Added

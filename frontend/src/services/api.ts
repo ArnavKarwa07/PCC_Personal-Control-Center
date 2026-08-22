@@ -1,5 +1,4 @@
 /// <reference types="vite/client" />
-import { useAuthStore } from '../stores/authStore';
 import type {
   ApiError,
   Project,
@@ -13,8 +12,6 @@ import type {
   Integration,
   WeatherData,
   SearchResponse,
-  FitnessSummary,
-  WorkoutItem,
   GoalItem,
 } from '../types';
 
@@ -24,12 +21,12 @@ export const DEFAULT_CLOUD_API_URL = 'https://pcc-backend-842717490280.asia-sout
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(STORAGE_KEY_SERVER_URL);
-    if (saved && saved.trim()) {
+    if (saved && saved.trim() !== '') {
       return saved.trim().replace(/\/+$/, '');
     }
   }
   const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && envUrl.trim()) {
+  if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim().replace(/\/+$/, '');
   }
   return DEFAULT_CLOUD_API_URL;
@@ -37,7 +34,7 @@ export function getApiBaseUrl(): string {
 
 export function setApiBaseUrl(url: string): void {
   if (typeof window !== 'undefined') {
-    if (!url || !url.trim()) {
+    if (!url || url.trim() === '') {
       localStorage.removeItem(STORAGE_KEY_SERVER_URL);
     } else {
       localStorage.setItem(STORAGE_KEY_SERVER_URL, url.trim().replace(/\/+$/, ''));
@@ -63,20 +60,13 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
-  customHeaders?: Record<string, string>,
-  isRetry = false
+  customHeaders?: Record<string, string>
 ): Promise<T> {
-  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
     ...customHeaders,
   };
-
-  const hasAuthHeader = Object.keys(headers).some((k) => k.toLowerCase() === 'authorization');
-  if (!hasAuthHeader && token && token.trim()) {
-    headers['Authorization'] = `Bearer ${token.trim()}`;
-  }
 
   const baseUrl = getApiBaseUrl();
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -95,14 +85,6 @@ async function request<T>(
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      if (response.status === 401 && !isRetry) {
-        useAuthStore.getState().logout();
-        throw new ApiException({
-          message: 'Unauthorized: Session expired or invalid token',
-          code: 401,
-        });
-      }
-
       let errData: ApiError;
       try {
         errData = await response.json();
@@ -338,31 +320,6 @@ export const searchApi = {
   },
 };
 
-export const fitnessApi = {
-  getSummary: () => apiClient.get<FitnessSummary>('/fitness/summary'),
-  getWorkouts: (page = 1, perPage = 20) => {
-    const query = new URLSearchParams({ page: String(page), per_page: String(perPage) });
-    return apiClient.get<{
-      data: WorkoutItem[];
-      meta: { total: number; page: number; per_page: number; total_pages: number };
-    }>(`/fitness/workouts?${query.toString()}`);
-  },
-  createWorkout: (data: {
-    date: string;
-    name?: string;
-    notes?: string;
-    duration_minutes?: number;
-    exercises?: Array<{
-      name: string;
-      sets?: number;
-      reps?: number;
-      weight?: number;
-      duration_seconds?: number;
-      exercise_type?: string;
-    }>;
-  }) => apiClient.post<{ data: WorkoutItem }>('/fitness/workouts', data),
-  deleteWorkout: (id: string) => apiClient.delete<void>(`/fitness/workouts/${id}`),
-};
 
 export const goalsApi = {
   getAll: (params?: { status?: string; time_period?: string; page?: number; per_page?: number }) => {

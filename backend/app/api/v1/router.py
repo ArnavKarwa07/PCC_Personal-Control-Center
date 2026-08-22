@@ -4,7 +4,6 @@ from fastapi import APIRouter
 
 from app.api.v1.alarms import router as alarms_router
 from app.api.v1.assistant import router as assistant_router
-from app.api.v1.auth import router as auth_router
 from app.api.v1.boards import router as boards_router
 from app.api.v1.calendar import router as calendar_router
 from app.api.v1.contacts import router as contacts_router
@@ -19,14 +18,11 @@ from app.api.v1.reminders import router as reminders_router
 from app.api.v1.search import router as search_router
 from app.api.v1.tasks import router as tasks_router
 from app.api.v1.timers import router as timers_router
-from app.api.v1.users import router as users_router
 from app.api.v1.weather import router as weather_router
 
 api_v1_router = APIRouter()
 
 api_v1_router.include_router(health_router)
-api_v1_router.include_router(auth_router)
-api_v1_router.include_router(users_router)
 api_v1_router.include_router(tasks_router)
 api_v1_router.include_router(projects_router)
 api_v1_router.include_router(boards_router)

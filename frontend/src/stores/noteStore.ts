@@ -1,3 +1,4 @@
+import { syncQueue } from '../services/syncQueue';
 import { create } from 'zustand';
 import { Note, NoteChecklistItem } from '../types';
 import { notesApi } from '../services/api';
@@ -163,8 +164,15 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
 
     try {
       await notesApi.update(id, updates);
-    } catch {
-      // Optimistic fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'note',
+          action: 'update',
+          entityId: id,
+          payload: updates
+        });
+      }
     }
   },
 
@@ -178,8 +186,15 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
 
     try {
       await notesApi.delete(id);
-    } catch {
-      // Optimistic fallback
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'note',
+          action: 'delete',
+          entityId: id,
+          payload: undefined
+        });
+      }
     }
   },
 
@@ -209,9 +224,16 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     for (const id of trashedIds) {
       try {
         await notesApi.delete(id);
-      } catch {
-        // Ignore individual delete failure
+      } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'note',
+          action: 'delete',
+          entityId: id,
+          payload: undefined
+        });
       }
+    }
     }
   },
 

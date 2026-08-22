@@ -1,7 +1,6 @@
 """Business services module."""
 
 from app.services.alarm_service import AlarmService, alarm_service
-from app.services.auth_service import AuthService, auth_service
 from app.services.calendar_service import CalendarService, calendar_service
 from app.services.idea_service import IdeaService, idea_service
 from app.services.integration_service import (

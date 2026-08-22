@@ -1,5 +1,6 @@
 """Project management REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from typing import Optional
 
@@ -33,7 +34,7 @@ def list_projects(
     """Retrieve paginated projects for authenticated user."""
     projects, total, total_pages = project_service.list_projects(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         priority=priority,
         search=search,
@@ -58,7 +59,7 @@ def create_project(
     db: Session = Depends(get_db),
 ):
     """Create a new project with default Kanban board."""
-    project = project_service.create_project(db=db, user_id=current_user.id, data=data)
+    project = project_service.create_project(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": project.model_dump(),
     }
@@ -71,7 +72,7 @@ def get_project_by_id(
     db: Session = Depends(get_db),
 ):
     """Retrieve single project by ID."""
-    project = project_service.get_project_response(db=db, user_id=current_user.id, project_id=project_id)
+    project = project_service.get_project_response(db=db, user_id=settings.DEFAULT_OWNER_ID, project_id=project_id)
     return {
         "data": project.model_dump(),
     }
@@ -87,7 +88,7 @@ def update_project_by_id(
     """Update project details."""
     project = project_service.update_project(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         project_id=project_id,
         data=data,
     )
@@ -103,7 +104,7 @@ def delete_project_by_id(
     db: Session = Depends(get_db),
 ):
     """Soft delete a project."""
-    project_service.delete_project(db=db, user_id=current_user.id, project_id=project_id)
+    project_service.delete_project(db=db, user_id=settings.DEFAULT_OWNER_ID, project_id=project_id)
     return {
         "data": {
             "message": "Project deleted successfully.",
@@ -118,7 +119,7 @@ def get_project_board(
     db: Session = Depends(get_db),
 ):
     """Retrieve the Kanban board, columns, and cards for a project."""
-    board = project_service.get_project_board(db=db, user_id=current_user.id, project_id=project_id)
+    board = project_service.get_project_board(db=db, user_id=settings.DEFAULT_OWNER_ID, project_id=project_id)
     return {
         "data": board.model_dump(),
     }
@@ -134,7 +135,7 @@ def add_project_member(
     """Assign a contact as a member of the project."""
     member = project_service.add_project_member(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         project_id=project_id,
         data=data,
     )
@@ -153,7 +154,7 @@ def remove_project_member(
     """Remove a member from the project."""
     project_service.remove_project_member(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         project_id=project_id,
         member_id=member_id,
     )

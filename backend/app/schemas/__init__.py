@@ -8,13 +8,7 @@ from app.schemas.alarm import (
     AlarmToggleRequest,
     AlarmUpdate,
 )
-from app.schemas.auth import (
-    LoginRequest,
-    RegisterRequest,
-    TokenResponse,
-    UserResponse,
-    UserUpdateRequest,
-)
+
 from app.schemas.base import ErrorDetail, ErrorResponse, PaginationMeta, SuccessResponse
 from app.schemas.calendar_event import (
     CalendarEventBase,

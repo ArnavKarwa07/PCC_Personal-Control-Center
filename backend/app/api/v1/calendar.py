@@ -1,5 +1,6 @@
 """Unified Calendar REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -31,7 +32,7 @@ def list_calendar_events(
     """Retrieve calendar events within a date range with optional type and source filtering."""
     events, total, total_pages = calendar_service.list_events(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         start_date=start_date,
         end_date=end_date,
         event_type=event_type,
@@ -57,7 +58,7 @@ def create_calendar_event(
     db: Session = Depends(get_db),
 ):
     """Create a new calendar event for the authenticated user."""
-    event = calendar_service.create_event(db=db, user_id=current_user.id, data=data)
+    event = calendar_service.create_event(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": event.model_dump(),
     }
@@ -70,7 +71,7 @@ def get_calendar_event(
     db: Session = Depends(get_db),
 ):
     """Retrieve a single calendar event by ID."""
-    event = calendar_service.get_event_response(db=db, user_id=current_user.id, event_id=event_id)
+    event = calendar_service.get_event_response(db=db, user_id=settings.DEFAULT_OWNER_ID, event_id=event_id)
     return {
         "data": event.model_dump(),
     }
@@ -86,7 +87,7 @@ def update_calendar_event(
     """Update calendar event details."""
     event = calendar_service.update_event(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         event_id=event_id,
         data=data,
     )
@@ -102,7 +103,7 @@ def delete_calendar_event(
     db: Session = Depends(get_db),
 ):
     """Soft delete a calendar event."""
-    calendar_service.delete_event(db=db, user_id=current_user.id, event_id=event_id)
+    calendar_service.delete_event(db=db, user_id=settings.DEFAULT_OWNER_ID, event_id=event_id)
     return {
         "data": {
             "message": "Calendar event deleted successfully.",

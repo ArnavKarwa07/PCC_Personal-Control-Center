@@ -450,13 +450,7 @@ export interface WorkoutItem {
   exercises?: ExerciseItem[];
 }
 
-export interface FitnessSummary {
-  total_workouts: number;
-  total_duration_minutes: number;
-  current_habit_streak: number;
-  avg_sleep_hours: number;
-  avg_water_ml: number;
-}
+
 
 export type GoalStatus = 'not_started' | 'in_progress' | 'completed' | 'abandoned';
 

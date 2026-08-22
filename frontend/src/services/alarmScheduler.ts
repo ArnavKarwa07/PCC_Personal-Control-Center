@@ -19,6 +19,12 @@ function reminderIdToNumericId(strId: string): number {
   return 200000000 + (fnv1aHash(strId) % 100000000);
 }
 
+const activeTauriTimers = new Map<string, any>();
+
+function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
 export const alarmScheduler = {
   async init(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
@@ -38,40 +44,21 @@ export const alarmScheduler = {
   },
 
   async scheduleAlarmNotification(alarm: Alarm): Promise<void> {
-    if (!alarm.enabled || !alarm.time || !/^\d{1,2}:\d{2}$/.test(alarm.time)) {
-      await this.cancelAlarmNotification(alarm.id);
-      return;
-    }
-
-    const [h, m] = alarm.time.split(':').map(Number);
-    if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) {
+    if (!alarm.enabled) {
       await this.cancelAlarmNotification(alarm.id);
       return;
     }
 
     const now = new Date();
-    const currentDay = now.getDay();
-    const currentMin = now.getHours() * 60 + now.getMinutes();
-    const alarmMin = h * 60 + m;
+    const [hours, minutes] = alarm.time.split(':').map(Number);
+    const h = hours || 0;
+    const m = minutes || 0;
 
-    const days = (alarm.days && alarm.days.length > 0 ? alarm.days : [0, 1, 2, 3, 4, 5, 6]).map(Number);
     let dayDiff = 0;
-    let found = false;
+    const alarmTimeToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
 
-    for (let offset = 0; offset < 7; offset++) {
-      const candidateDay = (currentDay + offset) % 7;
-      if (days.includes(candidateDay)) {
-        if (offset === 0 && alarmMin <= currentMin) {
-          continue; // Already passed today, look for next day
-        }
-        dayDiff = offset;
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
-      dayDiff = 7;
+    if (alarmTimeToday.getTime() <= now.getTime()) {
+      dayDiff = 1;
     }
 
     const targetDate = new Date();
@@ -99,6 +86,32 @@ export const alarmScheduler = {
       } catch (err) {
         console.warn('Failed to schedule native alarm notification:', err);
       }
+    } else if (isTauri()) {
+      try {
+        if (activeTauriTimers.has(alarm.id)) {
+          clearTimeout(activeTauriTimers.get(alarm.id));
+          activeTauriTimers.delete(alarm.id);
+        }
+
+        const delay = targetDate.getTime() - Date.now();
+        if (delay > 0) {
+          const timer = setTimeout(async () => {
+            try {
+              const { sendNotification } = await import('@tauri-apps/plugin-notification');
+              sendNotification({
+                title: `⏰ Alarm: ${alarm.label || 'PCC Alarm'}`,
+                body: `It's ${alarm.time}!`,
+              });
+            } catch (e) {
+              console.warn('Tauri notification error:', e);
+            }
+            activeTauriTimers.delete(alarm.id);
+          }, delay);
+          activeTauriTimers.set(alarm.id, timer);
+        }
+      } catch (err) {
+        console.warn('Failed to schedule Tauri alarm notification:', err);
+      }
     }
   },
 
@@ -109,6 +122,11 @@ export const alarmScheduler = {
         await LocalNotifications.cancel({ notifications: [{ id }] });
       } catch (err) {
         console.warn('Failed to cancel native alarm notification:', err);
+      }
+    } else if (isTauri()) {
+      if (activeTauriTimers.has(alarmId)) {
+        clearTimeout(activeTauriTimers.get(alarmId));
+        activeTauriTimers.delete(alarmId);
       }
     }
   },

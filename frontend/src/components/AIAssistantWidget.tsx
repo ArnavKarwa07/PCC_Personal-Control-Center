@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { apiClient } from '../services/api';
+import { assistantApi } from '../services/api';
 import './AIAssistantWidget.css';
 
 interface Message {
@@ -55,16 +55,18 @@ export const AIAssistantWidget: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.post<AssistantResponse>('/assistant/query', {
-        query: trimmedQuery,
-      });
+      const response = (await assistantApi.query(trimmedQuery)) as AssistantResponse;
 
       const replyContent =
         response.summary || response.message || 'Action processed successfully.';
       setMessages((prev) => [...prev, { role: 'assistant', content: replyContent }]);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unable to reach assistant service.';
+    } catch (error: any) {
+      let errorMessage = 'Unable to reach assistant service.';
+      if (error?.code === 'NETWORK_ERROR') {
+        errorMessage = 'Unable to reach server — check your connection';
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setMessages((prev) => [
         ...prev,
         {

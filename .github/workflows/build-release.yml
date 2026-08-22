@@ -2,8 +2,6 @@ name: Production Build & Cross-Platform Release Pipeline
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
 
@@ -22,6 +20,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: version  
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          SEMVER=$(echo "$VERSION" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' || echo "1.0.1")
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT  
+          echo "SEMVER=$SEMVER" >> $GITHUB_OUTPUT
+
+      - name: Sync versions in config files
+        run: |
+          TAG="${{ steps.version.outputs.TAG }}"
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          SEMVER="${{ steps.version.outputs.SEMVER }}"
+          
+          # 1. frontend/package.json
+          cd frontend
+          npm version $SEMVER --no-git-tag-version || true
+          
+          # 2. frontend/src-tauri/tauri.conf.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$SEMVER\"/" src-tauri/tauri.conf.json
+          
+          # 3. frontend/src-tauri/Cargo.toml
+          sed -i "s/^version = \".*\"/version = \"$SEMVER\"/" src-tauri/Cargo.toml
+          
+          # 4. frontend/android/app/build.gradle
+          sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" android/app/build.gradle
+          cd ..
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -39,6 +68,8 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Build frontend web assets
+        env:
+          VITE_API_URL: ""
         run: cd frontend && npm run build
 
       - name: Sync Capacitor Android
@@ -52,18 +83,24 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Rename APK
+        run: |
+          TAG="${{ steps.version.outputs.TAG }}"
+          mv frontend/android/app/build/outputs/apk/debug/app-debug.apk frontend/android/app/build/outputs/apk/debug/PCC_$TAG.apk
+
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: pcc-android-apk
-          path: frontend/android/app/build/outputs/apk/debug/*.apk
+          path: frontend/android/app/build/outputs/apk/debug/PCC_*.apk
 
       - name: Attach Android APK to Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: PCC Production Release ${{ github.ref_name }}
-          files: frontend/android/app/build/outputs/apk/debug/*.apk
+          name: ${{ github.ref_name }}
+          files: frontend/android/app/build/outputs/apk/debug/PCC_*.apk
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,6 +126,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: version  
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          SEMVER=$(echo "$VERSION" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' || echo "1.0.1")
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT  
+          echo "SEMVER=$SEMVER" >> $GITHUB_OUTPUT
+
+      - name: Sync versions in config files
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.TAG }}"
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          SEMVER="${{ steps.version.outputs.SEMVER }}"
+          
+          # 1. frontend/package.json
+          cd frontend
+          npm version $SEMVER --no-git-tag-version || true
+          
+          # 2. frontend/src-tauri/tauri.conf.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$SEMVER\"/" src-tauri/tauri.conf.json
+          
+          # 3. frontend/src-tauri/Cargo.toml
+          sed -i "s/^version = \".*\"/version = \"$SEMVER\"/" src-tauri/Cargo.toml
+          cd ..
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -111,6 +177,8 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Build frontend web assets
+        env:
+          VITE_API_URL: ""
         run: cd frontend && npm run build
 
       - name: Build & Publish Tauri Desktop Release
@@ -120,7 +188,7 @@ jobs:
         with:
           projectPath: "./frontend"
           tagName: ${{ github.ref_name }}
-          releaseName: "PCC Production Release ${{ github.ref_name }}"
+          releaseName: "${{ github.ref_name }}"
           releaseBody: "Automated production release for PCC (Personal Control Center)."
           releaseDraft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useIntegrationStore } from '../../stores/integrationStore';
 import { useTaskStore } from '../../stores/taskStore';
@@ -14,7 +13,7 @@ import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
 import { integrationsApi, getApiBaseUrl, setApiBaseUrl, DEFAULT_CLOUD_API_URL } from '../../services/api';
-import { permissionService, SystemPermissionStatus } from '../../services/permissionService';
+import { permissionService, PermissionReport } from '../../services/permissionService';
 import { validateAndCleanImportData, executeDataImport } from '../../services/jsonImportService';
 import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
@@ -87,7 +86,7 @@ export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [openSection, setOpenSection] = useState<string | null>('general');
 
-  const { user, setUser } = useAuthStore();
+  const { user, setUser } = { user: { email: 'owner@pcc.local', name: 'Owner', role: 'owner' }, setUser: (_u: any) => {} };
   const { theme, setTheme, accentColor, setAccentColor } = useUIStore();
   const { integrations, isSyncing, toggleConnect, updateConfig, syncIntegration, testConnection, fetchIntegrations } =
     useIntegrationStore();
@@ -113,13 +112,14 @@ export const SettingsPage: React.FC = () => {
   const [isTestingServer, setIsTestingServer] = useState(false);
 
   // System Permissions State
-  const [permissionStatus, setPermissionStatus] = useState<SystemPermissionStatus>({
+  const [permissionStatus, setPermissionStatus] = useState<PermissionReport>({
     notifications: 'prompt',
     location: 'prompt',
+    exactAlarm: 'prompt',
   });
 
   useEffect(() => {
-    permissionService.checkPermissions().then(setPermissionStatus);
+    permissionService.getPermissionStatus().then(setPermissionStatus);
   }, []);
 
   const handleSaveServerUrl = (e?: React.FormEvent) => {

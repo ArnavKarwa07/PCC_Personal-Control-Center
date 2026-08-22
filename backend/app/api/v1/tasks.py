@@ -1,5 +1,6 @@
 """Task management REST API endpoints."""
 
+from app.core.config import settings
 import uuid
 from datetime import date
 from typing import Optional
@@ -32,7 +33,7 @@ def list_tasks(
     """Retrieve paginated tasks for authenticated user with multi-criteria filters."""
     tasks, total, total_pages = task_service.list_tasks(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         priority=priority,
         project_id=project_id,
@@ -59,7 +60,7 @@ def create_task(
     db: Session = Depends(get_db),
 ):
     """Create a new task under authenticated user account."""
-    task = task_service.create_task(db=db, user_id=current_user.id, data=data)
+    task = task_service.create_task(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
     return {
         "data": task.model_dump(),
     }
@@ -72,7 +73,7 @@ def get_task_by_id(
     db: Session = Depends(get_db),
 ):
     """Get single task by UUID enforcing user ownership."""
-    task = task_service.get_task_response(db=db, user_id=current_user.id, task_id=task_id)
+    task = task_service.get_task_response(db=db, user_id=settings.DEFAULT_OWNER_ID, task_id=task_id)
     return {
         "data": task.model_dump(),
     }
@@ -88,7 +89,7 @@ def update_task_by_id(
     """Update task details for authenticated user."""
     task = task_service.update_task(
         db=db,
-        user_id=current_user.id,
+        user_id=settings.DEFAULT_OWNER_ID,
         task_id=task_id,
         data=data,
     )
@@ -104,7 +105,7 @@ def delete_task_by_id(
     db: Session = Depends(get_db),
 ):
     """Soft delete a task."""
-    task_service.delete_task(db=db, user_id=current_user.id, task_id=task_id)
+    task_service.delete_task(db=db, user_id=settings.DEFAULT_OWNER_ID, task_id=task_id)
     return {
         "data": {
             "message": "Task deleted successfully.",

@@ -3,6 +3,8 @@
 import uuid
 from datetime import date
 
+import google.generativeai as genai
+from app.core.config import settings
 from sqlalchemy.orm import Session
 
 from app.models.calendar_event import CalendarEvent
@@ -16,6 +18,11 @@ from app.schemas.assistant import AssistantAction, AssistantQueryRequest, Assist
 
 class AssistantService:
     """Service dispatcher for natural language execution and automated executive summaries."""
+
+    def __init__(self):
+        if settings.GEMINI_API_KEY:
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+
 
     def process_query(self, db: Session, user_id: uuid.UUID, request: AssistantQueryRequest) -> AssistantQueryResponse:
         q = request.query.lower().strip()
@@ -63,8 +70,21 @@ class AssistantService:
         else:
             # Informational query dispatcher
             pending_count = db.query(Task).filter(Task.user_id == user_id, Task.status != TaskStatus.DONE).count()
+            summary_text = f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace."
+            
+            if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != 'AIzaSyBk_example_key_placeholder':
+                try:
+                    model = genai.GenerativeModel("gemini-2.0-flash")
+                    prompt = "You are a Personal Control Center assistant. The user said: " + request.query
+                    response = model.generate_content(prompt)
+                    summary_text = response.text
+                except Exception as e:
+                    import logging
+                    logging.getLogger("assistant_service").error("Gemini AI API error: %s", e)
+                    summary_text = f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace. (Note: Gemini AI call failed: {str(e)})"
+
             return AssistantQueryResponse(
-                summary=f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace.",
+                summary=summary_text,
                 intent_detected="GENERAL_QUERY",
                 suggested_followups=[
                     "What are my high priority tasks?",

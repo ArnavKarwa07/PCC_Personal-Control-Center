@@ -1,3 +1,4 @@
+import { syncQueue } from '../services/syncQueue';
 import { create } from 'zustand';
 import { Project } from '../types';
 import { projectsApi } from '../services/api';
@@ -122,8 +123,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const now = new Date().toISOString();
     try {
       await projectsApi.update(id, updates);
-    } catch {
-      // Ignore API offline error
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'project',
+          action: 'update',
+          entityId: id,
+          payload: updates
+        });
+      }
     }
 
     set((state) => {
@@ -138,8 +146,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   deleteProject: async (id) => {
     try {
       await projectsApi.delete(id);
-    } catch {
-      // Ignore API offline error
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'project',
+          action: 'delete',
+          entityId: id,
+          payload: undefined
+        });
+      }
     }
 
     set((state) => {

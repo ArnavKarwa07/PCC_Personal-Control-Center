@@ -1,3 +1,4 @@
+import { syncQueue } from '../services/syncQueue';
 import { create } from 'zustand';
 import { CalendarEvent } from '../types';
 import { calendarApi } from '../services/api';
@@ -140,8 +141,15 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
     const now = new Date().toISOString();
     try {
       await calendarApi.update(id, updates);
-    } catch {
-      // Ignore API offline error
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'calendar',
+          action: 'update',
+          entityId: id,
+          payload: updates
+        });
+      }
     }
 
     set((state) => {
@@ -156,8 +164,15 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   deleteEvent: async (id) => {
     try {
       await calendarApi.delete(id);
-    } catch {
-      // Ignore API offline error
+    } catch (err: any) {
+      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        syncQueue.enqueue({
+          entityType: 'calendar',
+          action: 'delete',
+          entityId: id,
+          payload: undefined
+        });
+      }
     }
 
     set((state) => {
