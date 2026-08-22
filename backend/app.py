@@ -18,24 +18,25 @@ if not hasattr(huggingface_hub, "HfFolder"):
     huggingface_hub.HfFolder = MockHfFolder
 
 import gradio as gr
-try:
-    import spaces
-except ImportError:
-    spaces = None
-
+import spaces
 from app.main import app as fastapi_app
 
-# Gradio Interface for HF ZeroGPU Space runner
+# ZeroGPU function required by Hugging Face ZeroGPU space supervisor
+@spaces.GPU(duration=1)
+def gpu_status(name: str = "PCC Admin") -> str:
+    return f"⚡ ZeroGPU Engine Active & Ready for {name}"
+
+# Gradio interface wrapping ZeroGPU function
 demo = gr.Interface(
-    fn=lambda client_name: f"⚡ PCC Personal Control Center Backend Engine is Active & Ready for {client_name}",
+    fn=gpu_status,
     inputs=[gr.Textbox(value="PCC Admin", label="Client Name")],
     outputs="text",
-    title="PCC Personal Control Center - 24/7 Cloud Backend Engine",
-    description="FastAPI REST API running live 24/7. Interactive Swagger API Docs available at /docs",
+    title="PCC Personal Control Center - 24/7 ZeroGPU Backend Engine",
+    description="FastAPI REST API running live on ZeroGPU. Interactive Swagger API Docs available at /docs",
 )
 
-# Mount Gradio interface onto FastAPI app at root /
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+# Mount FastAPI app onto Gradio interface
+app = gr.mount_gradio_app(fastapi_app, demo, path="/status")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
