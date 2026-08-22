@@ -1,5 +1,5 @@
 """Hugging Face Spaces entrypoint for PCC FastAPI Backend.
-Runs 24/7 for free on Hugging Face Spaces using Gradio SDK (supports CPU & ZeroGPU).
+Runs 24/7 for free on Hugging Face Spaces using Gradio SDK.
 """
 
 import os
@@ -20,26 +20,16 @@ if not hasattr(huggingface_hub, "HfFolder"):
 import gradio as gr
 from app.main import app as fastapi_app
 
-# ZeroGPU compatibility handler for Hugging Face ZeroGPU spaces
-try:
-    import spaces
-
-    @spaces.GPU
-    def zero_gpu_initializer():
-        return "ZeroGPU Ready"
-except Exception:
-    zero_gpu_initializer = None
-
-# Gradio Interface for HF Space runner
+# Gradio status UI page
 demo = gr.Interface(
-    fn=lambda: f"⚡ PCC Personal Control Center Backend Engine is Active! ({'ZeroGPU' if zero_gpu_initializer else 'CPU'})",
+    fn=lambda: "⚡ PCC Personal Control Center Backend Engine is Active!",
     inputs=[],
     outputs="text",
     title="PCC Backend Service",
     description="FastAPI REST API running live 24/7. Interactive Swagger API Docs available at /docs",
 )
 
-# Mount FastAPI app onto Gradio
+# Mount Gradio interface onto FastAPI app
 app = gr.mount_gradio_app(fastapi_app, demo, path="/status")
 
 if __name__ == "__main__":
