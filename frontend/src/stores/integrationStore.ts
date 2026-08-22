@@ -219,30 +219,37 @@ export const useIntegrationStore = create<IntegrationStore>((set, get) => ({
 
     soundEffects.playPip();
 
+    let apiSucceeded = false;
     try {
       if (nextConnected) {
         await integrationsApi.connect(provider, config || integration.config || {});
       } else {
         await integrationsApi.disconnect(provider);
       }
-    } catch {
-      // Fallback
+      apiSucceeded = true;
+    } catch (err: any) {
+      const errMsg = err instanceof Error ? err.message : 'Integration connection failed';
+      console.warn('Backend integration status update failed:', errMsg);
+      apiSucceeded = false;
+      set({ error: errMsg });
     }
 
-    set((state) => {
-      const updated = state.integrations.map((item) =>
-        item.id === targetId || item.service === provider
-          ? {
-              ...item,
-              connected: nextConnected,
-              config: config ? { ...item.config, ...config } : item.config,
-              lastSynced: nextConnected ? now : item.lastSynced,
-            }
-          : item
-      );
-      saveIntegrations(updated);
-      return { integrations: updated };
-    });
+    if (apiSucceeded) {
+      set((state) => {
+        const updated = state.integrations.map((item) =>
+          item.id === targetId || item.service === provider
+            ? {
+                ...item,
+                connected: nextConnected,
+                config: config ? { ...item.config, ...config } : item.config,
+                lastSynced: nextConnected ? now : item.lastSynced,
+              }
+            : item
+        );
+        saveIntegrations(updated);
+        return { integrations: updated, error: null };
+      });
+    }
   },
 
   updateConfig: async (id, config) => {

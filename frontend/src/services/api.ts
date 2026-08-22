@@ -18,7 +18,33 @@ import type {
   GoalItem,
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const STORAGE_KEY_SERVER_URL = 'pcc_server_url';
+export const DEFAULT_CLOUD_API_URL = 'https://arnavkarwa07-pcc-backend.hf.space';
+
+export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem(STORAGE_KEY_SERVER_URL);
+    if (saved && saved.trim()) {
+      return saved.trim().replace(/\/+$/, '');
+    }
+  }
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  return DEFAULT_CLOUD_API_URL;
+}
+
+export function setApiBaseUrl(url: string): void {
+  if (typeof window !== 'undefined') {
+    if (!url || !url.trim()) {
+      localStorage.removeItem(STORAGE_KEY_SERVER_URL);
+    } else {
+      localStorage.setItem(STORAGE_KEY_SERVER_URL, url.trim().replace(/\/+$/, ''));
+    }
+  }
+}
+
 const API_PREFIX = '/api/v1';
 
 export class ApiException extends Error {
@@ -40,19 +66,21 @@ async function request<T>(
   customHeaders?: Record<string, string>,
   isRetry = false
 ): Promise<T> {
-  const token = useAuthStore.getState().token || 'mock-dev-token';
+  const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
     ...customHeaders,
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  const hasAuthHeader = Object.keys(headers).some((k) => k.toLowerCase() === 'authorization');
+  if (!hasAuthHeader && token && token.trim()) {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
   }
 
+  const baseUrl = getApiBaseUrl();
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${API_BASE}${API_PREFIX}${cleanPath}`;
+  const url = `${baseUrl}${API_PREFIX}${cleanPath}`;
 
   const config: RequestInit = {
     method,
@@ -68,14 +96,11 @@ async function request<T>(
 
     if (!response.ok) {
       if (response.status === 401 && !isRetry) {
-        localStorage.removeItem('pcc_auth_token');
-        const authState = useAuthStore.getState();
-        if (authState.resetToMockToken) {
-          authState.resetToMockToken();
-        } else {
-          useAuthStore.setState({ token: 'mock-dev-token', isAuthenticated: true });
-        }
-        return request<T>(method, path, body, customHeaders, true);
+        useAuthStore.getState().logout();
+        throw new ApiException({
+          message: 'Unauthorized: Session expired or invalid token',
+          code: 401,
+        });
       }
 
       let errData: ApiError;
@@ -115,21 +140,11 @@ function normalizeItem(item: any): any {
   if (Array.isArray(item)) {
     return item.map(normalizeItem);
   }
-  if (item !== null && typeof item === 'object' && !(item instanceof Date)) {
+  if (item !== null && Object.prototype.toString.call(item) === '[object Object]') {
     const normalized: Record<string, any> = {};
     for (const [key, val] of Object.entries(item)) {
-      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-
-      if (key === 'name' && item.title === undefined) normalized['title'] = val;
-      if (key === 'deadline' && item.dueDate === undefined) normalized['dueDate'] = val;
-
-      let mappedVal = normalizeItem(val);
-
-      if (key === 'status') {
-        if (mappedVal === 'done') mappedVal = 'completed';
-        if (mappedVal === 'paused') mappedVal = 'on_hold';
-      }
-
+      const camelKey = key.replace(/_([a-z0-9])/gi, (_, letter) => letter.toUpperCase());
+      const mappedVal = normalizeItem(val);
       normalized[camelKey] = mappedVal;
     }
     return normalized;
@@ -140,8 +155,20 @@ function normalizeItem(item: any): any {
 function normalizeApiResponse<T>(resJson: any): T {
   if (!resJson) return resJson as T;
   let data = resJson;
-  if (typeof resJson === 'object' && 'data' in resJson && resJson.data !== undefined) {
-    data = resJson.data;
+  if (
+    typeof resJson === 'object' &&
+    resJson !== null &&
+    'data' in resJson &&
+    resJson.data !== undefined &&
+    !('meta' in resJson) &&
+    !('pagination' in resJson)
+  ) {
+    // Standard single data wrapper or status envelope
+    const keys = Object.keys(resJson);
+    const isEnvelope = keys.every((k) => ['data', 'status', 'success', 'message', 'code'].includes(k));
+    if (isEnvelope) {
+      data = resJson.data;
+    }
   }
   return normalizeItem(data) as T;
 }
