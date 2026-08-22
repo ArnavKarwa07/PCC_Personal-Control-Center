@@ -1,17 +1,36 @@
-"""Authentication and user management business logic."""
+"""Authentication and user management business logic for single-tenant mode."""
 
+import uuid
 from typing import Optional, Tuple
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ConflictException, UnauthorizedException
-from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RegisterRequest, UserUpdateRequest
 
+DEFAULT_OWNER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+
 
 class AuthService:
-    """Service handling user registration, authentication, and profile updates."""
+    """Service handling user profile updates in single-tenant owner mode."""
+
+    @staticmethod
+    def get_owner(db: Session) -> User:
+        """Fetch or create default owner user."""
+        user = db.query(User).filter(User.id == DEFAULT_OWNER_ID).first()
+        if not user:
+            user = User(
+                id=DEFAULT_OWNER_ID,
+                email="arnavkarwa07@gmail.com",
+                full_name="Arnav Karwa",
+                hashed_password="single_tenant_owner_nopassword",
+                is_active=True,
+                theme="light",
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        return user
 
     @staticmethod
     def get_user_by_email(db: Session, email: str) -> Optional[User]:
@@ -20,54 +39,24 @@ class AuthService:
 
     @staticmethod
     def register_user(db: Session, request: RegisterRequest) -> Tuple[User, str]:
-        """Register a new user account and generate an access token."""
-        normalized_email = request.email.lower().strip()
-        existing = db.query(User).filter(User.email == normalized_email, User.deleted_at.is_(None)).first()
-        if existing:
-            raise ConflictException(
-                message="An account with this email already exists.",
-                code="EMAIL_ALREADY_EXISTS",
-            )
-
-        hashed_pwd = hash_password(request.password)
-        new_user = User(
-            email=normalized_email,
-            hashed_password=hashed_pwd,
-            full_name=request.full_name,
-        )
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
-        token = create_access_token(data={"sub": str(new_user.id), "email": new_user.email})
-        return new_user, token
+        """Return owner user profile and session token."""
+        user = AuthService.get_owner(db)
+        return user, "pcc_owner_session"
 
     @staticmethod
     def authenticate_user(db: Session, request: LoginRequest) -> Tuple[User, str]:
-        """Verify user credentials and issue an access token."""
-        normalized_email = request.email.lower().strip()
-        user = db.query(User).filter(User.email == normalized_email, User.deleted_at.is_(None)).first()
-        if not user or not verify_password(request.password, user.hashed_password):
-            raise UnauthorizedException(
-                message="Invalid email or password.",
-                code="INVALID_CREDENTIALS",
-            )
-
-        if not user.is_active:
-            raise UnauthorizedException(
-                message="This account has been deactivated.",
-                code="USER_INACTIVE",
-            )
-
-        token = create_access_token(data={"sub": str(user.id), "email": user.email})
-        return user, token
+        """Return owner user profile and session token."""
+        user = AuthService.get_owner(db)
+        return user, "pcc_owner_session"
 
     @staticmethod
     def update_user_profile(db: Session, user: User, updates: UserUpdateRequest) -> User:
-        """Update authenticated user settings."""
+        """Update owner user profile with field whitelist protection."""
+        allowed_fields = {"full_name", "timezone", "theme", "date_format", "time_format"}
         update_data = updates.model_dump(exclude_unset=True)
         for field, value in update_data.items():
-            setattr(user, field, value)
+            if field in allowed_fields and value is not None:
+                setattr(user, field, value)
 
         db.commit()
         db.refresh(user)

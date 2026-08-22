@@ -1,4 +1,4 @@
-"""Tests for Unified Calendar API."""
+"""Tests for Unified Calendar API in single-tenant mode."""
 
 
 def test_calendar_event_crud(client, auth_headers):
@@ -46,7 +46,6 @@ def test_calendar_event_crud(client, auth_headers):
 
 def test_calendar_date_range_and_type_filtering(client, auth_headers):
     """Test date-range and event_type filtering."""
-    # Create 3 events across different dates and types
     client.post(
         "/api/v1/calendar/events/create_calendar_event",
         json={
@@ -89,17 +88,3 @@ def test_calendar_date_range_and_type_filtering(client, auth_headers):
     assert type_res.status_code == 200
     assert len(type_res.json()["data"]) == 1
     assert type_res.json()["data"][0]["title"] == "October Deadline"
-
-
-def test_calendar_multi_user_isolation(client, auth_headers, second_auth_headers):
-    """Test user isolation for calendar events."""
-    create_res = client.post(
-        "/api/v1/calendar/events/create_calendar_event",
-        json={"title": "Private Event", "start_time": "2026-08-20T10:00:00Z"},
-        headers=auth_headers,
-    )
-    event_id = create_res.json()["data"]["id"]
-
-    assert client.get(f"/api/v1/calendar/events/get_calendar_event_by_id/{event_id}", headers=second_auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/calendar/events/update_calendar_event_by_id/{event_id}", json={"title": "Hack"}, headers=second_auth_headers).status_code == 404
-    assert client.delete(f"/api/v1/calendar/events/delete_calendar_event_by_id/{event_id}", headers=second_auth_headers).status_code == 404

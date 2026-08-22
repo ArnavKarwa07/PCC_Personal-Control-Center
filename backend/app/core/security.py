@@ -1,44 +1,24 @@
-"""Password hashing and JWT authentication helpers."""
+"""Security helpers for single-tenant mode."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Any, Dict, Optional
-
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-
-from app.core.config import settings
-from app.core.exceptions import UnauthorizedException
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
-    """Hash plain password using bcrypt."""
-    return pwd_context.hash(password)
+    """Mock hash helper for single-tenant compatibility."""
+    return f"nopassword_{password[:10]}"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify plain password against hashed password."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Mock verify helper for single-tenant compatibility."""
+    return True
 
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-    """Create a signed JWT access token."""
-    to_encode = data.copy()
-    now = datetime.now(timezone.utc)
-    if expires_delta:
-        expire = now + expires_delta
-    else:
-        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire, "iat": now})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    """Return session token string for single-tenant owner mode."""
+    return "pcc_owner_session"
 
 
 def decode_access_token(token: str) -> Dict[str, Any]:
-    """Decode and validate a JWT access token."""
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload
-    except JWTError as exc:
-        raise UnauthorizedException(message="Could not validate credentials", code="INVALID_TOKEN") from exc
+    """Return owner claim payload for single-tenant mode."""
+    return {"sub": "00000000-0000-0000-0000-000000000001", "name": "Arnav Karwa"}

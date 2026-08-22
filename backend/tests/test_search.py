@@ -1,4 +1,4 @@
-"""Tests for Global Search cross-entity indexing and query endpoints."""
+"""Tests for Global Search cross-entity indexing and query endpoints in single-tenant mode."""
 
 from datetime import datetime, timezone
 
@@ -168,42 +168,6 @@ def test_search_relevance_ranking(client: TestClient, auth_headers: dict, db_ses
     assert len(data) >= 2
     assert data[0]["title"] == "Supernova"
     assert data[0]["relevance"] > data[1]["relevance"]
-
-
-def test_search_user_isolation(
-    client: TestClient,
-    auth_headers: dict,
-    second_auth_headers: dict,
-    db_session: Session,
-    test_user: User,
-    second_user: User,
-):
-    """Verify User A's private entities are not accessible in User B's search results."""
-    task_a = Task(
-        user_id=test_user.id,
-        title="Secret Project Alpha for User 1",
-        description="Top secret user 1 info",
-    )
-    task_b = Task(
-        user_id=second_user.id,
-        title="Different Project Beta for User 2",
-        description="User 2 items only",
-    )
-    db_session.add_all([task_a, task_b])
-    db_session.commit()
-
-    # Search with user 2 headers
-    response = client.get("/api/v1/search/search_entities?q=Alpha", headers=second_auth_headers)
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert len(data) == 0
-
-    # Search with user 1 headers
-    response = client.get("/api/v1/search/search_entities?q=Alpha", headers=auth_headers)
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert len(data) == 1
-    assert data[0]["title"] == "Secret Project Alpha for User 1"
 
 
 def test_search_soft_deleted_excluded(

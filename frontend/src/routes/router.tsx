@@ -21,34 +21,17 @@ const AlarmsPage = lazy(() => import('../features/alarms'));
 const TimersPage = lazy(() => import('../features/timers'));
 const WeatherPage = lazy(() => import('../features/weather'));
 
-// Auth Pages (outside AppShell)
-const LoginPage = lazy(() => import('../features/auth/LoginPage'));
-const RegisterPage = lazy(() => import('../features/auth/RegisterPage'));
-
 const PageFallback: React.FC = () => <PageLoader message="Loading module..." />;
-const AuthFallback: React.FC = () => (
-  <PageLoader message="Initializing Personal Control Center..." fullScreen />
-);
 
 export const router = createBrowserRouter([
-  // Public Auth Routes (outside AppShell)
+  // Single-Tenant Redirects for legacy /login or /register URLs
   {
     path: '/login',
-    errorElement: <RouteErrorElement />,
-    element: (
-      <Suspense fallback={<AuthFallback />}>
-        <LoginPage />
-      </Suspense>
-    ),
+    element: <Navigate to="/" replace />,
   },
   {
     path: '/register',
-    errorElement: <RouteErrorElement />,
-    element: (
-      <Suspense fallback={<AuthFallback />}>
-        <RegisterPage />
-      </Suspense>
-    ),
+    element: <Navigate to="/" replace />,
   },
 
   // Main Application Protected Routes (inside AppShell layout)
@@ -121,7 +104,6 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
-
       {
         path: 'settings',
         element: (

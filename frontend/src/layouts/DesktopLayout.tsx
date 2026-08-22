@@ -17,7 +17,7 @@ import { useNoteStore } from '../stores/noteStore';
 export const DesktopLayout: React.FC = () => {
   const navigate = useNavigate();
   const { sidebarCollapsed, toggleSidebar, toggleCommandPalette, theme, setTheme } = useUIStore();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const { getUnreadCount } = useNotificationStore();
   const { toast } = useToast();
 
@@ -93,24 +93,6 @@ export const DesktopLayout: React.FC = () => {
         </svg>
       ),
       onClick: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
-    },
-    { id: 'div-1', label: '', divider: true },
-    {
-      id: 'logout',
-      label: 'Sign Out',
-      danger: true,
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-      ),
-      onClick: () => {
-        logout();
-        toast.info('Signed out successfully');
-        navigate('/login');
-      },
     },
   ];
 

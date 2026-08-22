@@ -1,4 +1,6 @@
-"""Tests for Notes, Ideas, and Idea Promotion to Projects/Tasks."""
+"""Tests for Notes, Ideas, and Idea Promotion in single-tenant mode."""
+
+import uuid
 
 
 def test_notes_crud_and_pin(client, auth_headers):
@@ -152,54 +154,20 @@ def test_promote_idea_to_task(client, auth_headers):
     assert task_res.json()["data"]["due_date"] == "2026-08-25"
 
 
-def test_notes_ideas_multi_user_isolation(client, auth_headers, second_auth_headers):
-    """Test multi-user isolation for notes and ideas."""
-    # User A creates note and idea
-    note_res = client.post("/api/v1/notes/create_note", json={"title": "Private Note"}, headers=auth_headers)
-    idea_res = client.post("/api/v1/ideas/create_idea", json={"title": "Private Idea"}, headers=auth_headers)
-    note_id = note_res.json()["data"]["id"]
-    idea_id = idea_res.json()["data"]["id"]
-
-    # User B attempts access
-    assert client.get(f"/api/v1/notes/get_note_by_id/{note_id}", headers=second_auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/notes/update_note_by_id/{note_id}", json={"title": "Hack"}, headers=second_auth_headers).status_code == 404
-    assert client.delete(f"/api/v1/notes/delete_note_by_id/{note_id}", headers=second_auth_headers).status_code == 404
-
-    assert client.get(f"/api/v1/ideas/get_idea_by_id/{idea_id}", headers=second_auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/ideas/update_idea_by_id/{idea_id}", json={"title": "Hack"}, headers=second_auth_headers).status_code == 404
-    assert client.post(f"/api/v1/ideas/promote_idea_by_id/{idea_id}", json={"promote_to": "task"}, headers=second_auth_headers).status_code == 404
-    assert client.delete(f"/api/v1/ideas/delete_idea_by_id/{idea_id}", headers=second_auth_headers).status_code == 404
-
-
-def test_notes_ideas_negative_invalid_token(client):
-    """Test 401 error output format on invalid auth token for notes and ideas."""
-    invalid_headers = {"Authorization": "Bearer badtoken123"}
-    assert client.get("/api/v1/notes/list_notes", headers=invalid_headers).status_code == 401
-    assert client.get("/api/v1/notes/list_notes", headers=invalid_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    assert client.get("/api/v1/ideas/list_ideas", headers=invalid_headers).status_code == 401
-    assert client.get("/api/v1/ideas/list_ideas", headers=invalid_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-
 def test_notes_ideas_negative_missing_payload_fields(client, auth_headers):
     """Test 422 validation error format when creating notes/ideas with invalid field types."""
-    import uuid
-
-    # Note with invalid type for is_pinned
     res_note = client.post("/api/v1/notes/create_note", json={"is_pinned": ["invalid", "list"]}, headers=auth_headers)
     assert res_note.status_code == 422
     err_note = res_note.json()["error"]
     assert err_note["code"] == "VALIDATION_ERROR"
     assert "message" in err_note
 
-    # Idea missing required title
     res_idea = client.post("/api/v1/ideas/create_idea", json={"description": "No title"}, headers=auth_headers)
     assert res_idea.status_code == 422
     err_idea = res_idea.json()["error"]
     assert err_idea["code"] == "VALIDATION_ERROR"
     assert "message" in err_idea
 
-    # Idea promote missing promote_to
     res_promo = client.post(f"/api/v1/ideas/promote_idea_by_id/{uuid.uuid4()}", json={}, headers=auth_headers)
     assert res_promo.status_code == 422
     assert res_promo.json()["error"]["code"] == "VALIDATION_ERROR"
@@ -207,11 +175,8 @@ def test_notes_ideas_negative_missing_payload_fields(client, auth_headers):
 
 def test_notes_ideas_negative_nonexistent_resource_lookup(client, auth_headers):
     """Test 404 output format for non-existent note or idea ID operations."""
-    import uuid
-
     fake_id = str(uuid.uuid4())
 
-    # Notes non-existent
     res_n_get = client.get(f"/api/v1/notes/get_note_by_id/{fake_id}", headers=auth_headers)
     assert res_n_get.status_code == 404
     assert res_n_get.json()["error"]["code"] in ("NOTE_NOT_FOUND", "NOT_FOUND")
@@ -222,7 +187,6 @@ def test_notes_ideas_negative_nonexistent_resource_lookup(client, auth_headers):
     res_n_del = client.delete(f"/api/v1/notes/delete_note_by_id/{fake_id}", headers=auth_headers)
     assert res_n_del.status_code == 404
 
-    # Ideas non-existent
     res_i_get = client.get(f"/api/v1/ideas/get_idea_by_id/{fake_id}", headers=auth_headers)
     assert res_i_get.status_code == 404
     assert res_i_get.json()["error"]["code"] in ("IDEA_NOT_FOUND", "NOT_FOUND")
@@ -255,5 +219,3 @@ def test_notes_ideas_operation_ids_and_route_contracts(client):
         assert method in openapi["paths"][path], f"Method {method} for {path} missing"
         op_id = openapi["paths"][path][method].get("operationId")
         assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
-
-

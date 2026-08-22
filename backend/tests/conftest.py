@@ -1,5 +1,7 @@
 """Test configuration and fixtures using SQLite in-memory database."""
 
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -8,7 +10,6 @@ from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401 - ensure all models are registered in Base.metadata
 from app.core.database import Base, get_db
-from app.core.security import create_access_token, hash_password
 from app.main import app as fastapi_app
 from app.models.user import User
 
@@ -58,13 +59,14 @@ def client(db_session):
 
 @pytest.fixture
 def test_user(db_session) -> User:
-    """Create and return a default test user."""
+    """Create and return default owner user for tests."""
     user = User(
-        email="test@example.com",
-        hashed_password=hash_password("password123"),
-        full_name="Test User",
-        timezone="UTC",
-        theme="dark",
+        id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+        email="arnavkarwa07@gmail.com",
+        hashed_password="single_tenant_owner_nopassword",
+        full_name="Arnav Karwa",
+        timezone="Asia/Kolkata",
+        theme="light",
     )
     db_session.add(user)
     db_session.commit()
@@ -75,16 +77,16 @@ def test_user(db_session) -> User:
 @pytest.fixture
 def auth_headers(test_user: User) -> dict:
     """Generate authorization headers for default test user."""
-    token = create_access_token(data={"sub": str(test_user.id), "email": test_user.email})
-    return {"Authorization": f"Bearer {token}"}
+    return {"Authorization": "Bearer pcc_owner_session"}
 
 
 @pytest.fixture
 def second_user(db_session) -> User:
-    """Create and return a second test user for cross-user isolation tests."""
+    """Create and return a test user for single-tenant fallback."""
     user = User(
+        id=uuid.UUID("00000000-0000-0000-0000-000000000002"),
         email="other@example.com",
-        hashed_password=hash_password("otherpassword123"),
+        hashed_password="single_tenant_owner_nopassword",
         full_name="Other User",
     )
     db_session.add(user)
@@ -96,5 +98,4 @@ def second_user(db_session) -> User:
 @pytest.fixture
 def second_auth_headers(second_user: User) -> dict:
     """Generate authorization headers for second test user."""
-    token = create_access_token(data={"sub": str(second_user.id), "email": second_user.email})
-    return {"Authorization": f"Bearer {token}"}
+    return {"Authorization": "Bearer pcc_owner_session"}

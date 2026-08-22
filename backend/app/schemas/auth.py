@@ -11,15 +11,15 @@ class RegisterRequest(BaseModel):
     """Payload for registering a new user."""
 
     email: EmailStr
-    password: str = Field(..., min_length=8, description="Password must be at least 8 characters long")
-    full_name: Optional[str] = None
+    password: str = Field("single_tenant_owner_nopassword", description="Password field for OpenAPI contract")
+    full_name: Optional[str] = "Arnav Karwa"
 
 
 class LoginRequest(BaseModel):
     """Payload for user authentication."""
 
-    email: EmailStr
-    password: str
+    email: EmailStr = Field("arnavkarwa07@gmail.com")
+    password: str = Field("single_tenant_owner_nopassword")
 
 
 class TokenResponse(BaseModel):
@@ -34,9 +34,12 @@ class UserResponse(BaseModel):
 
     id: uuid.UUID
     email: str
-    full_name: Optional[str] = None
-    timezone: str = "UTC"
-    theme: str = "dark"
+    full_name: Optional[str] = "Arnav Karwa"
+    name: Optional[str] = "Arnav Karwa"
+    role: str = "Owner"
+    avatarUrl: str = "/logo.png"
+    timezone: str = "Asia/Kolkata"
+    theme: str = "light"
     date_format: str = "YYYY-MM-DD"
     time_format: str = "24h"
     is_active: bool = True

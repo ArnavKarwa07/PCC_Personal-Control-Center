@@ -1,4 +1,4 @@
-"""Tests for Integrations and Weather APIs."""
+"""Tests for Integrations and Weather APIs in single-tenant mode."""
 
 
 # ==========================================
@@ -67,20 +67,6 @@ def test_connect_google_calendar_and_disconnect(client, auth_headers):
     # Status should reflect disconnected
     st_res = client.get("/api/v1/integrations/get_integration_status/google_calendar", headers=auth_headers)
     assert st_res.json()["data"]["is_connected"] is False
-
-
-def test_integration_multi_tenant_isolation(client, auth_headers, second_auth_headers):
-    """Test that integration connections are isolated between users."""
-    client.post(
-        "/api/v1/integrations/connect_integration/github",
-        json={"config": {"username": "user_one_gh"}},
-        headers=auth_headers,
-    )
-
-    # Second user's GitHub integration should still be disconnected
-    res_other = client.get("/api/v1/integrations/get_integration_status/github", headers=second_auth_headers)
-    assert res_other.status_code == 200
-    assert res_other.json()["data"]["is_connected"] is False
 
 
 # ==========================================

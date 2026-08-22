@@ -1,4 +1,4 @@
-"""Tests for AI Executive Assistant endpoints."""
+"""Tests for AI Executive Assistant endpoints in single-tenant mode."""
 
 from fastapi.testclient import TestClient
 
@@ -48,21 +48,8 @@ def test_assistant_daily_briefing_deduplication(client: TestClient, auth_headers
     bullet_points = briefing.get("bullet_points", [])
     normalized = [bp.strip().lower() for bp in bullet_points]
     assert len(normalized) == len(set(normalized)), "Daily briefing bullet points should be unique and deduplicated"
-    # Ensure "Task: Duplicate Task Item" appears exactly once
     duplicate_count = sum(1 for bp in normalized if "duplicate task item" in bp)
     assert duplicate_count == 1
-
-
-def test_assistant_negative_invalid_token(client: TestClient):
-    """Test 401 error format for executive assistant endpoints with invalid auth token."""
-    invalid_headers = {"Authorization": "Bearer invalidtoken123"}
-    res_b = client.get("/api/v1/assistant/get_daily_briefing", headers=invalid_headers)
-    assert res_b.status_code == 401
-    assert res_b.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    res_q = client.post("/api/v1/assistant/process_assistant_query", json={"query": "test"}, headers=invalid_headers)
-    assert res_q.status_code == 401
-    assert res_q.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
 
 def test_assistant_negative_missing_payload_fields(client: TestClient, auth_headers: dict):
@@ -86,6 +73,3 @@ def test_assistant_operation_ids_and_route_contracts(client: TestClient):
         assert method in openapi["paths"][path], f"Method {method} for {path} missing"
         op_id = openapi["paths"][path][method].get("operationId")
         assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
-
-
-

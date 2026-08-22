@@ -1,4 +1,4 @@
-"""Tests for Reminders, Alarms, Timers, and Notifications APIs."""
+"""Tests for Reminders, Alarms, Timers, and Notifications APIs in single-tenant mode."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -102,8 +102,8 @@ def test_snooze_reminder(client, auth_headers):
     assert data["snoozed_until"] is not None
 
 
-def test_delete_reminder_and_isolation(client, auth_headers, second_auth_headers):
-    """Test soft deleting a reminder and multi-tenant isolation."""
+def test_delete_reminder(client, auth_headers):
+    """Test soft deleting a reminder."""
     now = datetime.now(timezone.utc)
     create_res = client.post(
         "/api/v1/reminders/create_reminder",
@@ -111,14 +111,6 @@ def test_delete_reminder_and_isolation(client, auth_headers, second_auth_headers
         headers=auth_headers,
     )
     reminder_id = create_res.json()["data"]["id"]
-
-    # Other user cannot access
-    res_other = client.get(f"/api/v1/reminders/get_reminder_by_id/{reminder_id}", headers=second_auth_headers)
-    assert res_other.status_code == 404
-
-    # Other user cannot delete
-    del_other = client.delete(f"/api/v1/reminders/delete_reminder_by_id/{reminder_id}", headers=second_auth_headers)
-    assert del_other.status_code == 404
 
     # Delete
     del_res = client.delete(f"/api/v1/reminders/delete_reminder_by_id/{reminder_id}", headers=auth_headers)
@@ -186,18 +178,14 @@ def test_toggle_and_update_alarm(client, auth_headers):
     assert patch_res.json()["data"]["time"] == "18:00:00"
 
 
-def test_alarm_delete_and_isolation(client, auth_headers, second_auth_headers):
-    """Test alarm deletion and user isolation."""
+def test_alarm_delete(client, auth_headers):
+    """Test alarm deletion."""
     res = client.post(
         "/api/v1/alarms/create_alarm",
         json={"label": "Secret Alarm", "time": "12:00:00"},
         headers=auth_headers,
     )
     alarm_id = res.json()["data"]["id"]
-
-    # Other user cannot toggle
-    res_other = client.patch(f"/api/v1/alarms/toggle_alarm_by_id/{alarm_id}", headers=second_auth_headers)
-    assert res_other.status_code == 404
 
     # Delete
     del_res = client.delete(f"/api/v1/alarms/delete_alarm_by_id/{alarm_id}", headers=auth_headers)
@@ -271,18 +259,14 @@ def test_create_and_state_machine_timer(client, auth_headers):
     assert complete_res.json()["data"]["remaining_seconds"] == 0
 
 
-def test_timer_delete_and_isolation(client, auth_headers, second_auth_headers):
-    """Test timer deletion and cross-user isolation."""
+def test_timer_delete(client, auth_headers):
+    """Test timer deletion."""
     create_res = client.post(
         "/api/v1/timers/create_timer",
         json={"label": "Tea Timer", "timer_type": "countdown", "duration_seconds": 180},
         headers=auth_headers,
     )
     timer_id = create_res.json()["data"]["id"]
-
-    # Other user cannot access
-    res_other = client.get(f"/api/v1/timers/get_timer_by_id/{timer_id}", headers=second_auth_headers)
-    assert res_other.status_code == 404
 
     # Delete
     del_res = client.delete(f"/api/v1/timers/delete_timer_by_id/{timer_id}", headers=auth_headers)
@@ -298,7 +282,7 @@ def test_timer_delete_and_isolation(client, auth_headers, second_auth_headers):
 # ==========================================
 
 
-def test_notifications_crud_and_read_all(client, auth_headers, second_auth_headers, db_session, test_user):
+def test_notifications_crud_and_read_all(client, auth_headers, db_session, test_user):
     """Test notification list, read state changes, and read-all."""
     from app.models.notification import (
         Notification,
@@ -345,10 +329,6 @@ def test_notifications_crud_and_read_all(client, auth_headers, second_auth_heade
     assert len(unread_res.json()["data"]) == 1
     assert unread_res.json()["data"][0]["id"] == str(n2.id)
 
-    # Other user cannot mark n2 as read
-    res_other = client.patch(f"/api/v1/notifications/mark_notification_as_read/{n2.id}", headers=second_auth_headers)
-    assert res_other.status_code == 404
-
     # Mark all as read
     all_read_res = client.patch("/api/v1/notifications/mark_all_notifications_as_read", headers=auth_headers)
     assert all_read_res.status_code == 200
@@ -368,35 +348,16 @@ def test_notifications_crud_and_read_all(client, auth_headers, second_auth_heade
 # ==========================================
 
 
-def test_reminders_alarms_timers_negative_invalid_token(client):
-    """Test 401 error output format on invalid token across reminders, alarms, timers, notifications."""
-    bad_headers = {"Authorization": "Bearer badtoken999"}
-    assert client.get("/api/v1/reminders/list_reminders", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/reminders/list_reminders", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    assert client.get("/api/v1/alarms/list_alarms", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/alarms/list_alarms", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    assert client.get("/api/v1/timers/list_timers", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/timers/list_timers", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    assert client.get("/api/v1/notifications/list_notifications", headers=bad_headers).status_code == 401
-    assert client.get("/api/v1/notifications/list_notifications", headers=bad_headers).json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-
 def test_reminders_alarms_timers_negative_missing_payload_fields(client, auth_headers):
     """Test 422 payload validation error format when fields are missing or invalid."""
-    # Reminder missing remind_at & title
     res_r = client.post("/api/v1/reminders/create_reminder", json={}, headers=auth_headers)
     assert res_r.status_code == 422
     assert res_r.json()["error"]["code"] == "VALIDATION_ERROR"
 
-    # Alarm missing label & time
     res_a = client.post("/api/v1/alarms/create_alarm", json={}, headers=auth_headers)
     assert res_a.status_code == 422
     assert res_a.json()["error"]["code"] == "VALIDATION_ERROR"
 
-    # Timer invalid duration_seconds type
     res_t = client.post("/api/v1/timers/create_timer", json={"duration_seconds": ["invalid", "list"]}, headers=auth_headers)
     assert res_t.status_code == 422
     assert res_t.json()["error"]["code"] == "VALIDATION_ERROR"
@@ -408,23 +369,19 @@ def test_reminders_alarms_timers_negative_nonexistent_resource_lookup(client, au
 
     fake_id = str(uuid.uuid4())
 
-    # Reminder 404
     assert client.get(f"/api/v1/reminders/get_reminder_by_id/{fake_id}", headers=auth_headers).status_code == 404
     assert client.get(f"/api/v1/reminders/get_reminder_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("REMINDER_NOT_FOUND", "NOT_FOUND")
     assert client.patch(f"/api/v1/reminders/update_reminder_by_id/{fake_id}", json={"title": "X"}, headers=auth_headers).status_code == 404
     assert client.delete(f"/api/v1/reminders/delete_reminder_by_id/{fake_id}", headers=auth_headers).status_code == 404
 
-    # Alarm 404
     assert client.patch(f"/api/v1/alarms/toggle_alarm_by_id/{fake_id}", headers=auth_headers).status_code == 404
     assert client.patch(f"/api/v1/alarms/toggle_alarm_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("ALARM_NOT_FOUND", "NOT_FOUND")
     assert client.delete(f"/api/v1/alarms/delete_alarm_by_id/{fake_id}", headers=auth_headers).status_code == 404
 
-    # Timer 404
     assert client.get(f"/api/v1/timers/get_timer_by_id/{fake_id}", headers=auth_headers).status_code == 404
     assert client.get(f"/api/v1/timers/get_timer_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("TIMER_NOT_FOUND", "NOT_FOUND")
     assert client.delete(f"/api/v1/timers/delete_timer_by_id/{fake_id}", headers=auth_headers).status_code == 404
 
-    # Notification 404
     assert client.patch(f"/api/v1/notifications/mark_notification_as_read/{fake_id}", headers=auth_headers).status_code == 404
     assert client.patch(f"/api/v1/notifications/mark_notification_as_read/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("NOTIFICATION_NOT_FOUND", "NOT_FOUND")
 

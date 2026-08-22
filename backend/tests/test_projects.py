@@ -1,4 +1,4 @@
-"""Tests for Projects, Project Members, and Kanban Boards."""
+"""Tests for Projects, Project Members, and Kanban Boards in single-tenant mode."""
 
 from app.models.contact import Contact
 
@@ -170,7 +170,7 @@ def test_project_board_and_card_movement(client, auth_headers):
     board_data = board_res.json()["data"]
     board_id = board_data["id"]
     columns = board_data["columns"]
-    assert len(columns) == 3  # To Do, In Progress, Done
+    assert len(columns) == 3
     todo_col_id = columns[0]["id"]
     in_prog_col_id = columns[1]["id"]
 
@@ -213,20 +213,3 @@ def test_project_board_and_card_movement(client, auth_headers):
     in_prog_col = next(c for c in updated_board["columns"] if c["id"] == in_prog_col_id)
     assert len(in_prog_col["cards"]) == 1
     assert in_prog_col["cards"][0]["id"] == card_id
-
-
-def test_project_multi_user_isolation(client, auth_headers, second_auth_headers):
-    """Test user A cannot read, update, or delete user B's project."""
-    create_res = client.post(
-        "/api/v1/projects/create_project",
-        json={"name": "User A Private Project"},
-        headers=auth_headers,
-    )
-    project_id = create_res.json()["data"]["id"]
-
-    # User B attempts access
-    assert client.get(f"/api/v1/projects/get_project_by_id/{project_id}", headers=second_auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/projects/update_project_by_id/{project_id}", json={"name": "Hacked"}, headers=second_auth_headers).status_code == 404
-    assert client.delete(f"/api/v1/projects/delete_project_by_id/{project_id}", headers=second_auth_headers).status_code == 404
-    assert client.get(f"/api/v1/projects/{project_id}/board", headers=second_auth_headers).status_code == 404
-

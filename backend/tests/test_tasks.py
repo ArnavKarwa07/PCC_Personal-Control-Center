@@ -1,4 +1,4 @@
-"""Tests for Task CRUD operations, filtering, pagination, and multi-user isolation."""
+"""Tests for Task CRUD operations, filtering, and pagination in single-tenant mode."""
 
 import uuid
 
@@ -137,52 +137,6 @@ def test_delete_task(client, auth_headers):
     assert len(list_res.json()["data"]) == 0
 
 
-def test_task_ownership_isolation(client, auth_headers, second_auth_headers):
-    """Test user A cannot read, update, or delete user B's task."""
-    # User A creates a task
-    create_res = client.post(
-        "/api/v1/tasks/create_task",
-        json={"title": "User A Private Task"},
-        headers=auth_headers,
-    )
-    task_id = create_res.json()["data"]["id"]
-
-    # User B attempts to access User A's task
-    get_res = client.get(f"/api/v1/tasks/get_task_by_id/{task_id}", headers=second_auth_headers)
-    assert get_res.status_code == 404
-    assert get_res.json()["error"]["code"] == "TASK_NOT_FOUND"
-
-    # User B attempts to update User A's task
-    patch_res = client.patch(f"/api/v1/tasks/update_task_by_id/{task_id}", json={"title": "Hacked"}, headers=second_auth_headers)
-    assert patch_res.status_code == 404
-
-    # User B attempts to delete User A's task
-    delete_res = client.delete(f"/api/v1/tasks/delete_task_by_id/{task_id}", headers=second_auth_headers)
-    assert delete_res.status_code == 404
-
-
-def test_task_unauthenticated(client):
-    """Test that task endpoints require valid authentication."""
-    random_id = str(uuid.uuid4())
-    assert client.get("/api/v1/tasks/list_tasks").status_code == 401
-    assert client.post("/api/v1/tasks/create_task", json={"title": "Test"}).status_code == 401
-    assert client.get(f"/api/v1/tasks/get_task_by_id/{random_id}").status_code == 401
-    assert client.patch(f"/api/v1/tasks/update_task_by_id/{random_id}", json={"title": "Test"}).status_code == 401
-    assert client.delete(f"/api/v1/tasks/delete_task_by_id/{random_id}").status_code == 401
-
-
-def test_tasks_negative_invalid_token(client):
-    """Test 401 error output format on invalid auth token for task endpoints."""
-    invalid_headers = {"Authorization": "Bearer bad.token.value"}
-    res_list = client.get("/api/v1/tasks/list_tasks", headers=invalid_headers)
-    assert res_list.status_code == 401
-    assert res_list.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    res_create = client.post("/api/v1/tasks/create_task", json={"title": "Test"}, headers=invalid_headers)
-    assert res_create.status_code == 401
-    assert res_create.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-
 def test_tasks_negative_missing_payload_fields(client, auth_headers):
     """Test 422 validation error format when creating task without required fields."""
     res = client.post("/api/v1/tasks/create_task", json={"title": ["invalid", "list"]}, headers=auth_headers)
@@ -223,5 +177,3 @@ def test_tasks_operation_ids_and_route_contracts(client):
         assert method in openapi["paths"][path], f"Method {method} for {path} missing"
         op_id = openapi["paths"][path][method].get("operationId")
         assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
-
-

@@ -1,4 +1,4 @@
-"""Tests for Goals & OKRs endpoints."""
+"""Tests for Goals & OKRs endpoints in single-tenant mode."""
 
 import uuid
 from datetime import date
@@ -19,7 +19,7 @@ def test_goals_crud_and_milestones(client: TestClient, auth_headers: dict):
             "progress": 35.0,
             "milestones": [
                 {
-                    "name": "Complete Raft consensus consensus implementation",
+                    "name": "Complete Raft consensus implementation",
                     "target_date": date.today().isoformat(),
                 }
             ],
@@ -46,18 +46,6 @@ def test_goals_crud_and_milestones(client: TestClient, auth_headers: dict):
     # Delete goal
     res = client.delete(f"/api/v1/goals/delete_goal_by_id/{goal_id}", headers=auth_headers)
     assert res.status_code == 204
-
-
-def test_goals_negative_invalid_token(client: TestClient):
-    """Test 401 error format on invalid token for goals endpoints."""
-    invalid_headers = {"Authorization": "Bearer invalid.token.str"}
-    res = client.get("/api/v1/goals/list_goals", headers=invalid_headers)
-    assert res.status_code == 401
-    assert res.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
-
-    res_create = client.post("/api/v1/goals/create_goal", json={"name": "Goal"}, headers=invalid_headers)
-    assert res_create.status_code == 401
-    assert res_create.json()["error"]["code"] in ("UNAUTHORIZED", "INVALID_TOKEN")
 
 
 def test_goals_negative_missing_payload_fields(client: TestClient, auth_headers: dict):
@@ -95,5 +83,3 @@ def test_goals_operation_ids_and_route_contracts(client: TestClient):
         assert method in openapi["paths"][path], f"Method {method} for {path} missing"
         op_id = openapi["paths"][path][method].get("operationId")
         assert op_id and isinstance(op_id, str), f"Missing operationId for {method.upper()} {path}"
-
-
