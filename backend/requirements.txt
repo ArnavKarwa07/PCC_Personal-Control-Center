@@ -11,3 +11,5 @@ python-multipart
 httpx
 email-validator
 psycopg2-binary
+huggingface-hub<0.26.0
+gradio
