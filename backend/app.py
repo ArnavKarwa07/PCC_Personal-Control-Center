@@ -1,11 +1,18 @@
 """Hugging Face Spaces entrypoint for PCC FastAPI Backend.
-Runs 24/7 for free on Hugging Face Spaces.
+Runs 24/7 for free on Hugging Face Spaces using Gradio SDK.
 """
 
-import os
-import uvicorn
+import gradio as gr
 from app.main import app
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+# Gradio status UI page
+demo = gr.Interface(
+    fn=lambda: "⚡ PCC Personal Control Center Backend Engine is Active!",
+    inputs=[],
+    outputs="text",
+    title="PCC Backend Service",
+    description="FastAPI REST API running live 24/7. Interactive Swagger API Docs available at /docs",
+)
+
+# Mount Gradio status UI onto FastAPI app so Hugging Face Space runner stays alive 24/7
+app = gr.mount_gradio_app(app, demo, path="/")
