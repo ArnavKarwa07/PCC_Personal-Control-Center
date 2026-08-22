@@ -4,7 +4,6 @@ Configured for ZeroGPU Free Tier with Gradio 5.x.
 
 import os
 import sys
-import uvicorn
 import huggingface_hub
 
 # Monkey-patch HfFolder for huggingface_hub compatibility
@@ -30,9 +29,8 @@ demo = gr.Interface(
     description="FastAPI REST API running live on Hugging Face. Interactive Swagger API Docs available at /docs",
 )
 
-# Mount Gradio status UI onto FastAPI app
+# Mount FastAPI app onto Gradio status UI
 app = gr.mount_gradio_app(fastapi_app, demo, path="/status")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch(server_name="0.0.0.0", server_port=7860)
