@@ -2,6 +2,7 @@
 Runs 24/7 for free on Hugging Face Spaces using Gradio SDK.
 """
 
+import os
 import sys
 import huggingface_hub
 
@@ -17,9 +18,9 @@ if not hasattr(huggingface_hub, "HfFolder"):
     huggingface_hub.HfFolder = MockHfFolder
 
 import gradio as gr
-from app.main import app
+from app.main import app as fastapi_app
 
-# Gradio status UI page to keep HF container supervisor active 24/7
+# Gradio Interface for HF Space runner
 demo = gr.Interface(
     fn=lambda: "⚡ PCC Personal Control Center Backend Engine is Active!",
     inputs=[],
@@ -28,5 +29,9 @@ demo = gr.Interface(
     description="FastAPI REST API running live 24/7. Interactive Swagger API Docs available at /docs",
 )
 
-# Mount Gradio interface onto FastAPI app at root /
-app = gr.mount_gradio_app(app, demo, path="/")
+# Mount FastAPI app onto Gradio
+app = gr.mount_gradio_app(fastapi_app, demo, path="/status")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 7860))
+    demo.launch(server_name="0.0.0.0", server_port=port)
