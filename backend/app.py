@@ -1,5 +1,5 @@
 """Hugging Face Spaces entrypoint for PCC FastAPI Backend.
-Configured for ZeroGPU Free Tier with Gradio 5.x.
+Configured for Hugging Face Spaces (Gradio SDK free tier).
 """
 
 import os
@@ -20,17 +20,14 @@ if not hasattr(huggingface_hub, "HfFolder"):
 import gradio as gr
 from app.main import app as fastapi_app
 
-# Gradio interface for HF Space status UI
+# Gradio Interface for status UI
 demo = gr.Interface(
-    fn=lambda client_name="PCC Admin": f"⚡ PCC Personal Control Center Backend Engine is Active & Ready for {client_name}",
+    fn=lambda client_name="PCC Admin": f"⚡ PCC Personal Control Center Backend Engine is Active for {client_name}",
     inputs=[gr.Textbox(value="PCC Admin", label="Client Name")],
     outputs="text",
     title="PCC Personal Control Center - 24/7 Cloud Backend Engine",
     description="FastAPI REST API running live on Hugging Face. Interactive Swagger API Docs available at /docs",
 )
 
-# Mount FastAPI app onto Gradio status UI
+# Mount Gradio UI onto FastAPI app at /status so / and /api/v1/ and /docs are served by FastAPI
 app = gr.mount_gradio_app(fastapi_app, demo, path="/status")
-
-if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
