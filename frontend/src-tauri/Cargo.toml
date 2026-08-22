@@ -1,6 +1,6 @@
 [package]
 name = "pcc-desktop"
-version = "1.0.0"
+version = "1.0.1"
 description = "PCC Desktop Application"
 authors = ["Arnav Karwa"]
 edition = "2021"
