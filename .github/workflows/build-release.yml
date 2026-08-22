@@ -59,8 +59,8 @@ jobs:
       - name: Attach Android APK to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release-v1.0.0
-          name: PCC Production Release v1.0.0
+          tag_name: release-v1.0.1
+          name: PCC Production Release v1.0.1
           files: frontend/android/app/build/outputs/apk/debug/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -117,8 +117,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: "./frontend"
-          tagName: release-v1.0.0
-          releaseName: "PCC Production Release v1.0.0"
+          tagName: release-v1.0.1
+          releaseName: "PCC Production Release v1.0.1"
           releaseBody: "Automated production release for PCC (Personal Control Center)."
           releaseDraft: false
           prerelease: false
