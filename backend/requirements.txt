@@ -11,4 +11,3 @@ python-multipart
 httpx
 email-validator
 psycopg2-binary
-gradio>=5.0.0
