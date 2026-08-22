@@ -1,6 +1,5 @@
 """Task management REST API endpoints."""
 
-from app.core.config import settings
 import uuid
 from datetime import date
 from typing import Optional
@@ -8,6 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.task import TaskPriority, TaskStatus

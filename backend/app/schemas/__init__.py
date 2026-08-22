@@ -8,7 +8,6 @@ from app.schemas.alarm import (
     AlarmToggleRequest,
     AlarmUpdate,
 )
-
 from app.schemas.base import ErrorDetail, ErrorResponse, PaginationMeta, SuccessResponse
 from app.schemas.calendar_event import (
     CalendarEventBase,

@@ -1,12 +1,7 @@
 name: Deploy Backend to Google Cloud Run
 
 on:
-  push:
-    branches:
-      - main
-      - staging
-    paths:
-      - 'backend/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -31,6 +26,8 @@ jobs:
           gcloud run deploy pcc-backend \
             --source backend \
             --project attire-495310 \
-            --region asia-south1 \
-            --allow-unauthenticated
+            --region us-central1 \
+            --allow-unauthenticated \
+            --min-instances 0 \
+            --max-instances 5
         continue-on-error: true

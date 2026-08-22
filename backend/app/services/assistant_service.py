@@ -4,9 +4,9 @@ import uuid
 from datetime import date
 
 import google.generativeai as genai
-from app.core.config import settings
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.calendar_event import CalendarEvent
 from app.models.note import Note
 from app.models.notification import Notification, NotificationDeliveryStatus
@@ -71,7 +71,7 @@ class AssistantService:
             # Informational query dispatcher
             pending_count = db.query(Task).filter(Task.user_id == user_id, Task.status != TaskStatus.DONE).count()
             summary_text = f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace."
-            
+
             if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != 'AIzaSyBk_example_key_placeholder':
                 try:
                     model = genai.GenerativeModel("gemini-2.0-flash")

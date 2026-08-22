@@ -1,9 +1,9 @@
 """Third-Party Integrations REST API endpoints."""
 
-from app.core.config import settings
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.integration import IntegrationProvider
