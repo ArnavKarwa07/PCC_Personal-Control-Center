@@ -1,19 +1,26 @@
+# Production Dockerfile for PCC Backend on Google Cloud Run
 FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PORT=8080
 
 WORKDIR /app
 
-# Copy requirements & install dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy backend application code
 COPY . .
 
-# Set up data directory and non-root user permissions for Hugging Face Spaces / Koyeb
-RUN mkdir -p /app/data && chmod -R 777 /app/data
+# Expose Cloud Run default port
+EXPOSE 8080
 
-ENV PORT=7860
-EXPOSE 7860 8000
-
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
-
+# Run Uvicorn server
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

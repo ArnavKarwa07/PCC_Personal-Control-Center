@@ -144,6 +144,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-08-20
 
+### Added
+- **24/7 Hugging Face Cloud Deployment**:
+  - Containerized FastAPI backend runtime (`backend/Dockerfile`) built on `python:3.12-slim` for continuous 24/7 execution on Hugging Face Spaces, Koyeb, and self-hosted Docker hosts.
+  - Dynamic `$PORT` environment variable binding (defaulting to `7860` for Hugging Face Spaces / `8000` for local Docker Compose execution).
+  - Explicit non-root volume write permissions (`mkdir -p /app/data && chmod -R 777 /app/data`) ensuring unprivileged container storage access for SQLite/file data.
+  - Orchestrated multi-container execution stack (`docker-compose.yml`) pairing the FastAPI web API server with the async background worker runner.
+- **Mobile-Desktop Cross-Sync**:
+  - Multi-device global `useAutoSync` hook (`useAutoSync.ts`) integrated into `AppShell.tsx` for seamless background state reconciliation across web, desktop (Tauri v2), and mobile (Capacitor v6).
+  - Orchestrates concurrent synchronization across 7 primary domain stores (`alarms`, `reminders`, `tasks`, `notes`, `projects`, `events`, `ideas`) using non-blocking `Promise.allSettled`.
+  - Multi-trigger lifecycle matrix: initial component mount, tab/window foreground visibility toggles (`visibilitychange`), native Capacitor mobile app resume (`appStateChange`), and periodic 60-second background heartbeat polling.
+- **Native Local Notifications & Alarm Scheduler**:
+  - Cross-platform notification engine (`alarmScheduler.ts`) leveraging `@capacitor/local-notifications` for native mobile push alerts and fallback web notifications.
+  - Standardized high-priority OS notification channel (`pcc_alarms_channel`) with MAX importance (level 5), public lockscreen visibility, custom vibration patterns, and `alarm.wav` audio.
+  - FNV-1a non-cryptographic hashing algorithm (`fnv1aHash`) converting string UUIDs into deterministic 32-bit integer IDs with distinct namespace offsets (`100000000+` for alarms, `200000000+` for reminders).
+  - OS low-power doze mode wakeup support via `allowWhileIdle: true` and weekly day-of-week recurrence calculation (`days` array offset logic).
+- **Unified Permissions & Timeout Safeguards**:
+  - Unified system permission management service (`permissionService.ts`) querying and requesting notification and geolocation access across web and native Capacitor platforms (`SystemPermissionStatus`).
+  - 3000ms race-condition timeout safeguard on geolocation permission requests (`requestLocationPermission`) to prevent UI freeze when users ignore browser permission prompts.
+  - Batch non-blocking permission requester (`requestAllPermissions`) utilizing `Promise.allSettled` for smooth onboarding and settings permission grants.
+- **Ringing Alarm Queue & Audio Context Controls**:
+  - Real-time 1-second alarm ticker engine in `AppShell.tsx` scanning active alarm schedules against local system time (`HH:MM` and day of week).
+  - `ringingQueue` state supporting multiple simultaneous triggered alarms rendered via full-screen overlay modal (`AlarmRingingModal.tsx`).
+  - Pure Web Audio API synthesizer (`soundEffects` in `utils/audio.ts`) with lazy `AudioContext` initialization and state resume handler (`suspended` -> `running`).
+  - Built-in audio synthesis for `gentle`, `digital`, and `radiant` alarm patterns, bell/chime chord tones, timer completion notifications, and UI interaction pips.
+  - Deduplication tracking ref (`triggeredSetRef`) mapping `${id}-${date}-${time}` to prevent duplicate triggers with 24-hour timestamp auto-pruning.
+- **JSON Onboarding & Backup Import/Export**:
+  - Robust import/export service (`jsonImportService.ts`) handling schema validation, data sanitization, issue accumulation (`error` vs `warning`), and sensible fallback defaults across 12 PCC data domains.
+  - `executeDataImport` engine writing batch domain entries into `localStorage`, firing custom `pcc-data-imported` DOM events, and triggering Zustand store state re-hydration (`fetchAlarms()`, `fetchTasks()`, etc.).
+  - Complete Settings Data Management integration for exporting complete backups (`pcc_data.json`) and seeding initial onboarding states.
+
 ### Changed
 - **Timer Module Renaming**: Renamed "World Clocks Planner" module to **Timers** across top navigation, sidebar, and routing components (`TimersPage.tsx`) in strict compliance with `AGENTS.md` module scope.
 - **Alarm Store Formatting**: Updated `alarmStore.ts` next alarm metric logic to cleanly format alarm times (`Next at HH:MM`) without trailing string artifacts.

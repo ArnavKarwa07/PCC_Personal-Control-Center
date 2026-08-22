@@ -1,0 +1,115 @@
+/* PCC - Alarm Ringing Modal Overlay Styles */
+
+.pcc-alarm-ringing-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: pccFadeIn 0.25s ease-out;
+}
+
+.pcc-alarm-ringing-card {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, rgba(226, 232, 240, 0.8));
+  border-radius: var(--radius-2xl, 24px);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: pccScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pcc-alarm-ringing-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--accent-primary, #4f46e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+  animation: pccPulse 1.2s infinite ease-in-out;
+}
+
+.pcc-alarm-ringing-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.pcc-alarm-ringing-time {
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.pcc-alarm-ringing-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.pcc-alarm-ringing-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: var(--space-6);
+  text-transform: capitalize;
+}
+
+.pcc-alarm-ringing-actions {
+  display: flex;
+  gap: var(--space-3);
+  width: 100%;
+  justify-content: center;
+}
+
+.pcc-alarm-ringing-btn {
+  flex: 1;
+  border-radius: var(--radius-xl, 14px) !important;
+  font-weight: 600 !important;
+  padding: 14px 20px !important;
+}
+
+.pcc-alarm-ringing-btn--dismiss {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+}
+
+@keyframes pccPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 20px rgba(79, 70, 229, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+}
+
+@keyframes pccFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pccScaleUp {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

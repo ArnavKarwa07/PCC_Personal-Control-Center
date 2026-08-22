@@ -3,6 +3,7 @@ import type { Alarm } from '../types';
 import { alarmsApi } from '../services/api';
 import { generateId } from '../utils';
 import { soundEffects } from '../utils/audio';
+import { alarmScheduler } from '../services/alarmScheduler';
 
 interface AlarmStore {
   alarms: Alarm[];
@@ -16,6 +17,7 @@ interface AlarmStore {
   editAlarm: (id: string, updates: Partial<Alarm>) => Promise<void>;
   deleteAlarm: (id: string) => Promise<void>;
   toggleAlarm: (id: string) => Promise<void>;
+  snoozeAlarm: (id: string, minutes: number) => Promise<void>;
   duplicateAlarm: (id: string) => Promise<Alarm | undefined>;
   previewAlarmSound: (sound: string) => void;
   getNextAlarmText: () => string;
@@ -23,39 +25,75 @@ interface AlarmStore {
 
 const STORAGE_KEY_V1 = 'pcc_alarms_store_v1';
 const STORAGE_KEY_LEGACY = 'pcc_alarms';
+const STORAGE_KEY_SNOOZED = 'pcc_snoozed_alarms_v1';
 
-const loadStoredAlarms = (): Alarm[] => {
+const getStoredSnoozedAlarms = (): Alarm[] => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_V1) || localStorage.getItem(STORAGE_KEY_LEGACY);
-    if (raw !== null) {
+    const raw = localStorage.getItem(STORAGE_KEY_SNOOZED);
+    if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const isLegacyMock = parsed.some(
-          (a: any) =>
-            a.label?.includes('Morning Sunlight') ||
-            a.label?.includes('Engineering Standup') ||
-            a.label?.includes('Post-Lunch Deep Work') ||
-            a.label?.includes('Evening Blue-Light')
-        );
-        if (isLegacyMock) {
-          localStorage.removeItem(STORAGE_KEY_V1);
-          localStorage.removeItem(STORAGE_KEY_LEGACY);
-          return [];
-        }
-        return parsed;
+        const nowMs = Date.now();
+        const valid = parsed.filter((a: any) => typeof a?.expiresAt === 'number' && a.expiresAt > nowMs);
+        localStorage.setItem(STORAGE_KEY_SNOOZED, JSON.stringify(valid));
+        return valid;
       }
     }
-  } catch (err) {
-    console.warn('Failed to load alarms from localStorage', err);
+  } catch {
+    // Ignore
   }
   return [];
 };
 
+const saveSnoozedAlarms = (snoozed: Alarm[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY_SNOOZED, JSON.stringify(snoozed));
+  } catch (err) {
+    console.warn('Failed to save snoozed alarms:', err);
+  }
+};
+
+const loadStoredAlarms = (): Alarm[] => {
+  let baseAlarms: Alarm[] = [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_V1);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        baseAlarms = parsed.filter((a: any) => !a?.id?.startsWith('alm_snooze'));
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load alarms from V1 storage:', err);
+  }
+
+  if (baseAlarms.length === 0) {
+    try {
+      const legacyRaw = localStorage.getItem(STORAGE_KEY_LEGACY);
+      if (legacyRaw !== null) {
+        const parsedLegacy = JSON.parse(legacyRaw);
+        if (Array.isArray(parsedLegacy)) {
+          baseAlarms = parsedLegacy.filter((a: any) => !a?.id?.startsWith('alm_snooze'));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load alarms from Legacy storage:', err);
+    }
+  }
+
+  const activeSnoozed = getStoredSnoozedAlarms();
+  return [...baseAlarms, ...activeSnoozed];
+};
+
 const saveAlarms = (alarms: Alarm[]) => {
   try {
-    const data = JSON.stringify(alarms);
+    const persistentOnly = alarms.filter((a) => !a?.id?.startsWith('alm_snooze'));
+    const data = JSON.stringify(persistentOnly);
     localStorage.setItem(STORAGE_KEY_V1, data);
     localStorage.setItem(STORAGE_KEY_LEGACY, data);
+
+    const snoozedOnly = alarms.filter((a) => a?.id?.startsWith('alm_snooze'));
+    saveSnoozedAlarms(snoozedOnly);
   } catch (err) {
     console.warn('Failed to save alarms to localStorage', err);
   }
@@ -71,14 +109,21 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     try {
       const serverAlarms = await alarmsApi.getAll();
       if (serverAlarms && Array.isArray(serverAlarms)) {
-        set({ alarms: serverAlarms, isLoading: false });
-        saveAlarms(serverAlarms);
+        const nowMs = Date.now();
+        const currentSnoozed = get().alarms.filter(
+          (a: any) => a?.id?.startsWith('alm_snooze') && typeof a?.expiresAt === 'number' && a.expiresAt > nowMs
+        );
+        const merged = [...serverAlarms, ...currentSnoozed];
+        set({ alarms: merged, isLoading: false });
+        saveAlarms(merged);
+        merged.forEach((a) => alarmScheduler.scheduleAlarmNotification(a));
         return;
       }
     } catch {
       // Fallback
     }
     set({ isLoading: false });
+    get().alarms.forEach((a) => alarmScheduler.scheduleAlarmNotification(a));
   },
 
   addAlarm: async (data) => {
@@ -92,26 +137,24 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
       updatedAt: now,
     };
 
+    let resultAlarm = newAlarm;
     try {
       const created = await alarmsApi.create(newAlarm);
       if (created && created.id) {
-        set((state) => {
-          const updated = [...state.alarms, created];
-          saveAlarms(updated);
-          return { alarms: updated };
-        });
-        return created;
+        resultAlarm = created;
       }
     } catch {
       // Fallback
     }
 
     set((state) => {
-      const updated = [...state.alarms, newAlarm];
+      const updated = [...state.alarms.filter((a) => a.id !== resultAlarm.id), resultAlarm];
       saveAlarms(updated);
       return { alarms: updated };
     });
-    return newAlarm;
+
+    alarmScheduler.scheduleAlarmNotification(resultAlarm);
+    return resultAlarm;
   },
 
   updateAlarm: async (id, updates) => {
@@ -127,6 +170,8 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
         a.id === id ? { ...a, ...updates, updatedAt: now } : a
       );
       saveAlarms(updated);
+      const target = updated.find((a) => a.id === id);
+      if (target) alarmScheduler.scheduleAlarmNotification(target);
       return { alarms: updated };
     });
   },
@@ -141,6 +186,8 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
     } catch {
       // Fallback
     }
+
+    alarmScheduler.cancelAlarmNotification(id);
 
     set((state) => {
       const updated = state.alarms.filter((a) => a.id !== id);
@@ -167,8 +214,41 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
         a.id === id ? { ...a, enabled: nextState, updatedAt: new Date().toISOString() } : a
       );
       saveAlarms(updated);
+      const target = updated.find((a) => a.id === id);
+      if (target) alarmScheduler.scheduleAlarmNotification(target);
       return { alarms: updated };
     });
+  },
+
+  snoozeAlarm: async (id, minutes) => {
+    const alarm = get().alarms.find((a) => a.id === id);
+    if (!alarm) return;
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutes);
+    const snoozeH = now.getHours().toString().padStart(2, '0');
+    const snoozeM = now.getMinutes().toString().padStart(2, '0');
+    const snoozedTime = `${snoozeH}:${snoozeM}`;
+
+    // Create temporary snoozed alarm instance with 1h expiration grace period
+    const snoozedAlarm: Alarm & { expiresAt?: number } = {
+      ...alarm,
+      id: generateId('alm_snooze'),
+      label: `${alarm.label || 'Alarm'} (Snoozed)`,
+      time: snoozedTime,
+      days: [0, 1, 2, 3, 4, 5, 6],
+      enabled: true,
+      expiresAt: now.getTime() + 60 * 60 * 1000,
+    };
+
+    set((state) => {
+      const updated = [...state.alarms, snoozedAlarm];
+      saveAlarms(updated);
+      return { alarms: updated };
+    });
+
+    alarmScheduler.scheduleAlarmNotification(snoozedAlarm);
+    soundEffects.playPip();
   },
 
   duplicateAlarm: async (id) => {
@@ -179,7 +259,7 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
       time: original.time,
       label: `${original.label} (Copy)`,
       enabled: true,
-      days: [...original.days],
+      days: [...(original.days || [])],
       sound: original.sound,
       snoozeMinutes: original.snoozeMinutes,
     });
@@ -191,11 +271,42 @@ export const useAlarmStore = create<AlarmStore>((set, get) => ({
   },
 
   getNextAlarmText: () => {
-    const enabledAlarms = get().alarms.filter((a) => a.enabled);
+    const enabledAlarms = get().alarms.filter((a) => a.enabled && !a?.id?.startsWith('alm_snooze'));
     if (enabledAlarms.length === 0) return 'No active alarms';
 
-    // Simple nearest enabled alarm finder
-    const sorted = [...enabledAlarms].sort((a, b) => a.time.localeCompare(b.time));
-    return `Next at ${sorted[0].time}`;
+    const now = new Date();
+    const currentMin = now.getHours() * 60 + now.getMinutes();
+    const currentDay = now.getDay();
+
+    let smallestDelta = Infinity;
+    let nextAlarm: Alarm | null = null;
+
+    for (const alarm of enabledAlarms) {
+      if (!alarm.time || !/^([01]?\d|2[0-3]):[0-5]\d$/.test(alarm.time)) continue;
+      const [h, m] = alarm.time.split(':').map(Number);
+      const alarmMin = h * 60 + m;
+
+      const days = alarm.days && alarm.days.length > 0 ? alarm.days : [0, 1, 2, 3, 4, 5, 6];
+      for (const d of days) {
+        let dayDiff = (d - currentDay + 7) % 7;
+        if (dayDiff === 0 && alarmMin <= currentMin) {
+          dayDiff = 7;
+        }
+        const totalDelta = dayDiff * 1440 + (alarmMin - currentMin);
+        if (totalDelta < smallestDelta) {
+          smallestDelta = totalDelta;
+          nextAlarm = alarm;
+        }
+      }
+    }
+
+    if (!nextAlarm) return 'No active alarms';
+
+    const hoursLeft = Math.floor(smallestDelta / 60);
+    const minsLeft = smallestDelta % 60;
+    if (hoursLeft === 0) {
+      return `Next in ${minsLeft}m (${nextAlarm.time})`;
+    }
+    return `Next in ${hoursLeft}h ${minsLeft}m (${nextAlarm.time})`;
   },
 }));

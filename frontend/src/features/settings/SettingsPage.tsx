@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useIntegrationStore } from '../../stores/integrationStore';
@@ -13,7 +13,8 @@ import { Button, Input, Badge, Modal } from '../../components/ui';
 import { useToast } from '../../hooks/useToast';
 import { soundEffects } from '../../utils/audio';
 import { cn } from '../../utils';
-import { integrationsApi } from '../../services/api';
+import { integrationsApi, getApiBaseUrl, setApiBaseUrl, DEFAULT_CLOUD_API_URL } from '../../services/api';
+import { permissionService, SystemPermissionStatus } from '../../services/permissionService';
 import { validateAndCleanImportData, executeDataImport } from '../../services/jsonImportService';
 import type { Integration, IntegrationService, AccentColor } from '../../types';
 import './Settings.css';
@@ -107,6 +108,56 @@ export const SettingsPage: React.FC = () => {
   const [timezone, setTimezone] = useState('America/Los_Angeles');
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD');
 
+  // 24/7 Cloud Backend & Server Sync State
+  const [serverUrlInput, setServerUrlInput] = useState(getApiBaseUrl());
+  const [isTestingServer, setIsTestingServer] = useState(false);
+
+  // System Permissions State
+  const [permissionStatus, setPermissionStatus] = useState<SystemPermissionStatus>({
+    notifications: 'prompt',
+    location: 'prompt',
+  });
+
+  useEffect(() => {
+    permissionService.checkPermissions().then(setPermissionStatus);
+  }, []);
+
+  const handleSaveServerUrl = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setApiBaseUrl(serverUrlInput);
+    soundEffects.playPip();
+    toast.success('Backend Server URL saved');
+  };
+
+  const handleTestServerUrl = async () => {
+    setIsTestingServer(true);
+    try {
+      const targetUrl = serverUrlInput.trim().replace(/\/+$/, '');
+      const res = await fetch(`${targetUrl}/api/v1/health`);
+      if (res.ok) {
+        soundEffects.playChime();
+        toast.success('Connected to 24/7 Cloud Backend successfully!');
+      } else {
+        toast.error(`Health check returned status ${res.status}`);
+      }
+    } catch (err: any) {
+      toast.error(`Connection failed: ${err?.message || 'Network error'}`);
+    } finally {
+      setIsTestingServer(false);
+    }
+  };
+
+  const handleGrantPermissions = async () => {
+    const updated = await permissionService.requestAllPermissions();
+    setPermissionStatus(updated);
+    if (updated.notifications === 'granted' && updated.location === 'granted') {
+      soundEffects.playChime();
+      toast.success('All system permissions granted successfully!');
+    } else {
+      toast.info('Permissions updated');
+    }
+  };
+
   // Audio tone setting
   const [selectedTone, setSelectedTone] = useState('radiant');
 
@@ -125,12 +176,6 @@ export const SettingsPage: React.FC = () => {
     try {
       await integrationsApi.connect(connectModal.provider, connectConfig);
       await fetchIntegrations();
-      const matching = integrations.find(
-        (i) => ((i as any).provider || i.service) === connectModal.provider || i.id === connectModal.id
-      );
-      if (matching && !matching.connected) {
-        await toggleConnect(matching.service || matching.id, connectConfig);
-      }
       soundEffects.playChime();
       toast.success(`Connected to ${connectModal.name}`);
       setConnectModal(null);
@@ -170,8 +215,24 @@ export const SettingsPage: React.FC = () => {
   // Full backup JSON export
   const handleExportJSON = () => {
     soundEffects.playChime();
+    const sanitizedIntegrations = (integrations || []).map((i: any) => {
+      const copy = { ...i };
+      if (copy.config) {
+        const safeConfig: Record<string, string> = {};
+        for (const [k, v] of Object.entries(copy.config)) {
+          if (/token|secret|password|key|url|webhook|cred|auth/i.test(k)) {
+            safeConfig[k] = '***REDACTED***';
+          } else {
+            safeConfig[k] = v as string;
+          }
+        }
+        copy.config = safeConfig;
+      }
+      return copy;
+    });
+
     const backupData = {
-      version: '1.0.0',
+      version: '1.1.0',
       exportedAt: new Date().toISOString(),
       user,
       tasks,
@@ -181,7 +242,7 @@ export const SettingsPage: React.FC = () => {
       calendarEvents: events,
       reminders,
       alarms,
-      integrations,
+      integrations: sanitizedIntegrations,
     };
 
     const jsonBlob = new Blob([JSON.stringify(backupData, null, 2)], {
@@ -228,6 +289,47 @@ export const SettingsPage: React.FC = () => {
 
   const renderGeneralContent = (idPrefix = '') => (
     <div className="pcc-settings-grid">
+      {/* 24/7 Cloud Connection & Cross-Device Sync */}
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+            </svg>
+            24/7 Cloud Connection & Sync
+          </span>
+        </div>
+
+        <form onSubmit={handleSaveServerUrl} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <Input
+            id={`${idPrefix}server-url`}
+            label="Backend Server API URL"
+            value={serverUrlInput}
+            onChange={(e) => setServerUrlInput(e.target.value)}
+            placeholder={DEFAULT_CLOUD_API_URL}
+          />
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
+            Default 24/7 Cloud URL: <code style={{ fontSize: '0.75rem' }}>{DEFAULT_CLOUD_API_URL}</code>. For local network sync on phone, use your host IP (e.g. <code style={{ fontSize: '0.75rem' }}>http://192.168.x.x:8000</code>).
+          </p>
+
+          <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              type="button"
+              loading={isTestingServer}
+              onClick={handleTestServerUrl}
+            >
+              Test Connection
+            </Button>
+
+            <Button variant="primary" size="sm" type="submit">
+              Save Server URL
+            </Button>
+          </div>
+        </form>
+      </div>
+
       {/* Profile Info */}
       <div className="pcc-settings-card">
         <div className="pcc-settings-card__header">
@@ -532,6 +634,50 @@ export const SettingsPage: React.FC = () => {
 
   const renderAudioContent = (idPrefix = '') => (
     <div className="pcc-settings-grid">
+      {/* System Permissions Status Card */}
+      <div className="pcc-settings-card">
+        <div className="pcc-settings-card__header">
+          <span className="pcc-settings-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            System Permissions Status
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.9375rem' }}>OS Local Notifications</div>
+              <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                Required for alarms, reminders, and timers to trigger when app is closed.
+              </div>
+            </div>
+            <Badge variant={permissionStatus.notifications === 'granted' ? 'success' : 'warning'}>
+              {permissionStatus.notifications.toUpperCase()}
+            </Badge>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.9375rem' }}>GPS & Device Location</div>
+              <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                Required for live local weather telemetry updates.
+              </div>
+            </div>
+            <Badge variant={permissionStatus.location === 'granted' ? 'success' : 'warning'}>
+              {permissionStatus.location.toUpperCase()}
+            </Badge>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+            <Button variant="primary" size="sm" onClick={handleGrantPermissions}>
+              🔔 Grant All System Permissions
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="pcc-settings-card">
         <div className="pcc-settings-card__header">
           <span className="pcc-settings-card__title">

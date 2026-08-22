@@ -1,5 +1,12 @@
 import { Task, Project, Note, Idea, CalendarEvent, Reminder, Alarm, Integration, Priority, TaskStatus, ProjectStatus, KanbanColumnId, SubTask } from '../types';
 import { generateId } from '../utils';
+import { useAlarmStore } from '../stores/alarmStore';
+import { useTaskStore } from '../stores/taskStore';
+import { useReminderStore } from '../stores/reminderStore';
+import { useProjectStore } from '../stores/projectStore';
+import { useNoteStore } from '../stores/noteStore';
+import { useIdeaStore } from '../stores/ideaStore';
+import { useCalendarStore } from '../stores/calendarStore';
 
 export interface ImportValidationIssue {
   level: 'error' | 'warning';
@@ -456,47 +463,77 @@ export function validateAndCleanImportData(input: string | Record<string, any>):
  * Persists the validated import payload into local storage and triggers store updates.
  */
 export function executeDataImport(payload: ValidatedImportPayload): void {
+  const safeSetItem = (key: string, val: string) => {
+    try {
+      localStorage.setItem(key, val);
+    } catch (err) {
+      console.warn(`localStorage setItem failed for key ${key}:`, err);
+    }
+  };
+
   if (payload.tasks.length > 0) {
-    localStorage.setItem('pcc_tasks', JSON.stringify(payload.tasks));
+    safeSetItem('pcc_tasks', JSON.stringify(payload.tasks));
   }
   if (payload.projects.length > 0) {
-    localStorage.setItem('pcc_projects', JSON.stringify(payload.projects));
+    safeSetItem('pcc_projects', JSON.stringify(payload.projects));
   }
   if (payload.notes.length > 0) {
-    localStorage.setItem('pcc_notes', JSON.stringify(payload.notes));
+    safeSetItem('pcc_notes', JSON.stringify(payload.notes));
   }
   if (payload.ideas.length > 0) {
-    localStorage.setItem('pcc_ideas', JSON.stringify(payload.ideas));
+    safeSetItem('pcc_ideas', JSON.stringify(payload.ideas));
   }
   if (payload.calendarEvents.length > 0) {
-    localStorage.setItem('pcc_calendar_events', JSON.stringify(payload.calendarEvents));
+    safeSetItem('pcc_calendar_events', JSON.stringify(payload.calendarEvents));
   }
   if (payload.reminders.length > 0) {
-    localStorage.setItem('pcc_reminders', JSON.stringify(payload.reminders));
+    safeSetItem('pcc_reminders', JSON.stringify(payload.reminders));
   }
   if (payload.alarms.length > 0) {
-    localStorage.setItem('pcc_alarms', JSON.stringify(payload.alarms));
+    const data = JSON.stringify(payload.alarms);
+    safeSetItem('pcc_alarms_store_v1', data);
+    safeSetItem('pcc_alarms', data);
   }
   if (payload.integrations && payload.integrations.length > 0) {
-    localStorage.setItem('pcc_integrations_store_v2', JSON.stringify(payload.integrations));
+    safeSetItem('pcc_integrations_store_v2', JSON.stringify(payload.integrations));
   }
   if (payload.goals.length > 0) {
-    localStorage.setItem('pcc_goals', JSON.stringify(payload.goals));
+    safeSetItem('pcc_goals', JSON.stringify(payload.goals));
   }
   if (payload.contacts.length > 0) {
-    localStorage.setItem('pcc_contacts', JSON.stringify(payload.contacts));
+    safeSetItem('pcc_contacts', JSON.stringify(payload.contacts));
   }
   if (payload.weather?.selectedCity) {
-    localStorage.setItem('pcc_weather_selected_city', payload.weather.selectedCity);
-    localStorage.setItem('pcc_weather_unit', payload.weather.unit);
+    safeSetItem('pcc_weather_selected_city', payload.weather.selectedCity);
+    safeSetItem('pcc_weather_unit', payload.weather.unit || 'C');
   }
   if (payload.user) {
-    localStorage.setItem('pcc_user_profile', JSON.stringify(payload.user));
-    localStorage.setItem('pcc_user_data', JSON.stringify(payload));
+    safeSetItem('pcc_user_profile', JSON.stringify(payload.user));
+    safeSetItem('pcc_user_data', JSON.stringify(payload));
   }
 
   // Dispatch custom event to inform components/listeners of data reload
-  window.dispatchEvent(new Event('pcc-data-imported'));
+  try {
+    window.dispatchEvent(new Event('pcc-data-imported'));
+  } catch {
+    // Ignore
+  }
+
+  const safeReload = (fn?: () => void) => {
+    try {
+      fn?.();
+    } catch (err) {
+      console.warn('Store reload failed after import:', err);
+    }
+  };
+
+  safeReload(() => useAlarmStore.getState()?.fetchAlarms?.());
+  safeReload(() => useTaskStore.getState()?.fetchTasks?.());
+  safeReload(() => useReminderStore.getState()?.fetchReminders?.());
+  safeReload(() => useProjectStore.getState()?.fetchProjects?.());
+  safeReload(() => useNoteStore.getState()?.fetchNotes?.());
+  safeReload(() => useIdeaStore.getState()?.fetchIdeas?.());
+  safeReload(() => useCalendarStore.getState()?.fetchEvents?.());
 }
 
 function createEmptyStats(): ImportStats {
