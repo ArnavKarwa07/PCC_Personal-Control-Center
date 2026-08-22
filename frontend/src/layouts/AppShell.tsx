@@ -10,6 +10,7 @@ import { useAlarmStore } from '../stores/alarmStore';
 import { useAutoSync } from '../hooks/useAutoSync';
 import { alarmScheduler } from '../services/alarmScheduler';
 import type { Alarm } from '../types';
+import { ColdStartSyncLoader } from '../components/ColdStartSyncLoader';
 import './AppShell.css';
 
 export const AppShell: React.FC = () => {
@@ -141,6 +142,9 @@ export const AppShell: React.FC = () => {
         onDismiss={handleDismissRinging}
         onSnooze={handleSnoozeRinging}
       />
+
+      {/* Cloud Engine Cold Start Indicator */}
+      <ColdStartSyncLoader />
     </div>
   );
 };

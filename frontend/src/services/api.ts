@@ -19,7 +19,7 @@ import type {
 } from '../types';
 
 const STORAGE_KEY_SERVER_URL = 'pcc_server_url';
-export const DEFAULT_CLOUD_API_URL = 'https://arnavkarwa07-pcc-backend.hf.space';
+export const DEFAULT_CLOUD_API_URL = 'https://pcc-backend-842717490280.asia-south1.run.app';
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
