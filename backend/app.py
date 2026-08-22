@@ -2,8 +2,6 @@
 Configured for Hugging Face Spaces (Gradio SDK free tier).
 """
 
-import os
-import sys
 import huggingface_hub
 
 # Monkey-patch HfFolder for huggingface_hub compatibility
@@ -18,6 +16,7 @@ if not hasattr(huggingface_hub, "HfFolder"):
     huggingface_hub.HfFolder = MockHfFolder
 
 import gradio as gr
+
 from app.main import app as fastapi_app
 
 # Gradio Interface for status UI
