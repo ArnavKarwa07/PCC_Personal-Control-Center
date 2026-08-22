@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Streamlined backend REST architecture into a zero-friction single-tenant mode for Arnav Karwa (`arnavkarwa07@gmail.com` / `00000000-0000-0000-0000-000000000001`), eliminating redundant multi-user login, register, and token management overhead.
   - Removed client-side `authStore.ts`, login/register modals, and authorization bearer header blockers across API calls (`frontend/src/services/api.ts`).
   - Retained database-level user isolation with automatic default owner provisioning in dependency injections (`backend/app/core/dependencies.py`).
+- **GCP US-Central Migration & Manual CI/CD Dispatch Workflow**:
+  - Migrated GCP Cloud Run backend service deployment target to `us-central1` region to align with zero-cost scaling infrastructure.
+  - Disabled automatic GitHub Actions CI/CD pipeline triggers, transitioning build and deployment runs to manual `workflow_dispatch` execution to optimize workflow resource utilization and control deployment timing.
 
 ### Removed
 - **Financial & Fitness Modules Cleanup (Database Migration)**:
