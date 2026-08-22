@@ -4,6 +4,7 @@ Configured for ZeroGPU Free Tier with Gradio 5.x.
 
 import os
 import sys
+import uvicorn
 import huggingface_hub
 
 # Monkey-patch HfFolder for huggingface_hub compatibility
@@ -20,7 +21,7 @@ if not hasattr(huggingface_hub, "HfFolder"):
 import gradio as gr
 from app.main import app as fastapi_app
 
-# Gradio interface for HF Space runner
+# Gradio interface for HF Space status UI
 demo = gr.Interface(
     fn=lambda client_name="PCC Admin": f"⚡ PCC Personal Control Center Backend Engine is Active & Ready for {client_name}",
     inputs=[gr.Textbox(value="PCC Admin", label="Client Name")],
@@ -29,5 +30,9 @@ demo = gr.Interface(
     description="FastAPI REST API running live on Hugging Face. Interactive Swagger API Docs available at /docs",
 )
 
-# Mount FastAPI app onto Gradio interface
+# Mount Gradio status UI onto FastAPI app
 app = gr.mount_gradio_app(fastapi_app, demo, path="/status")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 7860))
+    uvicorn.run(app, host="0.0.0.0", port=port)
