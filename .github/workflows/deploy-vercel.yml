@@ -1,0 +1,21 @@
+name: Deploy PCC to Vercel
+
+on:
+  push:
+    branches: [ main, staging ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy PCC Backend Serverless to Vercel
+        run: |
+          npx vercel deploy --name pcc-backend --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
