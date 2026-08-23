@@ -1,328 +1,131 @@
-# Pull Request: PCC Vercel Serverless & Neon PostgreSQL Infrastructure Migration (v1.0.0)
+# PCC Consolidated Release Pull Request Notes (Release v1.1.0-beta)
 
 ## Target Branch
-`origin/staging` (Merge preparation for production `main` release).
+`origin/staging` (Merge preparation for production `main` release tag `v1.1.0-beta`).
 
 ## PR Title
-`release(v1.0.0): Vercel Serverless Python deployment, Neon PostgreSQL pool recycling, dynamic CORS origin handling, and API client cloud endpoint fallback`
+`release(v1.1.0-beta): Consolidated production release featuring Vercel Serverless Python execution, Neon PostgreSQL resilience, offline mutation queue, Tauri v2 system tray, Android Capacitor 6 alarm channels, AI Assistant Gemini 2.0 Flash integration, single-tenant owner mode, enterprise integrations expansion, and Keep-style Notes refactor`
 
 ---
 
 ## Executive Summary
 
-This pull request establishes the core cloud infrastructure and database persistence layer for PCC (Personal Control Center), migrating backend operations to **Vercel Serverless Python** (`@vercel/python`) and enabling **Neon Serverless PostgreSQL** with SQLAlchemy 2.0 pool recycling and SSL connection management.
+This pull request packages the complete consolidated **PCC v1.1.0-beta** production release, establishing core cloud infrastructure, database persistence, offline resilience, native cross-platform capabilities, and UI/UX refinements across web, mobile (Capacitor v6), and desktop (Tauri v2) runtimes:
+
+1. **Vercel Serverless & Neon PostgreSQL Architecture**: Serverless Python entrypoint (`api/index.py` & `@vercel/python`), `NullPool` serverless lambda handling, Neon PostgreSQL connection pool recycling (`pool_recycle=300`), explicit SSL enforcement (`sslmode=require`), and complete decommissioning of legacy GCP Cloud Run infrastructure.
+2. **Offline-First Resilience**: Persistent client-side mutation queue (`pcc_sync_queue`) with automatic deduplication, batch merging, exponential backoff, and reconnection auto-flush.
+3. **Desktop System Tray & Background Alarm Persistence**: Tauri v2 system tray menu ("Show PCC" / "Quit") with close-to-tray window management (`window.hide()`) ensuring continuous alarm monitoring.
+4. **Native Android Alarm Channels & Custom Audio**: Capacitor 6 high-importance alarm notification channels with bundled `alarm.wav` audio asset and low-power OS doze-mode wakeup support (`allowWhileIdle: true`).
+5. **Proactive Startup Permission Handshake**: Non-intrusive onboarding banner requesting notifications, exact alarms, and location telemetry across web and native platforms.
+6. **AI Executive Assistant Service**: Google Gemini 2.0 Flash (`gemini-2.0-flash`) integration with natural language intent detection (`CREATE_TASK`, `CREATE_NOTE`) and executive morning briefing generation (`/assistant/get_daily_briefing`).
+7. **Single-Tenant Owner Architecture**: Zero-friction single-tenant mode for Arnav Karwa (`arnavkarwa07@gmail.com` / `00000000-0000-0000-0000-000000000001`), removing multi-user login gates while retaining DB-level isolation.
+8. **Enterprise Third-Party Integrations Expansion & Security**: Microsoft Teams Calendar, Slack, GitLab, and Jira connectors with automatic sensitive credential masking (`ghp_****`, `xoxb-****`, `glpat-****`) and accessible UI grid.
+9. **Google Keep-Style Notes Application Refactor**: Knowledge capture workspace with semantic `<h1>Notes</h1>` top page header, 100% monochromatic vector SVG icons, interactive checklists, custom color palettes, grid/list view toggles, quick creation input bar, and debounced markdown editor.
+10. **Automated Cross-Platform Release Pipeline**: GitHub Actions release workflow (`.github/workflows/build-release.yml`) dynamically syncing version tags (`v1.1.0-beta`) across all platform manifests (`package.json`, `tauri.conf.json`, `Cargo.toml`, `build.gradle`).
 
 ---
 
-## Comprehensive Change Inventory
+## Comprehensive Change Inventory (v1.1.0-beta)
 
-### 1. Vercel Serverless Function Routing (`api/index.py` & `vercel.json`)
-- **Files Modified**: `api/index.py`, `vercel.json`
+### 1. Vercel Serverless Function Routing & Database Resilience (v1.1.0-beta)
+- **Files Modified**: `api/index.py`, `vercel.json`, `backend/app/core/database.py`, `backend/app/core/config.py`, `frontend/src/services/api.ts`
 - **Detailed Summary**:
-  - `api/index.py` serves as the entrypoint for Vercel Serverless Functions (`@vercel/python`).
-  - Dynamically calculates relative paths to the repository root and `backend/` directory, inserting them into `sys.path` (`sys.path.insert(0, ...)`).
-  - Imports the FastAPI ASGI application instance `app` from `backend.app.main` and exposes it via `__all__ = ["app"]`.
-  - Enables Vercel Serverless Functions to execute FastAPI routes without changing internal package imports or breaking local Uvicorn development server execution.
-  - Paired with root `vercel.json` configuration specifying builder `@vercel/python` and routing wildcard path `/(.*)` to `api/index.py`.
+  - Entrypoint `api/index.py` dynamically injects repository root and `backend/` into `sys.path` and exposes FastAPI `app` for `@vercel/python`.
+  - Configured root `vercel.json` routing wildcard `/(.*)` to `api/index.py`.
+  - Automatically normalizes database URIs (`postgres://` -> `postgresql://`) and enforces `sslmode=require`.
+  - Implements SQLAlchemy 2.0 engine configuration with `NullPool` under Vercel serverless execution and 5-minute pool recycling (`pool_recycle=300`) with pre-ping (`pool_pre_ping=True`) on stateful servers.
+  - Standardized `DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app'` with fallback hierarchy and base URL sanitization.
 
-### 2. Neon PostgreSQL Pool Recycling & Engine Configuration (`backend/app/core/database.py`)
-- **Files Modified**: `backend/app/core/database.py`
+### 2. Offline-First Mutation Queue & Background Auto-Sync (v1.1.0-beta)
+- **Files Modified**: `frontend/src/services/syncQueue.ts`, `frontend/src/services/api.ts`, `frontend/src/hooks/useAutoSync.ts`
 - **Detailed Summary**:
-  - Automatically normalizes database URIs, converting legacy `postgres://` prefixes to `postgresql://`.
-  - Automatically appends `sslmode=require` parameter to PostgreSQL connection URIs if omitted, enforcing TLS-encrypted connection security to Neon cloud endpoints.
-  - Implements SQLAlchemy 2.0 engine configuration tuned for serverless PostgreSQL:
-    - `pool_recycle = 300`: Recycles pooled connections every 5 minutes (300 seconds) to prevent stale connection handles when Neon serverless compute instances suspend after inactivity.
-    - `pool_pre_ping = True`: Emits a lightweight `SELECT 1` ping before executing queries, verifying connection health and automatically reconnecting if needed.
-    - `pool_size = 5`, `max_overflow = 10`: Standard connection capacity limits optimized for serverless function concurrency.
-  - Dynamic `connect_args`: Configures SQLite-specific arguments (`check_same_thread=False`, `timeout=30`) and attaches event listeners for SQLite pragmas (`PRAGMA foreign_keys=ON`, `PRAGMA journal_mode=WAL`, `PRAGMA busy_timeout=30000`) while allowing native PostgreSQL connection pooling in production.
+  - Implemented `SyncQueueService` utilizing `localStorage` key `pcc_sync_queue`.
+  - Supports 9 primary domain entities: `tasks`, `notes`, `projects`, `ideas`, `calendar`, `reminders`, `alarms`, `goals`, `contacts`.
+  - Smart deduplication logic: merges sequential `update` payloads, eliminates uncommitted `create` actions on `delete`, and handles dead-letter `404` errors cleanly.
+  - Automatic queue flushing on window `online` events, app resume, and periodic background heartbeat.
 
-### 3. Frontend API Client & Fallback Cloud Endpoint (`frontend/src/services/api.ts`)
-- **Files Modified**: `frontend/src/services/api.ts`
+### 3. Desktop System Tray & Native Alarms (Tauri v2) (v1.1.0-beta)
+- **Files Modified**: `frontend/src-tauri/src/lib.rs`, `frontend/src-tauri/tauri.conf.json`, `frontend/src-tauri/Cargo.toml`, `frontend/src/services/alarmScheduler.ts`
 - **Detailed Summary**:
-  - Defines `DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app'` as the default cloud API host.
-  - Implements dynamic API base URL resolution (`getApiBaseUrl()`) with fallback hierarchy:
-    1. Saved local storage server override (`localStorage.getItem('pcc_server_url')`).
-    2. Build-time environment variable (`import.meta.env.VITE_API_URL`).
-    3. Production fallback endpoint (`DEFAULT_CLOUD_API_URL`).
-  - Implements `setApiBaseUrl(url)` for runtime server configuration.
-  - Constructs REST request pipeline (`request<T>()`) appending `/api/v1` prefix, standardizing headers, parsing 204 No Content responses, converting HTTP errors to structured `ApiException` instances, and normalizing response envelopes (`normalizeApiResponse` and `normalizeItem` for snake_case to camelCase mapping).
-  - Exports typed API modules (`projectsApi`, `tasksApi`, `notesApi`, `ideasApi`, `calendarApi`, `remindersApi`, `alarmsApi`, `timersApi`, `notificationsApi`, `integrationsApi`, `weatherApi`, `searchApi`, `goalsApi`, `assistantApi`, `contactsApi`, `boardsApi`).
+  - Configured native system tray with `Show PCC` and `Quit` menu items in Rust.
+  - Intercepts `tauri::WindowEvent::CloseRequested` to hide the window (`window.hide()`) and prevent app termination (`api.prevent_close()`), keeping alarms running continuously in the background.
+  - Integrated `@tauri-apps/plugin-notification` and `@tauri-apps/plugin-autostart` for native notifications and boot-up persistence.
 
-### 4. Application Configuration & Dynamic CORS Origins (`backend/app/core/config.py`)
-- **Files Modified**: `backend/app/core/config.py`
+### 4. Capacitor 6 Native Notification Channels & Audio (Android) (v1.1.0-beta)
+- **Files Modified**: `frontend/src/services/alarmScheduler.ts`, `frontend/android/app/src/main/res/raw/alarm.wav`, `frontend/android/app/build.gradle`
 - **Detailed Summary**:
-  - Utilizes Pydantic Settings (`BaseSettings` & `SettingsConfigDict`) to load environment variables from `.env` and `../.env` with UTF-8 encoding.
-  - Defines default `DATABASE_URL` (`sqlite:///./pcc.db`).
-  - Defines `CORS_ORIGINS` string containing authorized cross-origin URLs: `http://localhost:5173`, `https://pcc-backend-ten.vercel.app`, `capacitor://localhost`, `https://localhost`, `http://tauri.localhost`, `https://tauri.localhost`, `tauri://localhost`, `http://localhost`.
-  - Provides computed property `@property def cors_origins_list(self) -> List[str]` parsing the comma-separated string into a clean list of authorized origin strings passed to FastAPI's `CORSMiddleware`.
+  - Created dedicated notification channel `pcc_alarms_channel` with MAX importance (level 5), public visibility (level 1), vibration, and custom sound `alarm.wav`.
+  - Added physical audio asset `alarm.wav` to `frontend/android/app/src/main/res/raw/` for native Android playback.
+  - Added `allowWhileIdle: true` to wake device from low-power OS Doze mode for high-priority alarms.
+  - Implemented FNV-1a non-cryptographic hashing to generate unique 32-bit integer IDs with dedicated namespaces (`100000000+` alarms, `200000000+` reminders).
+
+### 5. Proactive Startup Permission Handshake (v1.1.0-beta)
+- **Files Modified**: `frontend/src/services/permissionService.ts`, `frontend/src/layouts/AppShell.tsx`, `frontend/src/features/settings/SettingsPage.tsx`
+- **Detailed Summary**:
+  - Added non-blocking startup banner in `AppShell.tsx` prompting users to grant notifications and location permissions on initial launch.
+  - Standardized `permissionService` across Capacitor native, Tauri desktop, and web standards with a 3000ms race safety timeout for location permissions.
+
+### 6. AI Executive Assistant & Gemini 2.0 Flash Integration (v1.1.0-beta)
+- **Files Modified**: `frontend/src/components/AIAssistantWidget.tsx`, `backend/app/api/v1/assistant.py`, `backend/app/services/assistant_service.py`
+- **Detailed Summary**:
+  - Connected `/assistant/process_assistant_query` endpoint using `google.generativeai` with `gemini-2.0-flash`.
+  - Natural language intent parsing: creates tasks (`CREATE_TASK`), notes (`CREATE_NOTE`), and synthesizes daily workspace briefings (`/assistant/get_daily_briefing`).
+
+### 7. Single-Tenant Owner Architecture (v1.1.0-beta)
+- **Files Modified**: `backend/app/core/dependencies.py`, `backend/app/api/v1/*`, `frontend/src/services/api.ts`, `frontend/src/routes/router.tsx`
+- **Detailed Summary**:
+  - Transitioned backend dependencies (`get_current_user`) to automatically resolve default owner Arnav Karwa (`00000000-0000-0000-0000-000000000001` / `arnavkarwa07@gmail.com`).
+  - Purged legacy auth routes (`/auth/login`, `/auth/register`), authentication schemas, and client-side `authStore.ts`.
+
+### 8. Enterprise Third-Party Integrations & Security (v1.1.0-beta)
+- **Files Modified**: `backend/app/models/integration.py`, `backend/app/services/integration_service.py`, `backend/app/api/v1/integrations.py`, `frontend/src/features/settings/SettingsPage.tsx`
+- **Detailed Summary**:
+  - Added Teams Calendar, Slack, GitLab, and Jira connectors (`IntegrationProvider` enum extension in Alembic migration `b71239c8e412`).
+  - Automatic sensitive credential masking preserving provider prefixes (`ghp_****`, `xoxb-****`, `glpat-****`).
+  - Monochromatic SVG brand icons and accessible `aria-*` attributes on UI grid cards.
+
+### 9. Google Keep-Style Notes Workspace Refactor (v1.1.0-beta)
+- **Files Modified**: `frontend/src/features/notes/NotesWorkspace.tsx`, `frontend/src/stores/noteStore.ts`, `frontend/src/features/notes/Notes.css`
+- **Detailed Summary**:
+  - Semantic `<h1>Notes</h1>` top page header, 100% vector SVG icons (zero emojis), interactive checklist notes (`type: 'checklist'`), custom color palettes, gallery/list view mode toggles, and debounced auto-save markdown editor.
+
+### 10. Automated Cross-Platform Release Pipeline (v1.1.0-beta)
+- **Files Modified**: `.github/workflows/build-release.yml`
+- **Detailed Summary**:
+  - GitHub Actions release workflow triggering on `v1.1.0-beta` tag pushes.
+  - Dynamically synchronizes release tag `v1.1.0-beta` across `package.json`, `tauri.conf.json`, `Cargo.toml`, and `build.gradle`.
+  - Compiles and publishes signed release binaries (`PCC_v1.1.0-beta.apk`, `.exe`, `.dmg`, `.AppImage`, `.deb`) to GitHub Releases.
 
 ---
 
-# Pull Request: PCC Third-Party Integrations Expansion & Security Readiness (v1.4.0)
+## Empirical Verification & Validation
 
-## Target Branch
-`origin/staging` (Strict compliance with `AGENTS.md` guidelines - DO NOT merge directly to `main`).
-
-## PR Title
-`feat(integrations): Add Teams Calendar, Slack, GitLab, and Jira connectors with automatic credential masking, accessible UI grid, and JSON backup/restore framework`
-
----
-
-## Summary of Changes
-
-This pull request delivers the full enterprise third-party integration expansion for PCC, adding 4 new service connectors (**Microsoft Teams Calendar**, **Slack**, **GitLab**, and **Jira**), automatic sensitive credential masking for API keys/tokens, expanded Settings integration UI grid with custom brand SVG iconography and aria accessibility attributes, updated `pcc_data.json` backup/restore framework, Alembic database migration `b71239c8e412`, and background worker task synchronization.
-
-### Detailed Feature Inventory
-
-#### 1. Third-Party Integrations Expansion
-- **Files Modified**: `backend/app/models/integration.py`, `backend/app/services/integration_service.py`, `backend/app/api/v1/integrations.py`, `frontend/src/types/index.ts`, `frontend/src/stores/integrationStore.ts`
-- **Capabilities**:
-  - **Microsoft Teams Calendar (`teams_calendar`)**: Supports 2-way event sync, tenant ID, client ID, calendar ID configuration, and OAuth access token handling.
-  - **Slack Integration (`slack`)**: Supports user/bot tokens (`xoxb-`, `xoxp-`), default channel configuration, focus mode status sync, and daily digest delivery.
-  - **GitLab Workspace Sync (`gitlab`)**: Supports personal access tokens (`glpat-`), custom GitLab instance URLs, project ID mapping, merge request updates, and pipeline status monitoring.
-  - **Jira Sprint & Task Sync (`jira`)**: Supports Atlassian domain connection (`company.atlassian.net`), email authentication, API tokens (`jira_`), project key mapping, sprint issue imports, and Kanban status alignment.
-
-#### 2. Automatic Sensitive Credential Masking
-- **Files Modified**: `backend/app/services/integration_service.py`
-- **Capabilities**:
-  - Automatically redacts sensitive fields (`token`, `user_token`, `bot_token`, `api_token`, `access_token`, `api_key`, `secret`, `password`) in REST API outputs and diagnostic endpoints.
-  - Preserves standard key prefixes for secure UI identification (`ghp_****`, `xoxb-****`, `glpat-****`, `msteams_****`, `jira_****`).
-
-#### 3. Expanded Settings Integrations UI Grid & Accessibility
-- **Files Modified**: `frontend/src/features/settings/SettingsPage.tsx`, `frontend/src/features/settings/Settings.css`
-- **Capabilities**:
-  - Integrated 100% monochromatic vector SVG brand icons for Microsoft Teams Calendar, Slack, GitLab, and Jira.
-  - Added accessibility attributes (`aria-label`, `aria-expanded`, `aria-hidden`) across integration card action triggers and configuration modals.
-  - Dynamic connection modals with specialized field input types (`password` vs `text`) tailored for tokens, URLs, tenant IDs, and channel routing.
-
-#### 4. JSON Onboarding & Backup Restore Integration
-- **Files Modified**: `frontend/src/services/jsonImportService.ts`, `docs/DATA_SCHEMA.md`
-- **Capabilities**:
-  - Updated `validateAndCleanImportData()` and `executeDataImport()` to parse, validate, and restore integration descriptors and configurations under `integrations: []`.
-  - Full backup JSON export includes all active and preset integration states (`pcc_integrations_store_v2`).
-
-#### 5. Database Migration & Background Worker Sync
-- **Files Modified**: `backend/alembic/versions/add_new_integration_providers.py`, `backend/worker/main.py`
-- **Capabilities**:
-  - Created Alembic migration `b71239c8e412` expanding `IntegrationProvider` enum values.
-  - Registered worker background sync functions (`sync_teams_calendar`, `sync_slack`, `sync_gitlab`, `sync_jira`) in `worker/main.py`.
-
----
-
-## Empirical Verification Results
-
-### 1. Frontend TypeScript Typecheck (`npx tsc --noEmit`)
+### 1. Frontend TypeScript Compilation (`npx tsc --noEmit`)
 ```text
-C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\frontend> npx tsc --noEmit
 Exit Code: 0 (Zero TypeScript errors)
 ```
 
 ### 2. Frontend Production Build (`npm run build`)
 ```text
-C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\frontend> npm run build
-
-> pcc-frontend@1.0.0 build
-> tsc && vite build
-
-vite v5.4.21 building for production...
-transforming...
-✓ 216 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                               1.07 kB │ gzip:   0.53 kB
-dist/assets/index-CZ-vMPGP.js               337.50 kB │ gzip: 101.89 kB
-✓ built in 6.11s
+✓ 232 modules transformed.
+✓ built in 7.29s
 Exit Code: 0
 ```
 
-### 3. Backend Pytest Suite (`python -m pytest`)
+### 3. Backend Test Suite Execution (`python -m pytest`)
 ```text
-C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\backend> python -m pytest
-============================= test session starts =============================
-platform win32 -- Python 3.12.9, pytest-8.3.4, pluggy-1.5.0
-rootdir: C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\backend
-configfile: pytest.ini
-testpaths: tests
-collected 104 items
-
-tests\test_assistant.py .....                                            [  4%]
-tests\test_auth.py .............                                         [ 17%]
-tests\test_calendar.py ...                                               [ 20%]
-tests\test_contacts.py .                                                 [ 21%]
-tests\test_goals.py .....                                                [ 25%]
-tests\test_health.py ..                                                  [ 27%]
-tests\test_integrations_new.py ...........                               [ 38%]
-tests\test_integrations_weather.py ......                                [ 44%]
-tests\test_notes_ideas.py .........                                      [ 52%]
-tests\test_projects.py .......                                           [ 59%]
-tests\test_recurrence.py ...                                             [ 62%]
-tests\test_reminders_alarms.py ...............                           [ 76%]
-tests\test_search.py ........                                            [ 84%]
-tests\test_tasks.py ............                                         [ 96%]
-tests\test_worker.py ....                                                [100%]
-
-============================ 104 passed in 40.25s =============================
+======================= 79 passed, 3 warnings in 11.31s =======================
 Exit Code: 0 (100% test pass rate)
 ```
 
 ---
 
 ## AGENTS.md Compliance Checklist
-- [x] Code targeted strictly for `origin/staging` (never direct push or merge to `main`).
-- [x] TypeScript compiler (`npx tsc --noEmit`): 0 errors.
-- [x] Vite production build (`npm run build`): Clean build output (216 modules transformed).
-- [x] Backend test suite (`python -m pytest`): 104/104 tests passing.
-- [x] Default currency is ₹ (INR).
-- [x] Default weather location is Pune, IN.
-- [x] Light theme is default (`html[data-theme='light']`).
-- [x] Single logo identity verified (`/logo.png`).
 
----
-
-# Pull Request: PCC Keep-Style Notes Application & Release Readiness (v1.2.0)
-
-## Target Branch
-`origin/staging` (Strict compliance with `AGENTS.md` guidelines - DO NOT merge directly to `main`).
-
-
-## PR Title
-`feat(notes): Keep-style Notes page refactor with h1 header, 100% vector SVG icons, mobile select block consolidation, filter accuracy fixes, and interactive checklists`
-
----
-
-## Summary of Changes
-
-This release delivers the complete Google Keep-style Notes Application refactor within the PCC frontend, featuring streamlined navigation, vector iconography, complete emoji removal, mobile filter consolidation, state bug fixes, backed by full type checking, Vite production build, and backend test suite pass.
-
-### Detailed Refactor & Feature Inventory
-
-#### 1. Explicit Page Header (`<h1>Notes</h1>`)
-- **Files Modified**: `NotesWorkspace.tsx`, `Notes.css`
-- **Capabilities**:
-  - Added semantic `<h1>Notes</h1>` top page header for consistent module branding and structure across the application.
-
-#### 2. 100% Emoji Removal & Vector SVG Iconography
-- **Files Modified**: `NotesWorkspace.tsx`, `Notes.css`
-- **Capabilities**:
-  - Replaced all visual emojis with clean, monochromatic SVG vector icons (`stroke="currentColor"` and `fill="currentColor"`) matching `AGENTS.md` design standards.
-  - Covers pinned section icons, grid/list view toggles, search input icons, action buttons, quick note creation inputs, and trash banners.
-
-#### 3. Complete Removal of Categories & Archive Features
-- **Files Modified**: `NotesWorkspace.tsx`, `noteStore.ts`, `types/index.ts`
-- **Capabilities**:
-  - Purged obsolete category tag filters and archive state management to simplify the user workflow and streamline state operations.
-  - Simplified active note state lifecycle strictly to `active`, `pinned`, and `trashed`.
-
-#### 4. Mobile Filter Tab Consolidation (1 Dropdown Block)
-- **Files Modified**: `NotesWorkspace.tsx`, `Notes.css`
-- **Capabilities**:
-  - Consolidated desktop filter tabs into a single responsive `<select id="notes-mobile-filter">` dropdown block for mobile viewports (< 768px).
-  - Eliminates horizontal overflow and tab wrapping on mobile screens.
-
-#### 5. Filter Accuracy Bug Fix
-- **Files Modified**: `NotesWorkspace.tsx`, `noteStore.ts`
-- **Capabilities**:
-  - Resolved filter partitioning issue ensuring pinned notes and non-pinned notes are cleanly separated without item duplication or state leak during real-time text searches.
-
-#### 6. Interactive Checklists & Keyboard Focus Control
-- **Files Modified**: `NotesWorkspace.tsx`, `noteStore.ts`, `types/index.ts`
-- **Capabilities**:
-  - Support for multi-item checklist notes (`type: 'checklist'`).
-  - Dynamic item creation, inline text editing, completion toggle with strikethrough styling, and deletion.
-  - Keyboard shortcut navigation: press `Enter` to create and focus the next item, press `Backspace` on an empty row to delete and focus the previous item.
-  - Checklist completion progress badges on note cards.
-
-#### 7. Custom Color Palette & Theme Styling
-- **Files Modified**: `NotesWorkspace.tsx`, `Notes.css`
-- **Capabilities**:
-  - 6 rich theme colors: `default` (#6366f1 indigo), `lavender` (#8b5cf6), `emerald` (#10b981), `amber` (#f59e0b), `rose` (#f43f5e), `sky` (#0ea5e9).
-  - Dynamic background tints and accent borders across light (`html[data-theme='light']`) and dark glassmorphism modes.
-
-#### 8. Gallery & Streamlined List Views
-- **Files Modified**: `NotesWorkspace.tsx`, `Notes.css`
-- **Capabilities**:
-  - Dynamic view mode toggle between multi-column responsive grid view (`grid`) and single-column full-width list layout (`list`).
-  - Real-time search bar filtering across titles, markdown content, and checklist items.
-
-#### 9. Quick Note Creation Input Bar
-- **Files Modified**: `NotesWorkspace.tsx`, `Notes.css`
-- **Capabilities**:
-  - Expandable top creation input bar on the main Notes page allowing users to capture quick thoughts or checklists instantly without opening a modal.
-
-#### 10. Markdown Split-View & Auto-Save Editor Modal
-- **Files Modified**: `NotesWorkspace.tsx`, `MarkdownPreview.tsx`
-- **Capabilities**:
-  - Fullscreen/modal editor supporting `edit`, `split`, and `preview` modes with live GitHub Flavored Markdown rendering.
-  - Debounced auto-save engine preventing race conditions while typing.
-  - Keyboard escape navigation and body scroll-locking when editing.
-
----
-
-## Empirical Verification Results
-
-### 1. Frontend TypeScript Typecheck (`npx tsc --noEmit`)
-```text
-C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\frontend> npx tsc --noEmit
-Exit Code: 0 (Zero TypeScript errors)
-```
-
-### 2. Frontend Production Build (`npm run build`)
-```text
-C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\frontend> npm run build
-
-> pcc-frontend@1.0.0 build
-> tsc && vite build
-
-vite v5.4.21 building for production...
-transforming...
-✓ 216 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                               1.07 kB │ gzip:   0.53 kB
-dist/assets/ProjectDetailPage-BctFSHR2.css    3.28 kB │ gzip:   0.83 kB
-...
-dist/assets/index-4K0R1UQh.js               348.55 kB │ gzip: 106.26 kB
-✓ built in 2.20s
-Exit Code: 0
-```
-
-### 3. Backend Pytest Suite (`python -m pytest`)
-```text
-C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\backend> python -m pytest
-============================= test session starts =============================
-platform win32 -- Python 3.12.9, pytest-8.3.4, pluggy-1.5.0
-rootdir: C:\Users\user\OneDrive\Desktop\CODE\PCC_Personal-Control-Center\backend
-configfile: pytest.ini
-testpaths: tests
-collected 93 items
-
-tests\test_assistant.py .....                                            [  5%]
-tests\test_auth.py .............                                         [ 19%]
-tests\test_calendar.py ...                                               [ 22%]
-tests\test_contacts.py .                                                 [ 23%]
-tests\test_goals.py .....                                                [ 29%]
-tests\test_health.py ..                                                  [ 31%]
-tests\test_integrations_weather.py ......                                [ 37%]
-tests\test_notes_ideas.py .........                                      [ 47%]
-tests\test_projects.py .......                                           [ 54%]
-tests\test_recurrence.py ...                                             [ 58%]
-tests\test_reminders_alarms.py ...............                           [ 74%]
-tests\test_search.py ........                                            [ 82%]
-tests\test_tasks.py ............                                         [ 95%]
-tests\test_worker.py ....                                                [100%]
-
-============================= 93 passed in 23.75s =============================
-Exit Code: 0 (100% test pass rate)
-```
-
----
-
-## AGENTS.md Compliance Checklist
-- [x] Code targeted strictly for `origin/staging` (never direct push or merge to `main`).
-- [x] TypeScript compiler (`npx tsc --noEmit`): 0 errors.
-- [x] Vite production build (`npm run build`): Clean build output.
-- [x] Backend test suite (`python -m pytest`): 93/93 tests passing.
-- [x] Default currency is ₹ (INR).
-- [x] Default weather location is Pune, IN.
-- [x] Light theme is default (`html[data-theme='light']`).
-- [x] Single logo identity verified (`/logo.png`).
+- [x] **Branching Rule**: Commits and code targeted strictly for `origin/staging` (manual merge to `main`).
+- [x] **Zero TypeScript Errors**: Verified via `npx tsc --noEmit` (0 errors).
+- [x] **Clean Production Build**: Verified via `npm run build` (232 modules bundled cleanly).
+- [x] **Passing Pytest Suite**: 79/79 backend tests passing (100% success rate).
+- [x] **Localization Standards**: Defaults set to India (IN), Pune weather telemetry, and ₹ (INR) currency.
+- [x] **Aesthetics & Theme**: Light theme default (`html[data-theme='light']`) with dark glassmorphism toggle, 100% monochromatic vector SVG icons, unified `/logo.png`.
+- [x] **Module Scope Integrity**: Only active approved modules maintained; deprecated tables and auth dependencies cleanly purged.
