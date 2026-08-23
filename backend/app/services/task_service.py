@@ -121,7 +121,6 @@ class TaskService:
 
         return TaskResponse(
             id=task.id,
-            user_id=task.user_id,
             title=task.title,
             description=task.description,
             status=task.status,
@@ -141,8 +140,8 @@ class TaskService:
         )
 
     @staticmethod
-    def _get_or_create_tags(db: Session, user_id: uuid.UUID, tag_names: List[str]) -> List[Tag]:
-        """Find existing tags by name for the user or create new ones."""
+    def _get_or_create_tags(db: Session, tag_names: List[str]) -> List[Tag]:
+        """Find existing tags by name or create new ones."""
         tags = []
         for raw_name in tag_names:
             name = raw_name.strip()
@@ -151,14 +150,13 @@ class TaskService:
             tag = (
                 db.query(Tag)
                 .filter(
-                    Tag.user_id == user_id,
                     func.lower(Tag.name) == name.lower(),
                     Tag.deleted_at.is_(None),
                 )
                 .first()
             )
             if not tag:
-                tag = Tag(user_id=user_id, name=name)
+                tag = Tag(name=name)
                 db.add(tag)
                 db.flush()
             tags.append(tag)
@@ -171,7 +169,6 @@ class TaskService:
             db.query(TaskRecurrence)
             .filter(
                 TaskRecurrence.task_id == task.id,
-                TaskRecurrence.user_id == task.user_id,
                 TaskRecurrence.deleted_at.is_(None),
             )
             .first()
@@ -193,7 +190,6 @@ class TaskService:
 
         # Create next task instance
         next_task = Task(
-            user_id=task.user_id,
             title=task.title,
             description=task.description,
             status=TaskStatus.TODO,
@@ -219,7 +215,6 @@ class TaskService:
             day_of_month=recurrence.day_of_month,
         )
         new_recurrence = TaskRecurrence(
-            user_id=task.user_id,
             task_id=next_task.id,
             pattern=recurrence.pattern,
             interval=recurrence.interval,
@@ -238,7 +233,6 @@ class TaskService:
     def list_tasks(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         status: Optional[TaskStatus] = None,
         priority: Optional[TaskPriority] = None,
         project_id: Optional[uuid.UUID] = None,
@@ -247,9 +241,8 @@ class TaskService:
         page: int = 1,
         per_page: int = 20,
     ) -> Tuple[List[TaskResponse], int, int]:
-        """List tasks for authenticated user with optional filtering and pagination."""
+        """List tasks with optional filtering and pagination."""
         query = db.query(Task).filter(
-            Task.user_id == user_id,
             Task.deleted_at.is_(None),
         )
 
@@ -274,13 +267,13 @@ class TaskService:
         return formatted_tasks, total, total_pages
 
     @classmethod
-    def create_task(cls, db: Session, user_id: uuid.UUID, data: TaskCreate) -> TaskResponse:
-        """Create a new task for the authenticated user."""
+    def create_task(cls, db: Session, data: TaskCreate) -> TaskResponse:
+        """Create a new task."""
         task_data = data.model_dump(exclude={"tags", "recurrence"})
-        task = Task(user_id=user_id, **task_data)
+        task = Task(**task_data)
 
         if data.tags:
-            task.tags = cls._get_or_create_tags(db, user_id, data.tags)
+            task.tags = cls._get_or_create_tags(db, data.tags)
 
         if task.status == TaskStatus.DONE and task.completed_at is None:
             task.completed_at = datetime.now(timezone.utc)
@@ -298,7 +291,6 @@ class TaskService:
                 day_of_month=data.recurrence.day_of_month,
             )
             recurrence = TaskRecurrence(
-                user_id=user_id,
                 task_id=task.id,
                 pattern=data.recurrence.pattern,
                 interval=data.recurrence.interval or 1,
@@ -319,13 +311,12 @@ class TaskService:
         return cls._format_task_response(task)
 
     @classmethod
-    def get_task(cls, db: Session, user_id: uuid.UUID, task_id: uuid.UUID) -> Task:
-        """Retrieve task by ID enforcing user ownership and soft deletion."""
+    def get_task(cls, db: Session, task_id: uuid.UUID) -> Task:
+        """Retrieve task by ID enforcing soft deletion check."""
         task = (
             db.query(Task)
             .filter(
                 Task.id == task_id,
-                Task.user_id == user_id,
                 Task.deleted_at.is_(None),
             )
             .first()
@@ -335,15 +326,15 @@ class TaskService:
         return task
 
     @classmethod
-    def get_task_response(cls, db: Session, user_id: uuid.UUID, task_id: uuid.UUID) -> TaskResponse:
+    def get_task_response(cls, db: Session, task_id: uuid.UUID) -> TaskResponse:
         """Retrieve task and return formatted TaskResponse."""
-        task = cls.get_task(db, user_id, task_id)
+        task = cls.get_task(db, task_id)
         return cls._format_task_response(task)
 
     @classmethod
-    def update_task(cls, db: Session, user_id: uuid.UUID, task_id: uuid.UUID, data: TaskUpdate) -> TaskResponse:
+    def update_task(cls, db: Session, task_id: uuid.UUID, data: TaskUpdate) -> TaskResponse:
         """Update fields of an existing task and trigger recurrence if marked done."""
-        task = cls.get_task(db, user_id, task_id)
+        task = cls.get_task(db, task_id)
         update_data = data.model_dump(exclude_unset=True, exclude={"tags", "recurrence"})
 
         was_not_done = task.status != TaskStatus.DONE
@@ -359,7 +350,7 @@ class TaskService:
             setattr(task, field, value)
 
         if data.tags is not None:
-            task.tags = cls._get_or_create_tags(db, user_id, data.tags)
+            task.tags = cls._get_or_create_tags(db, data.tags)
 
         if data.recurrence is not None:
             existing_rec = (
@@ -385,7 +376,6 @@ class TaskService:
                 existing_rec.next_occurrence = next_date
             else:
                 new_rec = TaskRecurrence(
-                    user_id=user_id,
                     task_id=task.id,
                     pattern=data.recurrence.pattern,
                     interval=data.recurrence.interval or 1,
@@ -408,9 +398,9 @@ class TaskService:
         return cls._format_task_response(task)
 
     @classmethod
-    def delete_task(cls, db: Session, user_id: uuid.UUID, task_id: uuid.UUID) -> None:
+    def delete_task(cls, db: Session, task_id: uuid.UUID) -> None:
         """Soft delete a task by setting its deleted_at timestamp."""
-        task = cls.get_task(db, user_id, task_id)
+        task = cls.get_task(db, task_id)
         task.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

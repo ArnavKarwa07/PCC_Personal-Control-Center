@@ -86,7 +86,7 @@ export const DESKTOP_NAV_CATEGORIES = [
 ];
 
 export const ALL_PCC_PAGES: NavItemConfig[] = [
-  { id: 'page-home', label: 'Home Dashboard', path: '/', iconName: 'home', category: 'Core' },
+  { id: 'page-home', label: 'Home', path: '/', iconName: 'home', category: 'Core' },
   { id: 'page-tasks', label: 'Tasks', path: '/tasks', iconName: 'tasks', category: 'Core' },
   { id: 'page-projects', label: 'Projects', path: '/projects', iconName: 'projects', category: 'Core' },
   { id: 'page-calendar', label: 'Calendar', path: '/calendar', iconName: 'calendar', category: 'Core' },

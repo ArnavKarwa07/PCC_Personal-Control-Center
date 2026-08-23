@@ -282,7 +282,7 @@ def test_timer_delete(client, auth_headers):
 # ==========================================
 
 
-def test_notifications_crud_and_read_all(client, auth_headers, db_session, test_user):
+def test_notifications_crud_and_read_all(client, auth_headers, db_session):
     """Test notification list, read state changes, and read-all."""
     from app.models.notification import (
         Notification,
@@ -291,9 +291,8 @@ def test_notifications_crud_and_read_all(client, auth_headers, db_session, test_
         NotificationType,
     )
 
-    # Seed 2 notifications for test user
+    # Seed 2 notifications
     n1 = Notification(
-        user_id=test_user.id,
         title="Welcome to PCC",
         message="Your workspace is ready",
         type=NotificationType.SYSTEM,
@@ -301,7 +300,6 @@ def test_notifications_crud_and_read_all(client, auth_headers, db_session, test_
         status=NotificationDeliveryStatus.PENDING,
     )
     n2 = Notification(
-        user_id=test_user.id,
         title="Upcoming Task Deadline",
         message="Sprint planning in 1 hour",
         type=NotificationType.DEADLINE,

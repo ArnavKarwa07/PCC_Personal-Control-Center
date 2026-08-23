@@ -41,7 +41,6 @@ class ProjectMember(BaseModel):
 
     __tablename__ = "project_members"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     project_id = Column(Uuid(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
     contact_id = Column(Uuid(as_uuid=True), ForeignKey("contacts.id", ondelete="CASCADE"), nullable=False, index=True)
     role = Column(String(100), nullable=True)
@@ -55,7 +54,6 @@ class Project(BaseModel):
 
     __tablename__ = "projects"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     status = Column(

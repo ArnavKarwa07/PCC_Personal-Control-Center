@@ -20,7 +20,6 @@ class NoteService:
         """Convert Note model instance into NoteResponse schema."""
         return NoteResponse(
             id=note.id,
-            user_id=note.user_id,
             title=note.title,
             content=note.content,
             category=note.category,
@@ -33,16 +32,14 @@ class NoteService:
     def list_notes(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         is_pinned: Optional[bool] = None,
         category: Optional[str] = None,
         search: Optional[str] = None,
         page: int = 1,
         per_page: int = 20,
     ) -> Tuple[List[NoteResponse], int, int]:
-        """List notes for authenticated user with optional filtering and pagination."""
+        """List notes with optional filtering and pagination."""
         query = db.query(Note).filter(
-            Note.user_id == user_id,
             Note.deleted_at.is_(None),
         )
 
@@ -70,10 +67,9 @@ class NoteService:
         return formatted_notes, total, total_pages
 
     @classmethod
-    def create_note(cls, db: Session, user_id: uuid.UUID, data: NoteCreate) -> NoteResponse:
-        """Create a new note under authenticated user."""
+    def create_note(cls, db: Session, data: NoteCreate) -> NoteResponse:
+        """Create a new note."""
         note = Note(
-            user_id=user_id,
             title=data.title,
             content=data.content,
             category=data.category,
@@ -85,13 +81,12 @@ class NoteService:
         return cls._format_note_response(note)
 
     @classmethod
-    def get_note(cls, db: Session, user_id: uuid.UUID, note_id: uuid.UUID) -> Note:
-        """Retrieve a note by ID enforcing user ownership and soft deletion."""
+    def get_note(cls, db: Session, note_id: uuid.UUID) -> Note:
+        """Retrieve a note by ID enforcing soft deletion check."""
         note = (
             db.query(Note)
             .filter(
                 Note.id == note_id,
-                Note.user_id == user_id,
                 Note.deleted_at.is_(None),
             )
             .first()
@@ -101,15 +96,15 @@ class NoteService:
         return note
 
     @classmethod
-    def get_note_response(cls, db: Session, user_id: uuid.UUID, note_id: uuid.UUID) -> NoteResponse:
+    def get_note_response(cls, db: Session, note_id: uuid.UUID) -> NoteResponse:
         """Retrieve note and return formatted NoteResponse."""
-        note = cls.get_note(db, user_id, note_id)
+        note = cls.get_note(db, note_id)
         return cls._format_note_response(note)
 
     @classmethod
-    def update_note(cls, db: Session, user_id: uuid.UUID, note_id: uuid.UUID, data: NoteUpdate) -> NoteResponse:
+    def update_note(cls, db: Session, note_id: uuid.UUID, data: NoteUpdate) -> NoteResponse:
         """Update fields of an existing note."""
-        note = cls.get_note(db, user_id, note_id)
+        note = cls.get_note(db, note_id)
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -120,9 +115,9 @@ class NoteService:
         return cls._format_note_response(note)
 
     @classmethod
-    def toggle_pin(cls, db: Session, user_id: uuid.UUID, note_id: uuid.UUID, is_pinned: Optional[bool] = None) -> NoteResponse:
+    def toggle_pin(cls, db: Session, note_id: uuid.UUID, is_pinned: Optional[bool] = None) -> NoteResponse:
         """Toggle or set pinned state of a note."""
-        note = cls.get_note(db, user_id, note_id)
+        note = cls.get_note(db, note_id)
         if is_pinned is not None:
             note.is_pinned = is_pinned
         else:
@@ -133,9 +128,9 @@ class NoteService:
         return cls._format_note_response(note)
 
     @classmethod
-    def delete_note(cls, db: Session, user_id: uuid.UUID, note_id: uuid.UUID) -> None:
+    def delete_note(cls, db: Session, note_id: uuid.UUID) -> None:
         """Soft delete a note."""
-        note = cls.get_note(db, user_id, note_id)
+        note = cls.get_note(db, note_id)
         note.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

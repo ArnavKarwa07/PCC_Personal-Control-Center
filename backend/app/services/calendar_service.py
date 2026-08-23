@@ -24,7 +24,6 @@ class CalendarService:
         """Convert CalendarEvent model instance to CalendarEventResponse schema."""
         return CalendarEventResponse(
             id=event.id,
-            user_id=event.user_id,
             title=event.title,
             description=event.description,
             event_type=event.event_type,
@@ -42,7 +41,6 @@ class CalendarService:
     def list_events(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         start_date: Optional[Union[datetime, date]] = None,
         end_date: Optional[Union[datetime, date]] = None,
         event_type: Optional[CalendarEventType] = None,
@@ -52,7 +50,6 @@ class CalendarService:
     ) -> Tuple[List[CalendarEventResponse], int, int]:
         """List calendar events within an optional date/time range and type filter."""
         query = db.query(CalendarEvent).filter(
-            CalendarEvent.user_id == user_id,
             CalendarEvent.deleted_at.is_(None),
         )
 
@@ -85,23 +82,22 @@ class CalendarService:
         return formatted_events, total, total_pages
 
     @classmethod
-    def create_event(cls, db: Session, user_id: uuid.UUID, data: CalendarEventCreate) -> CalendarEventResponse:
-        """Create a new calendar event under authenticated user."""
+    def create_event(cls, db: Session, data: CalendarEventCreate) -> CalendarEventResponse:
+        """Create a new calendar event."""
         event_data = data.model_dump()
-        event = CalendarEvent(user_id=user_id, **event_data)
+        event = CalendarEvent(**event_data)
         db.add(event)
         db.commit()
         db.refresh(event)
         return cls._format_event_response(event)
 
     @classmethod
-    def get_event(cls, db: Session, user_id: uuid.UUID, event_id: uuid.UUID) -> CalendarEvent:
-        """Retrieve calendar event by ID enforcing user ownership and soft deletion."""
+    def get_event(cls, db: Session, event_id: uuid.UUID) -> CalendarEvent:
+        """Retrieve calendar event by ID enforcing soft deletion check."""
         event = (
             db.query(CalendarEvent)
             .filter(
                 CalendarEvent.id == event_id,
-                CalendarEvent.user_id == user_id,
                 CalendarEvent.deleted_at.is_(None),
             )
             .first()
@@ -111,15 +107,15 @@ class CalendarService:
         return event
 
     @classmethod
-    def get_event_response(cls, db: Session, user_id: uuid.UUID, event_id: uuid.UUID) -> CalendarEventResponse:
+    def get_event_response(cls, db: Session, event_id: uuid.UUID) -> CalendarEventResponse:
         """Retrieve calendar event and return formatted CalendarEventResponse."""
-        event = cls.get_event(db, user_id, event_id)
+        event = cls.get_event(db, event_id)
         return cls._format_event_response(event)
 
     @classmethod
-    def update_event(cls, db: Session, user_id: uuid.UUID, event_id: uuid.UUID, data: CalendarEventUpdate) -> CalendarEventResponse:
+    def update_event(cls, db: Session, event_id: uuid.UUID, data: CalendarEventUpdate) -> CalendarEventResponse:
         """Update fields of an existing calendar event."""
-        event = cls.get_event(db, user_id, event_id)
+        event = cls.get_event(db, event_id)
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -130,9 +126,9 @@ class CalendarService:
         return cls._format_event_response(event)
 
     @classmethod
-    def delete_event(cls, db: Session, user_id: uuid.UUID, event_id: uuid.UUID) -> None:
+    def delete_event(cls, db: Session, event_id: uuid.UUID) -> None:
         """Soft delete a calendar event."""
-        event = cls.get_event(db, user_id, event_id)
+        event = cls.get_event(db, event_id)
         event.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

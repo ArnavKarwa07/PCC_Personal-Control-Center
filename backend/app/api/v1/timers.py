@@ -6,11 +6,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
 from app.models.timer import TimerState, TimerType
-from app.models.user import User
 from app.schemas.timer import (
     TimerCreate,
     TimerStateAction,
@@ -27,13 +24,11 @@ def list_timers(
     timer_type: Optional[TimerType] = None,
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(50, ge=1, le=200, description="Items per page"),
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Retrieve all timers for the authenticated user."""
+    """Retrieve all timers."""
     timers, total, total_pages = timer_service.list_timers(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         timer_type=timer_type,
         page=page,
@@ -53,11 +48,10 @@ def list_timers(
 @router.post("/create_timer", operation_id="create_timer", status_code=status.HTTP_201_CREATED, summary="Create Timer")
 def create_timer(
     data: TimerCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Create a new countdown, stopwatch, or pomodoro timer."""
-    timer = timer_service.create_timer(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
+    timer = timer_service.create_timer(db=db, data=data)
     return {
         "data": timer.model_dump(),
     }
@@ -66,11 +60,10 @@ def create_timer(
 @router.get("/get_timer_by_id/{timer_id}", operation_id="get_timer_by_id", summary="Get Timer By Id")
 def get_timer(
     timer_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get a single timer by ID."""
-    timer = timer_service.get_timer_response(db=db, user_id=settings.DEFAULT_OWNER_ID, timer_id=timer_id)
+    timer = timer_service.get_timer_response(db=db, timer_id=timer_id)
     return {
         "data": timer.model_dump(),
     }
@@ -80,13 +73,11 @@ def get_timer(
 def update_timer(
     timer_id: uuid.UUID,
     data: TimerUpdate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update timer configuration."""
     timer = timer_service.update_timer(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         timer_id=timer_id,
         data=data,
     )
@@ -99,13 +90,11 @@ def update_timer(
 def update_timer_state(
     timer_id: uuid.UUID,
     data: TimerStateAction,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Trigger a state transition on the timer (start, pause, reset, complete)."""
     timer = timer_service.update_timer_state(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         timer_id=timer_id,
         action=data.action,
         remaining_seconds=data.remaining_seconds,
@@ -118,11 +107,10 @@ def update_timer_state(
 @router.delete("/delete_timer_by_id/{timer_id}", operation_id="delete_timer_by_id", summary="Delete Timer By Id")
 def delete_timer(
     timer_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Soft delete a timer."""
-    timer_service.delete_timer(db=db, user_id=settings.DEFAULT_OWNER_ID, timer_id=timer_id)
+    timer_service.delete_timer(db=db, timer_id=timer_id)
     return {
         "data": {
             "message": "Timer deleted successfully.",

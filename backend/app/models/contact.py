@@ -10,7 +10,6 @@ class Contact(BaseModel):
 
     __tablename__ = "contacts"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     organization = Column(String(255), nullable=True)
     role = Column(String(255), nullable=True)

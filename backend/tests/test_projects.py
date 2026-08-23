@@ -25,7 +25,6 @@ def test_create_project(client, auth_headers):
     assert set(data["tags"]) == {"backend", "fastapi"}
     assert data["progress"] == 0.0
     assert "id" in data
-    assert "user_id" in data
 
 
 def test_list_and_filter_projects(client, auth_headers):
@@ -112,10 +111,10 @@ def test_update_and_delete_project(client, auth_headers):
     assert get_res.status_code == 404
 
 
-def test_project_members(client, auth_headers, db_session, test_user):
+def test_project_members(client, auth_headers, db_session):
     """Test adding and removing project members linked to contacts."""
     # Create a contact
-    contact = Contact(user_id=test_user.id, name="Alice Smith", email="alice@example.com")
+    contact = Contact(name="Alice Smith", email="alice@example.com")
     db_session.add(contact)
     db_session.commit()
     db_session.refresh(contact)

@@ -35,7 +35,6 @@ class NotificationResponse(NotificationBase):
     """Response representation of a Notification entity."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     status: NotificationDeliveryStatus
     sent_at: Optional[datetime] = None
     read_at: Optional[datetime] = None

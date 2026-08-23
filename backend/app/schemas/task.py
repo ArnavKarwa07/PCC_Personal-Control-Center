@@ -91,7 +91,6 @@ class TaskResponse(BaseModel):
     """Serialized Task object."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     title: str
     description: Optional[str] = None
     status: TaskStatus

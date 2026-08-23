@@ -22,7 +22,6 @@ class CalendarEvent(BaseModel):
 
     __tablename__ = "calendar_events"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     event_type = Column(

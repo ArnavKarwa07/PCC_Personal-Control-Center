@@ -6,15 +6,12 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
 from app.models.notification import (
     NotificationChannel,
     NotificationDeliveryStatus,
     NotificationType,
 )
-from app.models.user import User
 from app.services.notification_service import notification_service
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
@@ -28,13 +25,11 @@ def list_notifications(
     unread_only: bool = Query(False, description="Filter for unread notifications only"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(50, ge=1, le=200, description="Items per page"),
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Retrieve in-app notifications for the authenticated user."""
+    """Retrieve in-app notifications."""
     notifications, total, total_pages = notification_service.list_notifications(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         type=type,
         channel=channel,
@@ -56,13 +51,11 @@ def list_notifications(
 @router.patch("/mark_notification_as_read/{notification_id}", operation_id="mark_notification_as_read", summary="Mark Notification As Read")
 def mark_notification_read(
     notification_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark a specific notification as read."""
     notification = notification_service.mark_as_read(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         notification_id=notification_id,
     )
     return {
@@ -72,13 +65,11 @@ def mark_notification_read(
 
 @router.patch("/mark_all_notifications_as_read", operation_id="mark_all_notifications_as_read", summary="Mark All Notifications As Read")
 def mark_all_notifications_read(
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark all pending or sent notifications as read."""
     count = notification_service.mark_all_as_read(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
     )
     return {
         "data": {
@@ -91,13 +82,11 @@ def mark_all_notifications_read(
 @router.delete("/delete_notification_by_id/{notification_id}", operation_id="delete_notification_by_id", summary="Delete Notification By Id")
 def delete_notification(
     notification_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Soft delete a notification."""
     notification_service.delete_notification(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         notification_id=notification_id,
     )
     return {

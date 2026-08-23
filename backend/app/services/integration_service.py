@@ -93,12 +93,12 @@ class BaseConnector(ABC):
     """Abstract base connector for external providers."""
 
     @abstractmethod
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         """Validate credentials and prepare provider configuration."""
         pass
 
     @abstractmethod
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         """Revoke tokens and clean up provider assets."""
         pass
 
@@ -108,7 +108,7 @@ class BaseConnector(ABC):
         pass
 
     @abstractmethod
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         """Execute synchronization cycle with third-party service."""
         pass
 
@@ -116,7 +116,7 @@ class BaseConnector(ABC):
 class GitHubConnector(BaseConnector):
     """Connector for GitHub repositories, issues, and commit activity."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         token = data.access_token or data.api_key or cfg.get("token") or cfg.get("api_token") or cfg.get("apiToken") or "mock_gh_token"
         username = cfg.get("username") or "user"
@@ -133,7 +133,7 @@ class GitHubConnector(BaseConnector):
         })
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -148,7 +148,7 @@ class GitHubConnector(BaseConnector):
             "synced_repos_count": cfg.get("synced_repos_count", 3),
         }
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -161,7 +161,7 @@ class GitHubConnector(BaseConnector):
 class GoogleCalendarConnector(BaseConnector):
     """Connector for Google Calendar two-way event synchronization."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         calendar_id = cfg.get("calendar_id") or cfg.get("calendarId") or "primary"
         res = dict(cfg)
@@ -172,7 +172,7 @@ class GoogleCalendarConnector(BaseConnector):
         })
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -187,7 +187,7 @@ class GoogleCalendarConnector(BaseConnector):
             "synced_events_count": cfg.get("synced_events_count", 12),
         }
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -200,7 +200,7 @@ class GoogleCalendarConnector(BaseConnector):
 class TeamsCalendarConnector(BaseConnector):
     """Connector for Microsoft Teams Calendar event synchronization."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         token = data.access_token or data.api_key or cfg.get("token") or cfg.get("user_token") or cfg.get("userToken") or cfg.get("api_token") or cfg.get("apiToken") or "mock_teams_token"
         calendar_id = cfg.get("calendar_id") or cfg.get("calendarId") or "teams_primary"
@@ -223,7 +223,7 @@ class TeamsCalendarConnector(BaseConnector):
             res["client_id"] = client_id
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -244,7 +244,7 @@ class TeamsCalendarConnector(BaseConnector):
             res["client_id"] = client_id
         return res
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -257,7 +257,7 @@ class TeamsCalendarConnector(BaseConnector):
 class SlackConnector(BaseConnector):
     """Connector for Slack workspace messages and channel notifications."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         user_token = cfg.get("user_token") or cfg.get("userToken")
         bot_token = cfg.get("bot_token") or cfg.get("botToken")
@@ -286,7 +286,7 @@ class SlackConnector(BaseConnector):
             res["bot_token"] = bot_token
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -308,7 +308,7 @@ class SlackConnector(BaseConnector):
             res["default_channel"] = default_channel
         return res
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -321,7 +321,7 @@ class SlackConnector(BaseConnector):
 class GitLabConnector(BaseConnector):
     """Connector for GitLab repositories, merge requests, and pipelines."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         token = data.access_token or data.api_key or cfg.get("token") or cfg.get("api_token") or cfg.get("apiToken") or "glpat_mock_gitlab_token"
         gitlab_url = cfg.get("gitlab_url") or cfg.get("gitlabUrl") or "https://gitlab.com"
@@ -344,7 +344,7 @@ class GitLabConnector(BaseConnector):
             res["project_ids"] = project_ids
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -366,7 +366,7 @@ class GitLabConnector(BaseConnector):
             res["project_ids"] = project_ids
         return res
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -379,7 +379,7 @@ class GitLabConnector(BaseConnector):
 class JiraConnector(BaseConnector):
     """Connector for Jira projects, issues, and sprint tracking."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         api_token = cfg.get("api_token") or cfg.get("apiToken") or cfg.get("token")
         token = data.access_token or data.api_key or api_token or "jira_mock_api_token"
@@ -403,7 +403,7 @@ class JiraConnector(BaseConnector):
             res["api_token"] = api_token
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -422,7 +422,7 @@ class JiraConnector(BaseConnector):
             "synced_issues_count": cfg.get("synced_issues_count", 10),
         }
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -432,12 +432,10 @@ class JiraConnector(BaseConnector):
         return {"provider": "jira", "synced_items": 10, "synced_at": now_iso}
 
 
-
-
 class TelegramConnector(BaseConnector):
     """Connector for Telegram bot notifications and alert delivery."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         bot_token = cfg.get("bot_token") or cfg.get("botToken") or data.access_token or data.api_key or "bot_mock_token"
         chat_id = cfg.get("chat_id") or cfg.get("chatId") or "12345678"
@@ -451,7 +449,7 @@ class TelegramConnector(BaseConnector):
         })
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -465,7 +463,7 @@ class TelegramConnector(BaseConnector):
             "synced_alerts_count": cfg.get("synced_alerts_count", 8),
         }
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -478,7 +476,7 @@ class TelegramConnector(BaseConnector):
 class NotionConnector(BaseConnector):
     """Connector for Notion workspace databases and notes sync."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         token = data.access_token or data.api_key or cfg.get("integrationToken") or cfg.get("integration_token") or cfg.get("apiKey") or cfg.get("api_key") or "secret_mock_notion_token"
         workspace_id = cfg.get("workspaceId") or cfg.get("workspace_id") or "workspace_main"
@@ -491,7 +489,7 @@ class NotionConnector(BaseConnector):
         })
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -505,7 +503,7 @@ class NotionConnector(BaseConnector):
             "synced_pages_count": cfg.get("synced_pages_count", 14),
         }
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -518,7 +516,7 @@ class NotionConnector(BaseConnector):
 class DiscordConnector(BaseConnector):
     """Connector for Discord channel webhooks and notification dispatch."""
 
-    def connect(self, db: Session, user_id: uuid.UUID, data: IntegrationConnectRequest) -> Dict[str, Any]:
+    def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
         webhook_url = cfg.get("webhookUrl") or cfg.get("webhook_url") or data.access_token or data.api_key or "https://discord.com/api/webhooks/mock"
         url_masked = mask_credential_value(webhook_url)
@@ -530,7 +528,7 @@ class DiscordConnector(BaseConnector):
         })
         return res
 
-    def disconnect(self, db: Session, user_id: uuid.UUID, integration: Integration) -> None:
+    def disconnect(self, db: Session, integration: Integration) -> None:
         pass
 
     def get_status_details(self, db: Session, integration: Optional[Integration]) -> Dict[str, Any]:
@@ -544,7 +542,7 @@ class DiscordConnector(BaseConnector):
             "dispatched_webhooks_count": cfg.get("dispatched_webhooks_count", 6),
         }
 
-    def sync(self, db: Session, user_id: uuid.UUID, integration: Integration) -> Dict[str, Any]:
+    def sync(self, db: Session, integration: Integration) -> Dict[str, Any]:
         cfg = dict(integration.config or {})
         now_iso = datetime.now(timezone.utc).isoformat()
         cfg["last_synced_at"] = now_iso
@@ -586,7 +584,6 @@ class IntegrationService:
         masked_config = _mask_sensitive_config(integration.config) if integration.config else None
         return IntegrationResponse(
             id=integration.id,
-            user_id=integration.user_id,
             provider=integration.provider,
             status=integration.status,
             config=masked_config,
@@ -597,12 +594,12 @@ class IntegrationService:
         )
 
     @classmethod
-    def list_integrations(cls, db: Session, user_id: uuid.UUID) -> List[IntegrationResponse]:
-        """List all supported providers with user-specific connection state."""
+    def list_integrations(cls, db: Session) -> List[IntegrationResponse]:
+        """List all supported providers with connection state."""
         existing_records = {
             r.provider: r
             for r in db.query(Integration)
-            .filter(Integration.user_id == user_id, Integration.deleted_at.is_(None))
+            .filter(Integration.deleted_at.is_(None))
             .all()
         }
 
@@ -614,7 +611,6 @@ class IntegrationService:
                 results.append(
                     IntegrationResponse(
                         id=None,
-                        user_id=user_id,
                         provider=provider,
                         status=IntegrationStatus.DISCONNECTED,
                         config=None,
@@ -630,14 +626,12 @@ class IntegrationService:
     def get_integration(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         provider: IntegrationProvider,
     ) -> Optional[Integration]:
-        """Find an integration record by user and provider."""
+        """Find an integration record by provider."""
         return (
             db.query(Integration)
             .filter(
-                Integration.user_id == user_id,
                 Integration.provider == provider,
                 Integration.deleted_at.is_(None),
             )
@@ -648,12 +642,11 @@ class IntegrationService:
     def get_integration_status(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         provider: IntegrationProvider,
     ) -> IntegrationStatusResponse:
         """Get diagnostic status information for a provider."""
         connector = cls.get_connector(provider)
-        integration = cls.get_integration(db, user_id, provider)
+        integration = cls.get_integration(db, provider)
 
         is_connected = integration is not None and integration.status == IntegrationStatus.CONNECTED
         status = integration.status if integration else IntegrationStatus.DISCONNECTED
@@ -679,18 +672,16 @@ class IntegrationService:
     def connect_integration(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         provider: IntegrationProvider,
         data: IntegrationConnectRequest,
     ) -> IntegrationResponse:
         """Connect and activate a third-party integration."""
         connector = cls.get_connector(provider)
-        config_payload = connector.connect(db, user_id, data)
+        config_payload = connector.connect(db, data)
 
-        integration = cls.get_integration(db, user_id, provider)
+        integration = cls.get_integration(db, provider)
         if not integration:
             integration = Integration(
-                user_id=user_id,
                 provider=provider,
                 status=IntegrationStatus.CONNECTED,
                 config=config_payload,
@@ -708,7 +699,6 @@ class IntegrationService:
             existing_token = (
                 db.query(IntegrationToken)
                 .filter(
-                    IntegrationToken.user_id == user_id,
                     IntegrationToken.integration_id == integration.id,
                     IntegrationToken.deleted_at.is_(None),
                 )
@@ -719,7 +709,6 @@ class IntegrationService:
             else:
                 db.flush()
                 new_token = IntegrationToken(
-                    user_id=user_id,
                     integration_id=integration.id,
                     access_token_encrypted=token_val,
                 )
@@ -733,11 +722,10 @@ class IntegrationService:
     def disconnect_integration(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         provider: IntegrationProvider,
     ) -> IntegrationResponse:
         """Disconnect and revoke an active integration."""
-        integration = cls.get_integration(db, user_id, provider)
+        integration = cls.get_integration(db, provider)
         if not integration:
             raise NotFoundException(
                 message=f"Integration '{provider.value}' is not configured.",
@@ -745,7 +733,7 @@ class IntegrationService:
             )
 
         connector = cls.get_connector(provider)
-        connector.disconnect(db, user_id, integration)
+        connector.disconnect(db, integration)
 
         integration.status = IntegrationStatus.DISCONNECTED
         db.commit()
@@ -756,18 +744,17 @@ class IntegrationService:
     def sync_provider(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         provider: IntegrationProvider,
     ) -> Dict[str, Any]:
         """Trigger ad-hoc synchronization for an active integration."""
-        integration = cls.get_integration(db, user_id, provider)
+        integration = cls.get_integration(db, provider)
         if not integration or integration.status != IntegrationStatus.CONNECTED:
             raise BadRequestException(
                 message=f"Cannot sync unlinked integration '{provider.value}'.",
                 code="INTEGRATION_NOT_CONNECTED",
             )
         connector = cls.get_connector(provider)
-        return connector.sync(db, user_id, integration)
+        return connector.sync(db, integration)
 
 
 integration_service = IntegrationService()

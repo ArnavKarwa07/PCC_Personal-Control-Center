@@ -20,7 +20,6 @@ class AlarmService:
         """Convert an Alarm model instance into an AlarmResponse."""
         return AlarmResponse(
             id=alarm.id,
-            user_id=alarm.user_id,
             label=alarm.label,
             time=alarm.time,
             days_of_week=alarm.days_of_week,
@@ -35,14 +34,12 @@ class AlarmService:
     def list_alarms(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         is_enabled: Optional[bool] = None,
         page: int = 1,
         per_page: int = 50,
     ) -> Tuple[List[AlarmResponse], int, int]:
-        """List alarms for the authenticated user with pagination and filters."""
+        """List alarms with pagination and filters."""
         query = db.query(Alarm).filter(
-            Alarm.user_id == user_id,
             Alarm.deleted_at.is_(None),
         )
 
@@ -67,12 +64,10 @@ class AlarmService:
     def create_alarm(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         data: AlarmCreate,
     ) -> AlarmResponse:
-        """Create a new alarm for the authenticated user."""
+        """Create a new alarm."""
         alarm = Alarm(
-            user_id=user_id,
             label=data.label,
             time=data.time,
             days_of_week=data.days_of_week,
@@ -88,15 +83,13 @@ class AlarmService:
     def get_alarm(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         alarm_id: uuid.UUID,
     ) -> Alarm:
-        """Retrieve alarm model enforcing user isolation and soft delete."""
+        """Retrieve alarm model enforcing soft delete."""
         alarm = (
             db.query(Alarm)
             .filter(
                 Alarm.id == alarm_id,
-                Alarm.user_id == user_id,
                 Alarm.deleted_at.is_(None),
             )
             .first()
@@ -109,23 +102,21 @@ class AlarmService:
     def get_alarm_response(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         alarm_id: uuid.UUID,
     ) -> AlarmResponse:
         """Retrieve single alarm and format as response."""
-        alarm = cls.get_alarm(db, user_id, alarm_id)
+        alarm = cls.get_alarm(db, alarm_id)
         return cls._format_alarm_response(alarm)
 
     @classmethod
     def update_alarm(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         alarm_id: uuid.UUID,
         data: AlarmUpdate,
     ) -> AlarmResponse:
         """Update alarm properties."""
-        alarm = cls.get_alarm(db, user_id, alarm_id)
+        alarm = cls.get_alarm(db, alarm_id)
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -139,12 +130,11 @@ class AlarmService:
     def toggle_alarm(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         alarm_id: uuid.UUID,
         is_enabled: Optional[bool] = None,
     ) -> AlarmResponse:
         """Toggle alarm armed state."""
-        alarm = cls.get_alarm(db, user_id, alarm_id)
+        alarm = cls.get_alarm(db, alarm_id)
         if is_enabled is not None:
             alarm.is_enabled = is_enabled
         else:
@@ -158,11 +148,10 @@ class AlarmService:
     def delete_alarm(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         alarm_id: uuid.UUID,
     ) -> None:
         """Soft delete an alarm."""
-        alarm = cls.get_alarm(db, user_id, alarm_id)
+        alarm = cls.get_alarm(db, alarm_id)
         alarm.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

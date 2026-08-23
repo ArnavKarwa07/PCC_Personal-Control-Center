@@ -20,7 +20,6 @@ class TimerService:
         """Convert a TimerModel instance into a TimerResponse."""
         return TimerResponse(
             id=timer.id,
-            user_id=timer.user_id,
             label=timer.label,
             timer_type=timer.timer_type,
             duration_seconds=timer.duration_seconds,
@@ -37,15 +36,13 @@ class TimerService:
     def list_timers(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         status: Optional[TimerState] = None,
         timer_type: Optional[TimerType] = None,
         page: int = 1,
         per_page: int = 50,
     ) -> Tuple[List[TimerResponse], int, int]:
-        """List timers for the authenticated user with pagination and filters."""
+        """List timers with pagination and filters."""
         query = db.query(TimerModel).filter(
-            TimerModel.user_id == user_id,
             TimerModel.deleted_at.is_(None),
         )
 
@@ -72,7 +69,6 @@ class TimerService:
     def create_timer(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         data: TimerCreate,
     ) -> TimerResponse:
         """Create a new timer instance."""
@@ -83,7 +79,6 @@ class TimerService:
         )
 
         timer = TimerModel(
-            user_id=user_id,
             label=data.label,
             timer_type=data.timer_type,
             duration_seconds=data.duration_seconds,
@@ -100,15 +95,13 @@ class TimerService:
     def get_timer(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         timer_id: uuid.UUID,
     ) -> TimerModel:
-        """Retrieve timer model enforcing user isolation and soft delete."""
+        """Retrieve timer model enforcing soft delete."""
         timer = (
             db.query(TimerModel)
             .filter(
                 TimerModel.id == timer_id,
-                TimerModel.user_id == user_id,
                 TimerModel.deleted_at.is_(None),
             )
             .first()
@@ -121,23 +114,21 @@ class TimerService:
     def get_timer_response(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         timer_id: uuid.UUID,
     ) -> TimerResponse:
         """Retrieve single timer and format as response."""
-        timer = cls.get_timer(db, user_id, timer_id)
+        timer = cls.get_timer(db, timer_id)
         return cls._format_timer_response(timer)
 
     @classmethod
     def update_timer(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         timer_id: uuid.UUID,
         data: TimerUpdate,
     ) -> TimerResponse:
         """Update timer configuration."""
-        timer = cls.get_timer(db, user_id, timer_id)
+        timer = cls.get_timer(db, timer_id)
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -151,13 +142,12 @@ class TimerService:
     def update_timer_state(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         timer_id: uuid.UUID,
         action: str,
         remaining_seconds: Optional[int] = None,
     ) -> TimerResponse:
         """Transition timer state: start, pause, reset, complete."""
-        timer = cls.get_timer(db, user_id, timer_id)
+        timer = cls.get_timer(db, timer_id)
         action_clean = action.strip().lower()
 
         now = datetime.now(timezone.utc)
@@ -198,11 +188,10 @@ class TimerService:
     def delete_timer(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         timer_id: uuid.UUID,
     ) -> None:
         """Soft delete a timer."""
-        timer = cls.get_timer(db, user_id, timer_id)
+        timer = cls.get_timer(db, timer_id)
         timer.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

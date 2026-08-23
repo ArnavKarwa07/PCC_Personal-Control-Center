@@ -228,7 +228,7 @@ Global controls:
 
 ---
 
-# 9. Home Dashboard
+# 9. Home 
 
 Home is the primary entry point.
 

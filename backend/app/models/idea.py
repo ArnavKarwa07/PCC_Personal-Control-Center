@@ -19,7 +19,6 @@ class Idea(BaseModel):
 
     __tablename__ = "ideas"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(100), nullable=True)

@@ -47,7 +47,6 @@ class ReminderResponse(ReminderBase):
     """Response representation of a Reminder entity."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     status: ReminderStatus
     snoozed_until: Optional[datetime] = None
     created_at: datetime

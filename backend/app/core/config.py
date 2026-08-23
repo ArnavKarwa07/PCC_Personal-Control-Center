@@ -1,13 +1,11 @@
 """Application configuration using Pydantic Settings."""
 
-import uuid
 from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DEFAULT_OWNER_ID: uuid.UUID = uuid.UUID("00000000-0000-0000-0000-000000000001")
     GEMINI_API_KEY: str = ""
     """Application settings loaded from environment or .env files."""
 

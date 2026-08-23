@@ -25,7 +25,6 @@ class TimerModel(BaseModel):
 
     __tablename__ = "timers"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     label = Column(String(255), nullable=True)
     timer_type = Column(
         Enum(TimerType, name="timer_type", values_callable=lambda obj: [e.value for e in obj]),

@@ -5,6 +5,32 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.0] - 2026-08-24
+
+### Consolidated Release Highlights
+This `v1.2.0` release completely revamps the database schema to single-tenant mode (removing all `user_id` foreign keys and `users` table overhead), migrates the production database to Neon PostgreSQL in the Asia Pacific 1 (Singapore) region (`aws-ap-southeast-1`), fixes the desktop app launch capabilities, and resolves mobile permission sequencing and dashboard count synchronization.
+
+### Added & Fixed
+- **Database Deployment Region Migration to Asia Pacific 1 (Singapore)**:
+  - Provisioned and connected new Neon serverless PostgreSQL database running PostgreSQL 18.6 on AWS Singapore (`aws-ap-southeast-1` / `ep-mute-sun-afksmbnc-pooler.c-2.us-west-2.aws.neon.tech`).
+  - Executed clean Alembic migration (`105cb739b3f8_initial_single_tenant_schema`) creating all 28 entity tables on the Singapore region instance with zero legacy user table overhead.
+- **Tauri v2 Desktop App Launch Capabilities**:
+  - Updated Tauri capability configuration (`frontend/src-tauri/capabilities/default.json`) to declare `"notification:default"`, `"notification:allow-notify"`, and `"autostart:default"` permissions required by `lib.rs` plugin initialization, eliminating desktop startup crashes.
+- **Sequential Mobile Permission Request Flow**:
+  - Refactored `permissionService.ts` (`requestAllPermissions`) to request notification and location permissions sequentially instead of concurrently via `Promise.allSettled`, preventing mobile OS dialog drops.
+- **Dashboard Count Synchronization & API Key Alignment**:
+  - Fixed property mapping in `DashboardPage` (`index.tsx`) to support camelCase normalized keys (`pendingTasksCount`, `upcomingEventsCount`, `overdueRemindersCount`, `activeProjectsCount`), resolving dashboard task count display issues.
+
+### Changed & Single-Tenant Schema Revamp
+- **Single-Tenant Database Revamp**:
+  - Removed `users` table and `user_id` foreign key columns across all SQLAlchemy ORM models, Pydantic schemas, service layer methods, API route handlers, background worker processes, and unit test suites.
+  - Eliminated `Depends(get_current_user)` authentication overhead in Vercel serverless functions, preventing transaction failures on Vercel lambda execution.
+
+### Compliance & Quality Assurance
+- **Empirical Verification**:
+  - `npx tsc --noEmit` & `npm run build`: 0 TypeScript compiler errors, clean Vite production bundle build.
+  - `python -m pytest`: 79/79 backend unit tests passing (100% success rate).
+
 ## [v1.1.0-beta] - 2026-08-23
 
 ### Consolidated Release Highlights

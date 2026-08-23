@@ -47,7 +47,6 @@ class TimerResponse(TimerBase):
     """Response representation of a Timer entity."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     status: TimerState
     started_at: Optional[datetime] = None
     created_at: datetime

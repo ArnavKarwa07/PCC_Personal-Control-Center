@@ -40,7 +40,6 @@ class NoteResponse(BaseModel):
     """Serialized note response."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     title: Optional[str] = None
     content: Optional[str] = None
     category: Optional[str] = None

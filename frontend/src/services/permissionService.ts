@@ -125,10 +125,16 @@ export const permissionService = {
   },
 
   async requestAllPermissions(): Promise<PermissionReport> {
-    await Promise.allSettled([
-      this.requestNotificationPermission(),
-      this.requestLocationPermission(),
-    ]);
+    try {
+      await this.requestNotificationPermission();
+    } catch (e) {
+      console.warn('Notification permission error:', e);
+    }
+    try {
+      await this.requestLocationPermission();
+    } catch (e) {
+      console.warn('Location permission error:', e);
+    }
     return this.getPermissionStatus();
   },
 };

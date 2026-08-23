@@ -7,11 +7,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
 from app.models.task import TaskPriority, TaskStatus
-from app.models.user import User
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.services.task_service import task_service
 
@@ -27,13 +24,11 @@ def list_tasks(
     due_after: Optional[date] = None,
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Retrieve paginated tasks for authenticated user with multi-criteria filters."""
+    """Retrieve paginated tasks with multi-criteria filters."""
     tasks, total, total_pages = task_service.list_tasks(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         priority=priority,
         project_id=project_id,
@@ -56,11 +51,10 @@ def list_tasks(
 @router.post("/create_task", operation_id="create_task", status_code=status.HTTP_201_CREATED, summary="Create Task")
 def create_task(
     data: TaskCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Create a new task under authenticated user account."""
-    task = task_service.create_task(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
+    """Create a new task."""
+    task = task_service.create_task(db=db, data=data)
     return {
         "data": task.model_dump(),
     }
@@ -69,11 +63,10 @@ def create_task(
 @router.get("/get_task_by_id/{task_id}", operation_id="get_task_by_id", summary="Get Task By Id")
 def get_task_by_id(
     task_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get single task by UUID enforcing user ownership."""
-    task = task_service.get_task_response(db=db, user_id=settings.DEFAULT_OWNER_ID, task_id=task_id)
+    """Get single task by UUID."""
+    task = task_service.get_task_response(db=db, task_id=task_id)
     return {
         "data": task.model_dump(),
     }
@@ -83,13 +76,11 @@ def get_task_by_id(
 def update_task_by_id(
     task_id: uuid.UUID,
     data: TaskUpdate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Update task details for authenticated user."""
+    """Update task details."""
     task = task_service.update_task(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         task_id=task_id,
         data=data,
     )
@@ -101,11 +92,10 @@ def update_task_by_id(
 @router.delete("/delete_task_by_id/{task_id}", operation_id="delete_task_by_id", summary="Delete Task By Id")
 def delete_task_by_id(
     task_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Soft delete a task."""
-    task_service.delete_task(db=db, user_id=settings.DEFAULT_OWNER_ID, task_id=task_id)
+    task_service.delete_task(db=db, task_id=task_id)
     return {
         "data": {
             "message": "Task deleted successfully.",

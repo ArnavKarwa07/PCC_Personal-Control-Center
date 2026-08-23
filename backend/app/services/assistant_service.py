@@ -24,7 +24,7 @@ class AssistantService:
             genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
-    def process_query(self, db: Session, user_id: uuid.UUID, request: AssistantQueryRequest) -> AssistantQueryResponse:
+    def process_query(self, db: Session, request: AssistantQueryRequest) -> AssistantQueryResponse:
         q = request.query.lower().strip()
 
         if "task" in q or "todo" in q or "remind me to" in q:
@@ -32,7 +32,7 @@ class AssistantService:
             title = request.query.replace("create task", "").replace("remind me to", "").strip().capitalize()
             if not title:
                 title = "New Assistant Task"
-            task = Task(user_id=user_id, title=title, status=TaskStatus.TODO)
+            task = Task(title=title, status=TaskStatus.TODO)
             db.add(task)
             db.commit()
             db.refresh(task)
@@ -51,7 +51,7 @@ class AssistantService:
         elif "note" in q or "idea" in q or "jot" in q:
             # Note creation abstraction
             content = request.query.replace("take note", "").replace("jot down", "").strip()
-            note = Note(user_id=user_id, title="Assistant Note", content=content)
+            note = Note(title="Assistant Note", content=content)
             db.add(note)
             db.commit()
             db.refresh(note)
@@ -69,7 +69,7 @@ class AssistantService:
 
         else:
             # Informational query dispatcher
-            pending_count = db.query(Task).filter(Task.user_id == user_id, Task.status != TaskStatus.DONE).count()
+            pending_count = db.query(Task).filter(Task.status != TaskStatus.DONE, Task.deleted_at.is_(None)).count()
             summary_text = f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace."
 
             if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != 'AIzaSyBk_example_key_placeholder':
@@ -93,12 +93,12 @@ class AssistantService:
                 ],
             )
 
-    def generate_daily_briefing(self, db: Session, user_id: uuid.UUID) -> DailyBriefingRead:
-        pending_tasks_list = db.query(Task).filter(Task.user_id == user_id, Task.status != TaskStatus.DONE).all()
-        upcoming_events_list = db.query(CalendarEvent).filter(CalendarEvent.user_id == user_id).all()
-        overdue_reminders_list = db.query(Reminder).filter(Reminder.user_id == user_id, Reminder.status == ReminderStatus.PENDING).all()
-        active_projects_list = db.query(Project).filter(Project.user_id == user_id, Project.status == ProjectStatus.ACTIVE).all()
-        unread_notifications = db.query(Notification).filter(Notification.user_id == user_id, Notification.status != NotificationDeliveryStatus.READ).count()
+    def generate_daily_briefing(self, db: Session) -> DailyBriefingRead:
+        pending_tasks_list = db.query(Task).filter(Task.status != TaskStatus.DONE, Task.deleted_at.is_(None)).all()
+        upcoming_events_list = db.query(CalendarEvent).filter(CalendarEvent.deleted_at.is_(None)).all()
+        overdue_reminders_list = db.query(Reminder).filter(Reminder.status == ReminderStatus.PENDING, Reminder.deleted_at.is_(None)).all()
+        active_projects_list = db.query(Project).filter(Project.status == ProjectStatus.ACTIVE, Project.deleted_at.is_(None)).all()
+        unread_notifications = db.query(Notification).filter(Notification.status != NotificationDeliveryStatus.READ, Notification.deleted_at.is_(None)).count()
 
         pending_tasks = len(pending_tasks_list)
         upcoming_events = len(upcoming_events_list)

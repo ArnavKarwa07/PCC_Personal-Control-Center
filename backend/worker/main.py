@@ -67,7 +67,6 @@ def dispatch_pending_reminders(db: Session) -> int:
         reminder.status = ReminderStatus.SENT
 
         notification = Notification(
-            user_id=reminder.user_id,
             title=f"Reminder: {reminder.title}",
             message=reminder.description or f"Scheduled reminder for '{reminder.title}'",
             type=NotificationType.TASK_REMINDER,
@@ -117,7 +116,6 @@ def process_recurring_tasks(db: Session) -> int:
 
         # Create next task instance
         new_task = Task(
-            user_id=parent_task.user_id,
             title=parent_task.title,
             description=parent_task.description,
             status=TaskStatus.TODO,
@@ -150,7 +148,6 @@ def process_recurring_tasks(db: Session) -> int:
 
         # Create new recurrence link on generated task
         new_rec = TaskRecurrence(
-            user_id=parent_task.user_id,
             task_id=new_task.id,
             pattern=recurrence.pattern,
             interval=recurrence.interval,
@@ -164,7 +161,6 @@ def process_recurring_tasks(db: Session) -> int:
 
         # Notify user about generated task
         notif = Notification(
-            user_id=parent_task.user_id,
             title=f"Recurring task generated: {new_task.title}",
             message=f"A new task '{new_task.title}' has been scheduled for {target_date.isoformat()}.",
             type=NotificationType.RECURRING_TASK,
@@ -211,7 +207,6 @@ def poll_external_sync(db: Session) -> Dict[str, Any]:
         try:
             integration_service.sync_provider(
                 db=db,
-                user_id=integration.user_id,
                 provider=integration.provider,
             )
             provider_key = f"{integration.provider.value}_synced"
@@ -219,7 +214,7 @@ def poll_external_sync(db: Session) -> Dict[str, Any]:
             stats["total_synced"] += 1
         except Exception as e:
             db.rollback()
-            logger.warning(f"Error syncing {integration.provider.value} for user {integration.user_id}: {e}")
+            logger.warning(f"Error syncing {integration.provider.value}: {e}")
 
     return stats
 

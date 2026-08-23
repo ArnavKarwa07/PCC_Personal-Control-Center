@@ -1,6 +1,23 @@
-# PCC Migration Notes & Upgrade Guide - Release v1.1.0-beta
+# PCC Migration Notes & Upgrade Guide - Release v1.2.0
 
-This document aggregates release migration notes, database schema upgrades, storage key transitions, deployment host environment configurations, and cross-platform setup guidelines for **Personal Control Center (PCC)** under the single unified release tag **`v1.1.0-beta`**.
+This document aggregates release migration notes, database schema upgrades, storage key transitions, deployment host environment configurations, and cross-platform setup guidelines for **Personal Control Center (PCC)** under release tag **`v1.2.0`**.
+
+---
+
+# PCC Migration Notes - Release v1.2.0 (Single-Tenant DB Revamp & Singapore Migration)
+
+## Release Overview
+Release `v1.2.0` refactors the database to single-tenant mode by dropping the `users` table and removing all `user_id` foreign key columns across the entire ORM model and service layer. It also migrates the production serverless database to Neon PostgreSQL in the Asia Pacific 1 (Singapore) region (`aws-ap-southeast-1`), updates Tauri v2 capability declarations, and resolves mobile permission sequencing and dashboard count synchronization.
+
+## Database Migration & Schema Changes
+- **Singapore Neon Database Connection**:
+  `DATABASE_URL=postgresql://neondb_owner:***@ep-mute-sun-afksmbnc-pooler.c-2.us-west-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+- **Single-Tenant Alembic Revision**: `105cb739b3f8_initial_single_tenant_schema.py`
+- **Execution**:
+  ```bash
+  cd backend
+  alembic upgrade head
+  ```
 
 ---
 

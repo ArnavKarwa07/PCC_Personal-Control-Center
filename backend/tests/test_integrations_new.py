@@ -5,9 +5,9 @@ from app.services.integration_service import integration_service
 from worker.main import poll_external_sync
 
 
-def test_list_integrations_includes_new_providers(client, auth_headers):
+def test_list_integrations_includes_new_providers(client):
     """Test GET /api/v1/integrations/list_integrations includes teams_calendar, slack, gitlab, and jira."""
-    res = client.get("/api/v1/integrations/list_integrations", headers=auth_headers)
+    res = client.get("/api/v1/integrations/list_integrations")
     assert res.status_code == 200
     providers = res.json()["data"]
     provider_names = {p["provider"] for p in providers}
@@ -19,7 +19,7 @@ def test_list_integrations_includes_new_providers(client, auth_headers):
     assert "jira" in provider_names
 
 
-def test_teams_calendar_connector_lifecycle(client, auth_headers):
+def test_teams_calendar_connector_lifecycle(client):
     """Test connect, get status, sync, and disconnect for Teams Calendar."""
     # 1. Connect
     connect_payload = {
@@ -29,7 +29,6 @@ def test_teams_calendar_connector_lifecycle(client, auth_headers):
     connect_res = client.post(
         "/api/v1/integrations/connect_integration/teams_calendar",
         json=connect_payload,
-        headers=auth_headers,
     )
     assert connect_res.status_code == 200
     data = connect_res.json()["data"]
@@ -41,7 +40,7 @@ def test_teams_calendar_connector_lifecycle(client, auth_headers):
     assert "msteams_" in data["config"]["token_masked"]
 
     # 2. Get Status
-    status_res = client.get("/api/v1/integrations/get_integration_status/teams_calendar", headers=auth_headers)
+    status_res = client.get("/api/v1/integrations/get_integration_status/teams_calendar")
     assert status_res.status_code == 200
     status_data = status_res.json()["data"]
     assert status_data["is_connected"] is True
@@ -50,17 +49,17 @@ def test_teams_calendar_connector_lifecycle(client, auth_headers):
     assert status_data["details"]["tenant_id"] == "corp_tenant_42"
 
     # 3. Disconnect
-    disc_res = client.post("/api/v1/integrations/disconnect_integration/teams_calendar", headers=auth_headers)
+    disc_res = client.post("/api/v1/integrations/disconnect_integration/teams_calendar")
     assert disc_res.status_code == 200
     assert disc_res.json()["data"]["is_connected"] is False
 
     # Check status after disconnect
-    st_res = client.get("/api/v1/integrations/get_integration_status/teams_calendar", headers=auth_headers)
+    st_res = client.get("/api/v1/integrations/get_integration_status/teams_calendar")
     assert st_res.json()["data"]["is_connected"] is False
     assert st_res.json()["data"]["details"]["status"] == "unlinked"
 
 
-def test_slack_connector_lifecycle(client, auth_headers):
+def test_slack_connector_lifecycle(client):
     """Test connect, get status, sync, and disconnect for Slack."""
     # 1. Connect
     connect_payload = {
@@ -70,7 +69,6 @@ def test_slack_connector_lifecycle(client, auth_headers):
     connect_res = client.post(
         "/api/v1/integrations/connect_integration/slack",
         json=connect_payload,
-        headers=auth_headers,
     )
     assert connect_res.status_code == 200
     data = connect_res.json()["data"]
@@ -81,7 +79,7 @@ def test_slack_connector_lifecycle(client, auth_headers):
     assert data["config"]["bot_user"] == "pcc_dev_bot"
 
     # 2. Get Status
-    status_res = client.get("/api/v1/integrations/get_integration_status/slack", headers=auth_headers)
+    status_res = client.get("/api/v1/integrations/get_integration_status/slack")
     assert status_res.status_code == 200
     status_data = status_res.json()["data"]
     assert status_data["is_connected"] is True
@@ -90,12 +88,12 @@ def test_slack_connector_lifecycle(client, auth_headers):
     assert status_data["details"]["bot_user"] == "pcc_dev_bot"
 
     # 3. Disconnect
-    disc_res = client.post("/api/v1/integrations/disconnect_integration/slack", headers=auth_headers)
+    disc_res = client.post("/api/v1/integrations/disconnect_integration/slack")
     assert disc_res.status_code == 200
     assert disc_res.json()["data"]["is_connected"] is False
 
 
-def test_gitlab_connector_lifecycle(client, auth_headers):
+def test_gitlab_connector_lifecycle(client):
     """Test connect, get status, sync, and disconnect for GitLab."""
     # 1. Connect
     connect_payload = {
@@ -105,7 +103,6 @@ def test_gitlab_connector_lifecycle(client, auth_headers):
     connect_res = client.post(
         "/api/v1/integrations/connect_integration/gitlab",
         json=connect_payload,
-        headers=auth_headers,
     )
     assert connect_res.status_code == 200
     data = connect_res.json()["data"]
@@ -116,7 +113,7 @@ def test_gitlab_connector_lifecycle(client, auth_headers):
     assert data["config"]["username"] == "dev_gitlab"
 
     # 2. Get Status
-    status_res = client.get("/api/v1/integrations/get_integration_status/gitlab", headers=auth_headers)
+    status_res = client.get("/api/v1/integrations/get_integration_status/gitlab")
     assert status_res.status_code == 200
     status_data = status_res.json()["data"]
     assert status_data["is_connected"] is True
@@ -125,12 +122,12 @@ def test_gitlab_connector_lifecycle(client, auth_headers):
     assert status_data["details"]["username"] == "dev_gitlab"
 
     # 3. Disconnect
-    disc_res = client.post("/api/v1/integrations/disconnect_integration/gitlab", headers=auth_headers)
+    disc_res = client.post("/api/v1/integrations/disconnect_integration/gitlab")
     assert disc_res.status_code == 200
     assert disc_res.json()["data"]["is_connected"] is False
 
 
-def test_jira_connector_lifecycle(client, auth_headers):
+def test_jira_connector_lifecycle(client):
     """Test connect, get status, sync, and disconnect for Jira."""
     # 1. Connect
     connect_payload = {
@@ -140,7 +137,6 @@ def test_jira_connector_lifecycle(client, auth_headers):
     connect_res = client.post(
         "/api/v1/integrations/connect_integration/jira",
         json=connect_payload,
-        headers=auth_headers,
     )
     assert connect_res.status_code == 200
     data = connect_res.json()["data"]
@@ -152,7 +148,7 @@ def test_jira_connector_lifecycle(client, auth_headers):
     assert data["config"]["project_key"] == "PCC"
 
     # 2. Get Status
-    status_res = client.get("/api/v1/integrations/get_integration_status/jira", headers=auth_headers)
+    status_res = client.get("/api/v1/integrations/get_integration_status/jira")
     assert status_res.status_code == 200
     status_data = status_res.json()["data"]
     assert status_data["is_connected"] is True
@@ -161,12 +157,12 @@ def test_jira_connector_lifecycle(client, auth_headers):
     assert status_data["details"]["project_key"] == "PCC"
 
     # 3. Disconnect
-    disc_res = client.post("/api/v1/integrations/disconnect_integration/jira", headers=auth_headers)
+    disc_res = client.post("/api/v1/integrations/disconnect_integration/jira")
     assert disc_res.status_code == 200
     assert disc_res.json()["data"]["is_connected"] is False
 
 
-def test_direct_connector_sync_methods(db_session, test_user):
+def test_direct_connector_sync_methods(db_session):
     """Test direct sync method execution for all 4 new connectors."""
     for provider in [
         IntegrationProvider.TEAMS_CALENDAR,
@@ -175,7 +171,6 @@ def test_direct_connector_sync_methods(db_session, test_user):
         IntegrationProvider.JIRA,
     ]:
         integ = Integration(
-            user_id=test_user.id,
             provider=provider,
             status=IntegrationStatus.CONNECTED,
             config={},
@@ -183,18 +178,18 @@ def test_direct_connector_sync_methods(db_session, test_user):
         db_session.add(integ)
         db_session.commit()
 
-        result = integration_service.sync_provider(db_session, test_user.id, provider)
+        result = integration_service.sync_provider(db_session, provider)
         assert result["provider"] == provider.value
         assert "synced_items" in result
         assert "synced_at" in result
 
         # Verify status details after sync
-        status_payload = integration_service.get_integration_status(db_session, test_user.id, provider)
+        status_payload = integration_service.get_integration_status(db_session, provider)
         assert status_payload.is_connected is True
         assert status_payload.last_synced_at is not None
 
 
-def test_worker_polls_all_new_integrations(db_session, test_user):
+def test_worker_polls_all_new_integrations(db_session):
     """Test worker poll_external_sync synchronizes all new active connectors."""
     providers = [
         IntegrationProvider.TEAMS_CALENDAR,
@@ -205,7 +200,6 @@ def test_worker_polls_all_new_integrations(db_session, test_user):
     for p in providers:
         db_session.add(
             Integration(
-                user_id=test_user.id,
                 provider=p,
                 status=IntegrationStatus.CONNECTED,
                 config={},
@@ -221,27 +215,26 @@ def test_worker_polls_all_new_integrations(db_session, test_user):
     assert stats["total_synced"] >= 4
 
 
-def test_sync_integration_endpoints(client, auth_headers):
+def test_sync_integration_endpoints(client):
     """Test POST /api/v1/integrations/sync_integration/{provider} and /{provider}/sync alias."""
     client.post(
         "/api/v1/integrations/connect_integration/github",
         json={"access_token": "ghp_1234567890"},
-        headers=auth_headers,
     )
 
-    res1 = client.post("/api/v1/integrations/sync_integration/github", headers=auth_headers)
+    res1 = client.post("/api/v1/integrations/sync_integration/github")
     assert res1.status_code == 200
     assert res1.json()["data"]["provider"] == "github"
 
-    res2 = client.post("/api/v1/integrations/github/sync", headers=auth_headers)
+    res2 = client.post("/api/v1/integrations/github/sync")
     assert res2.status_code == 200
     assert res2.json()["data"]["provider"] == "github"
 
-    res_fail = client.post("/api/v1/integrations/slack/sync", headers=auth_headers)
+    res_fail = client.post("/api/v1/integrations/slack/sync")
     assert res_fail.status_code == 400
 
 
-def test_sensitive_credential_masking(client, auth_headers):
+def test_sensitive_credential_masking(client):
     """Test sensitive credentials are masked in IntegrationResponse config and status details."""
     payload = {
         "access_token": "xoxb-1234567890-abcdef",
@@ -256,7 +249,6 @@ def test_sensitive_credential_masking(client, auth_headers):
     res = client.post(
         "/api/v1/integrations/connect_integration/slack",
         json=payload,
-        headers=auth_headers,
     )
     assert res.status_code == 200
     config = res.json()["data"]["config"]
@@ -266,16 +258,15 @@ def test_sensitive_credential_masking(client, auth_headers):
     assert config["secret"] == "****"
     assert config["workspace"] == "Secure Corp"
 
-    st_res = client.get("/api/v1/integrations/get_integration_status/slack", headers=auth_headers)
+    st_res = client.get("/api/v1/integrations/get_integration_status/slack")
     assert st_res.status_code == 200
 
 
-def test_camel_case_config_key_alignment(client, auth_headers):
+def test_camel_case_config_key_alignment(client):
     """Test connectors accept camelCase config keys seamlessly."""
     teams_res = client.post(
         "/api/v1/integrations/connect_integration/teams_calendar",
         json={"config": {"tenantId": "t_camel_123", "calendarId": "c_camel_456", "clientId": "cl_789"}},
-        headers=auth_headers,
     )
     assert teams_res.status_code == 200
     t_cfg = teams_res.json()["data"]["config"]
@@ -285,7 +276,6 @@ def test_camel_case_config_key_alignment(client, auth_headers):
     slack_res = client.post(
         "/api/v1/integrations/connect_integration/slack",
         json={"config": {"userToken": "xoxp-11223344", "botToken": "xoxb-55667788", "defaultChannel": "dev-chat"}},
-        headers=auth_headers,
     )
     assert slack_res.status_code == 200
     s_cfg = slack_res.json()["data"]["config"]
@@ -296,7 +286,6 @@ def test_camel_case_config_key_alignment(client, auth_headers):
     gitlab_res = client.post(
         "/api/v1/integrations/connect_integration/gitlab",
         json={"config": {"gitlabUrl": "https://gitlab.internal.com", "projectIds": [10, 20]}},
-        headers=auth_headers,
     )
     assert gitlab_res.status_code == 200
     g_cfg = gitlab_res.json()["data"]["config"]
@@ -306,7 +295,6 @@ def test_camel_case_config_key_alignment(client, auth_headers):
     jira_res = client.post(
         "/api/v1/integrations/connect_integration/jira",
         json={"config": {"domain": "myjira.atlassian.net", "email": "admin@myjira.com", "apiToken": "jira_token_777", "projectKey": "CAMEL"}},
-        headers=auth_headers,
     )
     assert jira_res.status_code == 200
     j_cfg = jira_res.json()["data"]["config"]
@@ -315,11 +303,10 @@ def test_camel_case_config_key_alignment(client, auth_headers):
     assert j_cfg["api_token"] == "jira_****"
 
 
-def test_worker_rollback_on_sync_exception(db_session, test_user, monkeypatch):
+def test_worker_rollback_on_sync_exception(db_session, monkeypatch):
     """Test poll_external_sync performs db.rollback() when sync_provider raises an exception."""
     db_session.add(
         Integration(
-            user_id=test_user.id,
             provider=IntegrationProvider.GITHUB,
             status=IntegrationStatus.CONNECTED,
             config={},

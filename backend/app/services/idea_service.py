@@ -31,7 +31,6 @@ class IdeaService:
         """Convert Idea model instance into IdeaResponse schema."""
         return IdeaResponse(
             id=idea.id,
-            user_id=idea.user_id,
             title=idea.title,
             description=idea.description,
             category=idea.category,
@@ -46,16 +45,14 @@ class IdeaService:
     def list_ideas(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         status: Optional[IdeaStatus] = None,
         category: Optional[str] = None,
         search: Optional[str] = None,
         page: int = 1,
         per_page: int = 20,
     ) -> Tuple[List[IdeaResponse], int, int]:
-        """List ideas for authenticated user with optional filtering and pagination."""
+        """List ideas with optional filtering and pagination."""
         query = db.query(Idea).filter(
-            Idea.user_id == user_id,
             Idea.deleted_at.is_(None),
         )
 
@@ -78,10 +75,9 @@ class IdeaService:
         return formatted_ideas, total, total_pages
 
     @classmethod
-    def create_idea(cls, db: Session, user_id: uuid.UUID, data: IdeaCreate) -> IdeaResponse:
-        """Capture a new idea for the authenticated user."""
+    def create_idea(cls, db: Session, data: IdeaCreate) -> IdeaResponse:
+        """Capture a new idea."""
         idea = Idea(
-            user_id=user_id,
             title=data.title,
             description=data.description,
             category=data.category,
@@ -93,13 +89,12 @@ class IdeaService:
         return cls._format_idea_response(idea)
 
     @classmethod
-    def get_idea(cls, db: Session, user_id: uuid.UUID, idea_id: uuid.UUID) -> Idea:
-        """Retrieve idea by ID enforcing user ownership and soft deletion."""
+    def get_idea(cls, db: Session, idea_id: uuid.UUID) -> Idea:
+        """Retrieve idea by ID enforcing soft deletion check."""
         idea = (
             db.query(Idea)
             .filter(
                 Idea.id == idea_id,
-                Idea.user_id == user_id,
                 Idea.deleted_at.is_(None),
             )
             .first()
@@ -109,15 +104,15 @@ class IdeaService:
         return idea
 
     @classmethod
-    def get_idea_response(cls, db: Session, user_id: uuid.UUID, idea_id: uuid.UUID) -> IdeaResponse:
+    def get_idea_response(cls, db: Session, idea_id: uuid.UUID) -> IdeaResponse:
         """Retrieve idea and return formatted IdeaResponse."""
-        idea = cls.get_idea(db, user_id, idea_id)
+        idea = cls.get_idea(db, idea_id)
         return cls._format_idea_response(idea)
 
     @classmethod
-    def update_idea(cls, db: Session, user_id: uuid.UUID, idea_id: uuid.UUID, data: IdeaUpdate) -> IdeaResponse:
+    def update_idea(cls, db: Session, idea_id: uuid.UUID, data: IdeaUpdate) -> IdeaResponse:
         """Update fields of an existing idea."""
-        idea = cls.get_idea(db, user_id, idea_id)
+        idea = cls.get_idea(db, idea_id)
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -131,12 +126,11 @@ class IdeaService:
     def promote_idea(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         idea_id: uuid.UUID,
         data: IdeaPromoteRequest,
     ) -> Tuple[IdeaResponse, Dict[str, Any]]:
         """Promote an idea into a Project or Task automatically and update idea status."""
-        idea = cls.get_idea(db, user_id, idea_id)
+        idea = cls.get_idea(db, idea_id)
 
         target_title = data.target_name or idea.title
         target_description = data.target_description or idea.description
@@ -158,7 +152,7 @@ class IdeaService:
                 priority=priority,
                 deadline=data.deadline,
             )
-            project_resp = project_service.create_project(db=db, user_id=user_id, data=project_payload)
+            project_resp = project_service.create_project(db=db, data=project_payload)
             idea.promoted_to_type = "project"
             idea.promoted_to_id = project_resp.id
             created_entity_data = {"type": "project", "entity": project_resp.model_dump()}
@@ -178,7 +172,7 @@ class IdeaService:
                 priority=priority,
                 due_date=data.due_date,
             )
-            task_resp = task_service.create_task(db=db, user_id=user_id, data=task_payload)
+            task_resp = task_service.create_task(db=db, data=task_payload)
             idea.promoted_to_type = "task"
             idea.promoted_to_id = task_resp.id
             created_entity_data = {"type": "task", "entity": task_resp.model_dump()}
@@ -193,9 +187,9 @@ class IdeaService:
         return cls._format_idea_response(idea), created_entity_data
 
     @classmethod
-    def delete_idea(cls, db: Session, user_id: uuid.UUID, idea_id: uuid.UUID) -> None:
+    def delete_idea(cls, db: Session, idea_id: uuid.UUID) -> None:
         """Soft delete an idea."""
-        idea = cls.get_idea(db, user_id, idea_id)
+        idea = cls.get_idea(db, idea_id)
         idea.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

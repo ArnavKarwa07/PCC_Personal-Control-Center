@@ -20,7 +20,6 @@ class Goal(BaseModel):
 
     __tablename__ = "goals"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     parent_goal_id = Column(Uuid(as_uuid=True), ForeignKey("goals.id", ondelete="SET NULL"), nullable=True)
@@ -37,7 +36,6 @@ class GoalMilestone(BaseModel):
 
     __tablename__ = "goal_milestones"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     goal_id = Column(Uuid(as_uuid=True), ForeignKey("goals.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     target_date = Column(Date, nullable=True)

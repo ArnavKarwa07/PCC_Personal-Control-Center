@@ -5,29 +5,38 @@ import { apiClient } from '../../services/api';
 import './DashboardPage.css';
 
 interface DailyBriefingData {
+  dateStr?: string;
   date_str?: string;
   greeting?: string;
+  pendingTasksCount?: number;
   pending_tasks_count?: number;
+  upcomingEventsCount?: number;
   upcoming_events_count?: number;
+  overdueRemindersCount?: number;
   overdue_reminders_count?: number;
+  activeProjectsCount?: number;
   active_projects_count?: number;
+  unreadNotificationsCount?: number;
   unread_notifications_count?: number;
+  executiveSummary?: string;
   executive_summary?: string;
+  focusRecommendation?: string;
   focus_recommendation?: string;
+  bulletPoints?: string[];
   bullet_points?: string[];
 }
 
 const DEFAULT_BRIEFING: DailyBriefingData = {
-  date_str: new Date().toISOString().split('T')[0],
+  dateStr: new Date().toISOString().split('T')[0],
   greeting: 'Welcome back to your Personal Control Center',
-  pending_tasks_count: 0,
-  upcoming_events_count: 0,
-  overdue_reminders_count: 0,
-  active_projects_count: 0,
-  unread_notifications_count: 0,
-  executive_summary: 'Welcome to Personal Control Center! Your workspace is active and ready.',
-  focus_recommendation: 'Create a task, project, or note to begin organizing your workflow.',
-  bullet_points: [
+  pendingTasksCount: 0,
+  upcomingEventsCount: 0,
+  overdueRemindersCount: 0,
+  activeProjectsCount: 0,
+  unreadNotificationsCount: 0,
+  executiveSummary: 'Welcome to Personal Control Center! Your workspace is active and ready.',
+  focusRecommendation: 'Create a task, project, or note to begin organizing your workflow.',
+  bulletPoints: [
     'Welcome to your personal control hub.',
     'Create your first project or Kanban task.',
     'Sync your calendar schedule and set daily focus goals.',
@@ -70,9 +79,16 @@ export const DashboardPage: React.FC = () => {
   }).format(new Date());
 
   const bulletList =
-    briefing?.bullet_points && briefing.bullet_points.length > 0
+    (briefing?.bulletPoints && briefing.bulletPoints.length > 0)
+      ? briefing.bulletPoints
+      : (briefing?.bullet_points && briefing.bullet_points.length > 0)
       ? briefing.bullet_points
-      : DEFAULT_BRIEFING.bullet_points!;
+      : DEFAULT_BRIEFING.bulletPoints!;
+
+  const pendingTasks = briefing?.pendingTasksCount ?? briefing?.pending_tasks_count ?? 0;
+  const upcomingEvents = briefing?.upcomingEventsCount ?? briefing?.upcoming_events_count ?? 0;
+  const overdueReminders = briefing?.overdueRemindersCount ?? briefing?.overdue_reminders_count ?? 0;
+  const activeProjects = briefing?.activeProjectsCount ?? briefing?.active_projects_count ?? 0;
 
   return (
     <div className="pcc-dashboard-page">
@@ -97,7 +113,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.pending_tasks_count ?? 0}</div>
+          <div className="pcc-metric-card__val">{pendingTasks}</div>
           <Badge variant="warning" size="sm">Pending</Badge>
         </Card>
 
@@ -122,7 +138,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.upcoming_events_count ?? 0}</div>
+          <div className="pcc-metric-card__val">{upcomingEvents}</div>
           <Badge variant="primary" size="sm">Scheduled</Badge>
         </Card>
 
@@ -145,7 +161,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.overdue_reminders_count ?? 0}</div>
+          <div className="pcc-metric-card__val">{overdueReminders}</div>
           <Badge variant="accent" size="sm">Requires Attention</Badge>
         </Card>
 
@@ -167,7 +183,7 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{briefing?.active_projects_count ?? 0}</div>
+          <div className="pcc-metric-card__val">{activeProjects}</div>
           <Badge variant="success" size="sm">In Progress</Badge>
         </Card>
       </div>

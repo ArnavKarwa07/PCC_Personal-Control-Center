@@ -2,10 +2,8 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
-from app.core.dependencies import get_current_user
-from app.models.user import User
 from app.services.weather_service import weather_service
 
 router = APIRouter(prefix="/weather", tags=["Weather"])
@@ -17,7 +15,6 @@ def get_current_weather(
     lon: float = Query(73.8567, description="Longitude coordinates"),
     city: Optional[str] = Query("Pune, India", description="City / location name override"),
     units: str = Query("metric", description="Unit system: metric or imperial"),
-    current_user: User = Depends(get_current_user),
 ):
     """Retrieve current real-time weather observations."""
     current = weather_service.get_current_weather(
@@ -38,7 +35,6 @@ def get_weather_forecast(
     city: Optional[str] = Query("Pune, India", description="City / location name override"),
     days: int = Query(5, ge=1, le=7, description="Forecast days (1 to 7)"),
     units: str = Query("metric", description="Unit system: metric or imperial"),
-    current_user: User = Depends(get_current_user),
 ):
     """Retrieve multi-day weather forecast."""
     forecast = weather_service.get_weather_forecast(

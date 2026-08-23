@@ -56,7 +56,6 @@ class CalendarEventResponse(BaseModel):
     """Serialized calendar event response."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     title: str
     description: Optional[str] = None
     event_type: CalendarEventType

@@ -25,7 +25,6 @@ class NotificationService:
         """Convert a Notification model instance into a NotificationResponse."""
         return NotificationResponse(
             id=notification.id,
-            user_id=notification.user_id,
             title=notification.title,
             message=notification.message,
             type=notification.type,
@@ -44,7 +43,6 @@ class NotificationService:
     def list_notifications(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         status: Optional[NotificationDeliveryStatus] = None,
         type: Optional[NotificationType] = None,
         channel: Optional[NotificationChannel] = None,
@@ -52,9 +50,8 @@ class NotificationService:
         page: int = 1,
         per_page: int = 50,
     ) -> Tuple[List[NotificationResponse], int, int]:
-        """List notifications for the user with optional unread filter and pagination."""
+        """List notifications with optional unread filter and pagination."""
         query = db.query(Notification).filter(
-            Notification.user_id == user_id,
             Notification.deleted_at.is_(None),
         )
 
@@ -86,13 +83,11 @@ class NotificationService:
     def create_notification(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         data: NotificationCreate,
     ) -> NotificationResponse:
         """Create and persist a new notification record."""
         now = datetime.now(timezone.utc)
         notification = Notification(
-            user_id=user_id,
             title=data.title,
             message=data.message,
             type=data.type,
@@ -111,15 +106,13 @@ class NotificationService:
     def get_notification(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         notification_id: uuid.UUID,
     ) -> Notification:
-        """Retrieve notification enforcing user isolation and soft delete."""
+        """Retrieve notification enforcing soft delete."""
         notification = (
             db.query(Notification)
             .filter(
                 Notification.id == notification_id,
-                Notification.user_id == user_id,
                 Notification.deleted_at.is_(None),
             )
             .first()
@@ -132,22 +125,20 @@ class NotificationService:
     def get_notification_response(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         notification_id: uuid.UUID,
     ) -> NotificationResponse:
         """Retrieve single notification and format as response."""
-        notification = cls.get_notification(db, user_id, notification_id)
+        notification = cls.get_notification(db, notification_id)
         return cls._format_notification_response(notification)
 
     @classmethod
     def mark_as_read(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         notification_id: uuid.UUID,
     ) -> NotificationResponse:
         """Mark a single notification as read."""
-        notification = cls.get_notification(db, user_id, notification_id)
+        notification = cls.get_notification(db, notification_id)
         notification.status = NotificationDeliveryStatus.READ
         notification.read_at = datetime.now(timezone.utc)
 
@@ -159,14 +150,12 @@ class NotificationService:
     def mark_all_as_read(
         cls,
         db: Session,
-        user_id: uuid.UUID,
     ) -> int:
-        """Mark all unread notifications as read for the user."""
+        """Mark all unread notifications as read."""
         now = datetime.now(timezone.utc)
         unread_notifications = (
             db.query(Notification)
             .filter(
-                Notification.user_id == user_id,
                 Notification.status != NotificationDeliveryStatus.READ,
                 Notification.deleted_at.is_(None),
             )
@@ -184,11 +173,10 @@ class NotificationService:
     def delete_notification(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         notification_id: uuid.UUID,
     ) -> None:
         """Soft delete a notification."""
-        notification = cls.get_notification(db, user_id, notification_id)
+        notification = cls.get_notification(db, notification_id)
         notification.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

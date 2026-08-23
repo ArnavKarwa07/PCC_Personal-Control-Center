@@ -7,11 +7,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
 from app.models.calendar_event import CalendarEventType
-from app.models.user import User
 from app.schemas.calendar_event import CalendarEventCreate, CalendarEventUpdate
 from app.services.calendar_service import calendar_service
 
@@ -26,13 +23,11 @@ def list_calendar_events(
     source: Optional[str] = None,
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(50, ge=1, le=200, description="Items per page"),
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Retrieve calendar events within a date range with optional type and source filtering."""
     events, total, total_pages = calendar_service.list_events(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         start_date=start_date,
         end_date=end_date,
         event_type=event_type,
@@ -54,11 +49,10 @@ def list_calendar_events(
 @router.post("/events/create_calendar_event", operation_id="create_calendar_event", status_code=status.HTTP_201_CREATED, summary="Create Calendar Event")
 def create_calendar_event(
     data: CalendarEventCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Create a new calendar event for the authenticated user."""
-    event = calendar_service.create_event(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
+    """Create a new calendar event."""
+    event = calendar_service.create_event(db=db, data=data)
     return {
         "data": event.model_dump(),
     }
@@ -67,11 +61,10 @@ def create_calendar_event(
 @router.get("/events/get_calendar_event_by_id/{event_id}", operation_id="get_calendar_event_by_id", summary="Get Calendar Event By Id")
 def get_calendar_event(
     event_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Retrieve a single calendar event by ID."""
-    event = calendar_service.get_event_response(db=db, user_id=settings.DEFAULT_OWNER_ID, event_id=event_id)
+    event = calendar_service.get_event_response(db=db, event_id=event_id)
     return {
         "data": event.model_dump(),
     }
@@ -81,13 +74,11 @@ def get_calendar_event(
 def update_calendar_event(
     event_id: uuid.UUID,
     data: CalendarEventUpdate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update calendar event details."""
     event = calendar_service.update_event(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         event_id=event_id,
         data=data,
     )
@@ -99,11 +90,10 @@ def update_calendar_event(
 @router.delete("/events/delete_calendar_event_by_id/{event_id}", operation_id="delete_calendar_event_by_id", summary="Delete Calendar Event By Id")
 def delete_calendar_event(
     event_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Soft delete a calendar event."""
-    calendar_service.delete_event(db=db, user_id=settings.DEFAULT_OWNER_ID, event_id=event_id)
+    calendar_service.delete_event(db=db, event_id=event_id)
     return {
         "data": {
             "message": "Calendar event deleted successfully.",

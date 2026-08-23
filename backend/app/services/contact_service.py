@@ -16,13 +16,12 @@ class ContactService:
     def list_contacts(
         self,
         db: Session,
-        user_id: uuid.UUID,
         search: Optional[str] = None,
         overdue_only: bool = False,
         page: int = 1,
         per_page: int = 20,
     ) -> Tuple[List[Contact], int, int]:
-        query = db.query(Contact).filter(Contact.user_id == user_id)
+        query = db.query(Contact)
         if search:
             query = query.filter(
                 (Contact.name.ilike(f"%{search}%"))
@@ -37,15 +36,15 @@ class ContactService:
         contacts = query.order_by(Contact.name.asc()).offset((page - 1) * per_page).limit(per_page).all()
         return contacts, total, total_pages
 
-    def create_contact(self, db: Session, user_id: uuid.UUID, data: ContactCreate) -> Contact:
-        contact = Contact(user_id=user_id, **data.model_dump())
+    def create_contact(self, db: Session, data: ContactCreate) -> Contact:
+        contact = Contact(**data.model_dump())
         db.add(contact)
         db.commit()
         db.refresh(contact)
         return contact
 
-    def update_contact(self, db: Session, user_id: uuid.UUID, contact_id: uuid.UUID, data: ContactUpdate) -> Optional[Contact]:
-        contact = db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user_id).first()
+    def update_contact(self, db: Session, contact_id: uuid.UUID, data: ContactUpdate) -> Optional[Contact]:
+        contact = db.query(Contact).filter(Contact.id == contact_id).first()
         if not contact:
             return None
         for key, val in data.model_dump(exclude_unset=True).items():
@@ -54,8 +53,8 @@ class ContactService:
         db.refresh(contact)
         return contact
 
-    def delete_contact(self, db: Session, user_id: uuid.UUID, contact_id: uuid.UUID) -> bool:
-        contact = db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user_id).first()
+    def delete_contact(self, db: Session, contact_id: uuid.UUID) -> bool:
+        contact = db.query(Contact).filter(Contact.id == contact_id).first()
         if not contact:
             return False
         db.delete(contact)

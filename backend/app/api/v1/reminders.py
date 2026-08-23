@@ -7,11 +7,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
 from app.models.reminder import ReminderStatus
-from app.models.user import User
 from app.schemas.reminder import (
     ReminderCreate,
     ReminderSnoozeRequest,
@@ -30,13 +27,11 @@ def list_reminders(
     remind_after: Optional[datetime] = Query(None, description="Filter reminders scheduled on or after timestamp"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(50, ge=1, le=200, description="Items per page"),
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Retrieve all reminders for the authenticated user."""
+    """Retrieve all reminders."""
     reminders, total, total_pages = reminder_service.list_reminders(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         status=status,
         is_recurring=is_recurring,
         remind_before=remind_before,
@@ -58,11 +53,10 @@ def list_reminders(
 @router.post("/create_reminder", operation_id="create_reminder", status_code=status.HTTP_201_CREATED, summary="Create Reminder")
 def create_reminder(
     data: ReminderCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Create a new reminder scheduled for alerting."""
-    reminder = reminder_service.create_reminder(db=db, user_id=settings.DEFAULT_OWNER_ID, data=data)
+    reminder = reminder_service.create_reminder(db=db, data=data)
     return {
         "data": reminder.model_dump(),
     }
@@ -71,11 +65,10 @@ def create_reminder(
 @router.get("/get_reminder_by_id/{reminder_id}", operation_id="get_reminder_by_id", summary="Get Reminder By Id")
 def get_reminder(
     reminder_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get a single reminder by ID."""
-    reminder = reminder_service.get_reminder_response(db=db, user_id=settings.DEFAULT_OWNER_ID, reminder_id=reminder_id)
+    reminder = reminder_service.get_reminder_response(db=db, reminder_id=reminder_id)
     return {
         "data": reminder.model_dump(),
     }
@@ -85,13 +78,11 @@ def get_reminder(
 def update_reminder(
     reminder_id: uuid.UUID,
     data: ReminderUpdate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update reminder configuration and scheduled trigger time."""
     reminder = reminder_service.update_reminder(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         reminder_id=reminder_id,
         data=data,
     )
@@ -104,7 +95,6 @@ def update_reminder(
 def snooze_reminder(
     reminder_id: uuid.UUID,
     data: Optional[ReminderSnoozeRequest] = None,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Snooze an alert for a specified duration or timestamp."""
@@ -112,7 +102,6 @@ def snooze_reminder(
     snooze_until = data.snooze_until if data else None
     reminder = reminder_service.snooze_reminder(
         db=db,
-        user_id=settings.DEFAULT_OWNER_ID,
         reminder_id=reminder_id,
         snooze_minutes=snooze_minutes,
         snooze_until=snooze_until,
@@ -125,11 +114,10 @@ def snooze_reminder(
 @router.delete("/delete_reminder_by_id/{reminder_id}", operation_id="delete_reminder_by_id", summary="Delete Reminder By Id")
 def delete_reminder(
     reminder_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Soft delete a reminder."""
-    reminder_service.delete_reminder(db=db, user_id=settings.DEFAULT_OWNER_ID, reminder_id=reminder_id)
+    reminder_service.delete_reminder(db=db, reminder_id=reminder_id)
     return {
         "data": {
             "message": "Reminder deleted successfully.",

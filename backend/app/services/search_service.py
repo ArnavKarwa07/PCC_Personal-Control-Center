@@ -137,13 +137,12 @@ class SearchService:
         return selected if selected else set(SUPPORTED_ENTITY_TYPES)
 
     @classmethod
-    def _search_tasks(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_tasks(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search tasks table."""
         pattern = f"%{cls._escape_like(q)}%"
         tasks = (
             db.query(Task)
             .filter(
-                Task.user_id == user_id,
                 Task.deleted_at.is_(None),
                 (Task.title.ilike(pattern, escape="\\")) | (Task.description.ilike(pattern, escape="\\")),
             )
@@ -180,13 +179,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_projects(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_projects(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search projects table."""
         pattern = f"%{cls._escape_like(q)}%"
         projects = (
             db.query(Project)
             .filter(
-                Project.user_id == user_id,
                 Project.deleted_at.is_(None),
                 (Project.name.ilike(pattern, escape="\\")) | (Project.description.ilike(pattern, escape="\\")),
             )
@@ -223,13 +221,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_notes(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_notes(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search notes table."""
         pattern = f"%{cls._escape_like(q)}%"
         notes = (
             db.query(Note)
             .filter(
-                Note.user_id == user_id,
                 Note.deleted_at.is_(None),
                 (Note.title.ilike(pattern, escape="\\"))
                 | (Note.content.ilike(pattern, escape="\\"))
@@ -264,13 +261,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_ideas(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_ideas(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search ideas table."""
         pattern = f"%{cls._escape_like(q)}%"
         ideas = (
             db.query(Idea)
             .filter(
-                Idea.user_id == user_id,
                 Idea.deleted_at.is_(None),
                 (Idea.title.ilike(pattern, escape="\\"))
                 | (Idea.description.ilike(pattern, escape="\\"))
@@ -306,13 +302,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_calendar_events(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_calendar_events(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search calendar events table."""
         pattern = f"%{cls._escape_like(q)}%"
         events = (
             db.query(CalendarEvent)
             .filter(
-                CalendarEvent.user_id == user_id,
                 CalendarEvent.deleted_at.is_(None),
                 (CalendarEvent.title.ilike(pattern, escape="\\"))
                 | (CalendarEvent.description.ilike(pattern, escape="\\"))
@@ -351,13 +346,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_contacts(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_contacts(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search contacts CRM table."""
         pattern = f"%{cls._escape_like(q)}%"
         contacts = (
             db.query(Contact)
             .filter(
-                Contact.user_id == user_id,
                 Contact.deleted_at.is_(None),
                 (Contact.name.ilike(pattern, escape="\\"))
                 | (Contact.organization.ilike(pattern, escape="\\"))
@@ -396,13 +390,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_goals(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_goals(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search goals table."""
         pattern = f"%{cls._escape_like(q)}%"
         goals = (
             db.query(Goal)
             .filter(
-                Goal.user_id == user_id,
                 Goal.deleted_at.is_(None),
                 (Goal.name.ilike(pattern, escape="\\")) | (Goal.description.ilike(pattern, escape="\\")),
             )
@@ -436,13 +429,12 @@ class SearchService:
         return results
 
     @classmethod
-    def _search_reminders(cls, db: Session, user_id: uuid.UUID, q: str) -> List[SearchResultItem]:
+    def _search_reminders(cls, db: Session, q: str) -> List[SearchResultItem]:
         """Search reminders table."""
         pattern = f"%{cls._escape_like(q)}%"
         reminders = (
             db.query(Reminder)
             .filter(
-                Reminder.user_id == user_id,
                 Reminder.deleted_at.is_(None),
                 (Reminder.title.ilike(pattern, escape="\\")) | (Reminder.description.ilike(pattern, escape="\\")),
             )
@@ -479,7 +471,6 @@ class SearchService:
     def search(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         q: str,
         types: Optional[str] = None,
         limit: int = 50,
@@ -506,44 +497,69 @@ class SearchService:
 
         # Search across requested entity types
         if "tasks" in active_types:
-            tasks_res = cls._search_tasks(db, user_id, clean_q)
+            tasks_res = cls._search_tasks(db, clean_q)
             counts_by_type["tasks"] = len(tasks_res)
             all_results.extend(tasks_res)
 
         if "projects" in active_types:
-            projects_res = cls._search_projects(db, user_id, clean_q)
+            projects_res = cls._search_projects(db, clean_q)
             counts_by_type["projects"] = len(projects_res)
             all_results.extend(projects_res)
 
         if "notes" in active_types:
-            notes_res = cls._search_notes(db, user_id, clean_q)
+            notes_res = cls._search_notes(db, clean_q)
             counts_by_type["notes"] = len(notes_res)
             all_results.extend(notes_res)
 
         if "ideas" in active_types:
-            ideas_res = cls._search_ideas(db, user_id, clean_q)
+            ideas_res = cls._search_ideas(db, clean_q)
             counts_by_type["ideas"] = len(ideas_res)
             all_results.extend(ideas_res)
 
         if "calendar_events" in active_types:
-            cal_res = cls._search_calendar_events(db, user_id, clean_q)
+            cal_res = cls._search_calendar_events(db, clean_q)
             counts_by_type["calendar_events"] = len(cal_res)
             all_results.extend(cal_res)
 
         if "contacts" in active_types:
-            contacts_res = cls._search_contacts(db, user_id, clean_q)
+            contacts_res = cls._search_contacts(db, clean_q)
             counts_by_type["contacts"] = len(contacts_res)
             all_results.extend(contacts_res)
 
         if "goals" in active_types:
-            goals_res = cls._search_goals(db, user_id, clean_q)
+            goals_res = cls._search_goals(db, clean_q)
             counts_by_type["goals"] = len(goals_res)
             all_results.extend(goals_res)
 
         if "reminders" in active_types:
-            reminders_res = cls._search_reminders(db, user_id, clean_q)
+            reminders_res = cls._search_reminders(db, clean_q)
             counts_by_type["reminders"] = len(reminders_res)
             all_results.extend(reminders_res)
+
+        # Sort combined results by relevance desc, then updated_at / created_at desc
+        all_results.sort(
+            key=lambda item: (
+                item.relevance,
+                item.updated_at.timestamp() if item.updated_at else 0,
+                item.created_at.timestamp() if item.created_at else 0,
+            ),
+            reverse=True,
+        )
+
+        total = len(all_results)
+        paginated_data = all_results[offset : offset + limit]
+
+        return SearchResponse(
+            data=paginated_data,
+            meta=SearchMeta(
+                query=clean_q,
+                total=total,
+                types_searched=sorted(list(active_types)),
+                counts_by_type=counts_by_type,
+                limit=limit,
+                offset=offset,
+            ),
+        )
 
         # Sort combined results by relevance desc, then updated_at / created_at desc
         all_results.sort(

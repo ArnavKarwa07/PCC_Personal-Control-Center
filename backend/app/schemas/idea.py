@@ -52,7 +52,6 @@ class IdeaResponse(BaseModel):
     """Serialized idea response."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     title: str
     description: Optional[str] = None
     category: Optional[str] = None

@@ -121,7 +121,7 @@ export const ErrorFallbackContent: React.FC<ErrorFallbackProps> = ({ error, onRe
         <p className="pcc-error-boundary__subtitle">
           {isChunkError
             ? 'A component failed to load, which usually happens when the dev server is restarted or updated mid-use. Reloading will fetch the latest application state.'
-            : 'An unexpected runtime exception was caught. You can try refreshing the page or navigating back to the home dashboard.'}
+            : 'An unexpected runtime exception was caught. You can try refreshing the page or navigating back to the home.'}
         </p>
 
         <div className="pcc-error-boundary__actions">

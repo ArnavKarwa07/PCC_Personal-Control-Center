@@ -1,16 +1,27 @@
-# PCC Consolidated Release Pull Request Notes (Release v1.1.0-beta)
+# PCC Consolidated Release Pull Request Notes (Release v1.2.0)
 
 ## Target Branch
-`origin/staging` (Merge preparation for production `main` release tag `v1.1.0-beta`).
+`origin/staging` (Merge preparation for production `main` release tag `v1.2.0`).
 
 ## PR Title
-`release(v1.1.0-beta): Consolidated production release featuring Vercel Serverless Python execution, Neon PostgreSQL resilience, offline mutation queue, Tauri v2 system tray, Android Capacitor 6 alarm channels, AI Assistant Gemini 2.0 Flash integration, single-tenant owner mode, enterprise integrations expansion, and Keep-style Notes refactor`
+`release(v1.2.0): Single-tenant database schema revamp, Singapore Neon DB migration, Tauri v2 capability fixes, sequential mobile permissions, and dashboard count synchronization`
 
 ---
 
 ## Executive Summary
 
-This pull request packages the complete consolidated **PCC v1.1.0-beta** production release, establishing core cloud infrastructure, database persistence, offline resilience, native cross-platform capabilities, and UI/UX refinements across web, mobile (Capacitor v6), and desktop (Tauri v2) runtimes:
+This pull request packages the **PCC v1.2.0** production release:
+
+1. **Single-Tenant Database Schema Revamp**: Removed the `users` table and dropped `user_id` foreign key columns across all SQLAlchemy ORM models, Pydantic schemas, API route handlers, worker daemons, and unit tests. Eliminates Vercel serverless `get_current_user` dependency overhead.
+2. **Singapore Neon PostgreSQL Migration**: Deployed and configured brand-new Neon serverless PostgreSQL 18.6 instance on Asia Pacific 1 (Singapore `aws-ap-southeast-1`). Applied clean initial single-tenant Alembic migration `105cb739b3f8_initial_single_tenant_schema`.
+3. **Tauri v2 Desktop Capability Fix**: Declared `"notification:default"`, `"notification:allow-notify"`, and `"autostart:default"` in `frontend/src-tauri/capabilities/default.json`, eliminating desktop startup crashes.
+4. **Sequential Mobile Permissions**: Refactored `permissionService.ts` to request notification and location permissions sequentially, resolving dropped native permission dialogs on mobile.
+5. **Dashboard Count Synchronization**: Fixed camelCase normalized property mapping in `DashboardPage` (`index.tsx`), ensuring open task counts update instantly upon task creation.
+6. **Empirical Verification**: 100% passing pytest suite (79/79 tests), zero TypeScript compiler errors (`npx tsc --noEmit`), and clean Vite production build.
+
+---
+
+# PCC Consolidated Release Pull Request Notes (Release v1.1.0-beta)
 
 1. **Vercel Serverless & Neon PostgreSQL Architecture**: Serverless Python entrypoint (`api/index.py` & `@vercel/python`), `NullPool` serverless lambda handling, Neon PostgreSQL connection pool recycling (`pool_recycle=300`), explicit SSL enforcement (`sslmode=require`), and complete decommissioning of legacy GCP Cloud Run infrastructure.
 2. **Offline-First Resilience**: Persistent client-side mutation queue (`pcc_sync_queue`) with automatic deduplication, batch merging, exponential backoff, and reconnection auto-flush.

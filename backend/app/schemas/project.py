@@ -24,7 +24,6 @@ class ProjectMemberResponse(BaseModel):
     """Serialized project member."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     project_id: uuid.UUID
     contact_id: uuid.UUID
     role: Optional[str] = None
@@ -79,7 +78,6 @@ class ProjectResponse(BaseModel):
     """Serialized project object."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     name: str
     description: Optional[str] = None
     status: ProjectStatus
@@ -139,7 +137,6 @@ class BoardCardResponse(BaseModel):
     """Serialized board card."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     column_id: uuid.UUID
     task_id: uuid.UUID
     position: int
@@ -162,7 +159,6 @@ class BoardColumnResponse(BaseModel):
     """Serialized board column with nested cards."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     board_id: uuid.UUID
     name: str
     position: int
@@ -186,7 +182,6 @@ class BoardResponse(BaseModel):
     """Serialized board with all columns and cards."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     project_id: Optional[uuid.UUID] = None
     name: str
     columns: List[BoardColumnResponse] = []

@@ -24,7 +24,6 @@ def test_create_task(client, auth_headers):
     assert data["estimated_minutes"] == 120
     assert set(data["tags"]) == {"backend", "fastapi", "core"}
     assert "id" in data
-    assert "user_id" in data
 
 
 def test_list_tasks(client, auth_headers):

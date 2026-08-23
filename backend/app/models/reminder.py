@@ -20,7 +20,6 @@ class Reminder(BaseModel):
 
     __tablename__ = "reminders"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     remind_at = Column(DateTime(timezone=True), nullable=False, index=True)

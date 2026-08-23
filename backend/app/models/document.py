@@ -11,7 +11,6 @@ class Document(BaseModel):
 
     __tablename__ = "documents"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(500), nullable=False)
     category = Column(String(100), nullable=True)
     file_path = Column(String(1000), nullable=True)

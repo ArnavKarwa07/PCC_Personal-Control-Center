@@ -23,7 +23,6 @@ class IntegrationResponse(BaseModel):
     """Response model for an Integration provider status and config."""
 
     id: Optional[uuid.UUID] = None
-    user_id: Optional[uuid.UUID] = None
     provider: IntegrationProvider
     status: IntegrationStatus
     config: Optional[Dict[str, Any]] = None

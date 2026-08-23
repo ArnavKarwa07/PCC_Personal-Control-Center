@@ -71,7 +71,6 @@ class TaskRecurrence(BaseModel):
 
     __tablename__ = "task_recurrences"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), unique=True, nullable=False)
     pattern = Column(
         Enum(RecurrencePattern, name="recurrence_pattern", values_callable=lambda obj: [e.value for e in obj]),
@@ -92,7 +91,6 @@ class Task(BaseModel):
 
     __tablename__ = "tasks"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
     status = Column(

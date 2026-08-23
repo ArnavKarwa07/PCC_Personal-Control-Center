@@ -10,7 +10,6 @@ class Alarm(BaseModel):
 
     __tablename__ = "alarms"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     label = Column(String(255), nullable=True)
     time = Column(Time, nullable=False)
     days_of_week = Column(String(50), nullable=True)

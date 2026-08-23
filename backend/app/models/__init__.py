@@ -46,11 +46,9 @@ from app.models.task import (
     TaskTag,
 )
 from app.models.timer import TimerModel, TimerState, TimerType
-from app.models.user import User
 
 __all__ = [
     "BaseModel",
-    "User",
     "Tag",
     "Contact",
     "Goal",

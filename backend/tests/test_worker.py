@@ -14,13 +14,12 @@ from worker.main import (
 )
 
 
-def test_dispatch_pending_reminders(db_session, test_user):
+def test_dispatch_pending_reminders(db_session):
     """Test background worker dispatches due reminders and generates notifications."""
     now = datetime.now(timezone.utc)
 
     # 1. Past due pending reminder
     r_due = Reminder(
-        user_id=test_user.id,
         title="Due Reminder",
         description="Must be sent now",
         remind_at=now - timedelta(minutes=5),
@@ -28,14 +27,12 @@ def test_dispatch_pending_reminders(db_session, test_user):
     )
     # 2. Future pending reminder
     r_future = Reminder(
-        user_id=test_user.id,
         title="Future Reminder",
         remind_at=now + timedelta(hours=5),
         status=ReminderStatus.PENDING,
     )
     # 3. Snoozed reminder whose snooze expired
     r_snoozed_due = Reminder(
-        user_id=test_user.id,
         title="Snoozed Due Reminder",
         remind_at=now - timedelta(hours=1),
         status=ReminderStatus.SNOOZED,
@@ -61,7 +58,7 @@ def test_dispatch_pending_reminders(db_session, test_user):
     # Verify notifications created
     notifs = (
         db_session.query(Notification)
-        .filter(Notification.user_id == test_user.id, Notification.type == NotificationType.TASK_REMINDER)
+        .filter(Notification.type == NotificationType.TASK_REMINDER)
         .all()
     )
     assert len(notifs) == 2
@@ -70,13 +67,12 @@ def test_dispatch_pending_reminders(db_session, test_user):
     assert "Reminder: Snoozed Due Reminder" in titles
 
 
-def test_process_recurring_tasks(db_session, test_user):
+def test_process_recurring_tasks(db_session):
     """Test worker generates next task instances for due recurring tasks."""
     today = date.today()
 
     # Create task with recurring rule due today
     task = Task(
-        user_id=test_user.id,
         title="Daily Standup Meeting",
         description="Team daily checkin",
         status=TaskStatus.DONE,
@@ -86,7 +82,6 @@ def test_process_recurring_tasks(db_session, test_user):
     db_session.flush()
 
     recurrence = TaskRecurrence(
-        user_id=test_user.id,
         task_id=task.id,
         pattern=RecurrencePattern.DAILY,
         interval=1,
@@ -100,7 +95,7 @@ def test_process_recurring_tasks(db_session, test_user):
     assert generated_count == 1
 
     # Verify new task exists
-    tasks = db_session.query(Task).filter(Task.user_id == test_user.id).all()
+    tasks = db_session.query(Task).all()
     assert len(tasks) == 2
     new_task = [t for t in tasks if t.id != task.id][0]
     assert new_task.title == "Daily Standup Meeting"
@@ -110,25 +105,23 @@ def test_process_recurring_tasks(db_session, test_user):
     # Verify notification created
     notif = (
         db_session.query(Notification)
-        .filter(Notification.user_id == test_user.id, Notification.type == NotificationType.RECURRING_TASK)
+        .filter(Notification.type == NotificationType.RECURRING_TASK)
         .first()
     )
     assert notif is not None
     assert "Daily Standup Meeting" in notif.title
 
 
-def test_poll_external_sync(db_session, test_user):
+def test_poll_external_sync(db_session):
     """Test worker poll_external_sync scans active integrations."""
     # Create connected GitHub integration
     gh = Integration(
-        user_id=test_user.id,
         provider=IntegrationProvider.GITHUB,
         status=IntegrationStatus.CONNECTED,
         config={"username": "testdev", "synced_repos_count": 3},
     )
     # Create disconnected Google Calendar integration
     gcal = Integration(
-        user_id=test_user.id,
         provider=IntegrationProvider.GOOGLE_CALENDAR,
         status=IntegrationStatus.DISCONNECTED,
     )
@@ -141,7 +134,7 @@ def test_poll_external_sync(db_session, test_user):
     assert stats["total_synced"] == 1
 
 
-def test_run_worker_iteration(db_session, test_user):
+def test_run_worker_iteration(db_session):
     """Test single worker cycle execution summary."""
     summary = run_worker_iteration(db_session)
     assert "reminders_dispatched" in summary

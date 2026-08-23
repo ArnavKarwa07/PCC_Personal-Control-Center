@@ -18,7 +18,6 @@ class Automation(BaseModel):
 
     __tablename__ = "automations"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     trigger_type = Column(String(50), nullable=False)
     trigger_config = Column(JSON, nullable=True)
@@ -35,7 +34,6 @@ class AutomationRun(BaseModel):
 
     __tablename__ = "automation_runs"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     automation_id = Column(Uuid(as_uuid=True), ForeignKey("automations.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(
         Enum(AutomationRunStatus, name="automation_run_status", values_callable=lambda obj: [e.value for e in obj]),

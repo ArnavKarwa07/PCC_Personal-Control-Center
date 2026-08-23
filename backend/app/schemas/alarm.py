@@ -45,7 +45,6 @@ class AlarmResponse(AlarmBase):
     """Response representation of an Alarm entity."""
 
     id: uuid.UUID
-    user_id: uuid.UUID
     created_at: dt.datetime
     updated_at: dt.datetime
     deleted_at: Optional[dt.datetime] = None

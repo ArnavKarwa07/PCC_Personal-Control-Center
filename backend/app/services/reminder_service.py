@@ -20,7 +20,6 @@ class ReminderService:
         """Convert a Reminder model instance into a ReminderResponse."""
         return ReminderResponse(
             id=reminder.id,
-            user_id=reminder.user_id,
             title=reminder.title,
             description=reminder.description,
             remind_at=reminder.remind_at,
@@ -36,7 +35,6 @@ class ReminderService:
     def list_reminders(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         status: Optional[ReminderStatus] = None,
         is_recurring: Optional[bool] = None,
         remind_before: Optional[datetime] = None,
@@ -44,9 +42,8 @@ class ReminderService:
         page: int = 1,
         per_page: int = 50,
     ) -> Tuple[List[ReminderResponse], int, int]:
-        """List reminders for the authenticated user with pagination and filters."""
+        """List reminders with pagination and filters."""
         query = db.query(Reminder).filter(
-            Reminder.user_id == user_id,
             Reminder.deleted_at.is_(None),
         )
 
@@ -77,12 +74,10 @@ class ReminderService:
     def create_reminder(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         data: ReminderCreate,
     ) -> ReminderResponse:
-        """Create a new reminder for the user."""
+        """Create a new reminder."""
         reminder = Reminder(
-            user_id=user_id,
             title=data.title,
             description=data.description,
             remind_at=data.remind_at,
@@ -98,15 +93,13 @@ class ReminderService:
     def get_reminder(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         reminder_id: uuid.UUID,
     ) -> Reminder:
-        """Retrieve reminder model enforcing user isolation and soft delete."""
+        """Retrieve reminder model enforcing soft delete check."""
         reminder = (
             db.query(Reminder)
             .filter(
                 Reminder.id == reminder_id,
-                Reminder.user_id == user_id,
                 Reminder.deleted_at.is_(None),
             )
             .first()
@@ -119,23 +112,21 @@ class ReminderService:
     def get_reminder_response(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         reminder_id: uuid.UUID,
     ) -> ReminderResponse:
         """Retrieve single reminder and format as response."""
-        reminder = cls.get_reminder(db, user_id, reminder_id)
+        reminder = cls.get_reminder(db, reminder_id)
         return cls._format_reminder_response(reminder)
 
     @classmethod
     def update_reminder(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         reminder_id: uuid.UUID,
         data: ReminderUpdate,
     ) -> ReminderResponse:
         """Update reminder fields."""
-        reminder = cls.get_reminder(db, user_id, reminder_id)
+        reminder = cls.get_reminder(db, reminder_id)
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -149,13 +140,12 @@ class ReminderService:
     def snooze_reminder(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         reminder_id: uuid.UUID,
         snooze_minutes: Optional[int] = 10,
         snooze_until: Optional[datetime] = None,
     ) -> ReminderResponse:
         """Snooze a reminder by a duration or until a specified target timestamp."""
-        reminder = cls.get_reminder(db, user_id, reminder_id)
+        reminder = cls.get_reminder(db, reminder_id)
 
         now = datetime.now(timezone.utc)
         if snooze_until:
@@ -175,11 +165,10 @@ class ReminderService:
     def delete_reminder(
         cls,
         db: Session,
-        user_id: uuid.UUID,
         reminder_id: uuid.UUID,
     ) -> None:
         """Soft delete a reminder by setting deleted_at timestamp."""
-        reminder = cls.get_reminder(db, user_id, reminder_id)
+        reminder = cls.get_reminder(db, reminder_id)
         reminder.deleted_at = datetime.now(timezone.utc)
         db.commit()
 

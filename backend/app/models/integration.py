@@ -30,7 +30,6 @@ class Integration(BaseModel):
 
     __tablename__ = "integrations"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     provider = Column(
         Enum(IntegrationProvider, name="integration_provider", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
@@ -50,7 +49,6 @@ class IntegrationToken(BaseModel):
 
     __tablename__ = "integration_tokens"
 
-    user_id = Column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     integration_id = Column(Uuid(as_uuid=True), ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False, index=True)
     access_token_encrypted = Column(String(1000), nullable=False)
     refresh_token_encrypted = Column(String(1000), nullable=True)
