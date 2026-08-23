@@ -19,17 +19,24 @@ const STORAGE_KEY_SERVER_URL = 'pcc_server_url';
 export const DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app';
 
 export function getApiBaseUrl(): string {
+  let rawUrl = DEFAULT_CLOUD_API_URL;
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(STORAGE_KEY_SERVER_URL);
     if (saved && saved.trim() !== '') {
-      return saved.trim().replace(/\/+$/, '');
+      rawUrl = saved.trim();
+    } else {
+      const envUrl = import.meta.env.VITE_API_URL;
+      if (envUrl && envUrl.trim() !== '') {
+        rawUrl = envUrl.trim();
+      }
+    }
+  } else {
+    const envUrl = import.meta.env.VITE_API_URL;
+    if (envUrl && envUrl.trim() !== '') {
+      rawUrl = envUrl.trim();
     }
   }
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && envUrl.trim() !== '') {
-    return envUrl.trim().replace(/\/+$/, '');
-  }
-  return DEFAULT_CLOUD_API_URL;
+  return rawUrl.replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
 }
 
 export function setApiBaseUrl(url: string): void {
@@ -37,7 +44,8 @@ export function setApiBaseUrl(url: string): void {
     if (!url || url.trim() === '') {
       localStorage.removeItem(STORAGE_KEY_SERVER_URL);
     } else {
-      localStorage.setItem(STORAGE_KEY_SERVER_URL, url.trim().replace(/\/+$/, ''));
+      const sanitized = url.trim().replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
+      localStorage.setItem(STORAGE_KEY_SERVER_URL, sanitized);
     }
   }
 }
@@ -85,7 +93,7 @@ async function request<T>(
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      let errData: ApiError;
+      let errData: any;
       try {
         errData = await response.json();
       } catch {
@@ -94,10 +102,11 @@ async function request<T>(
           code: response.status,
         };
       }
+      const errPayload = errData.error || errData;
       throw new ApiException({
-        message: errData.message || `Request failed with status ${response.status}`,
-        code: errData.code || response.status,
-        details: errData.details,
+        message: errPayload.message || `Request failed with status ${response.status}`,
+        code: errPayload.code || response.status,
+        details: errPayload.details,
       });
     }
 

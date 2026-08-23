@@ -8,17 +8,20 @@ This document provides a technical overview of the architecture, module layout, 
 
 ```mermaid
 graph TD
-    Client[React 18 SPA / Vite] --> Stores[Zustand Global State Stores]
-    Client --> Query[TanStack React Query]
-    Query --> API[Axios / FastAPI Backend API]
-    API --> DB[(SQLite / PostgreSQL DB)]
-    API --> Worker[Celery / Async Task Worker]
+    Client[React 18 SPA / Vite / Capacitor / Tauri] --> Stores[Zustand Global State Stores]
+    Client --> APIClient[TypeScript API Client / frontend/src/services/api.ts]
+    APIClient --> VercelRouter[Vercel Serverless Python Router / api/index.py]
+    VercelRouter --> FastAPI[FastAPI REST API / backend/app/main.py]
+    FastAPI --> DB[(Neon Serverless PostgreSQL / SQLite)]
 ```
 
 - **Frontend Framework**: React 18 with TypeScript & Vite 5.
+- **Cross-Platform Targets**: Mobile Android APK (Capacitor v6) and Desktop App (Tauri v2).
+- **Production Backend Deployment**: Vercel Serverless Python (`@vercel/python`) hosted at `https://pcc-backend-ten.vercel.app`.
+- **Database Engine**: Neon Serverless PostgreSQL (`postgresql://...sslmode=require`) with SQLAlchemy 2.0 connection pool recycling (`pool_recycle=300`, `pool_pre_ping=True`) for cloud persistence, and SQLite 3 for offline development.
 - **Routing**: React Router v6 (`createBrowserRouter`) with lazy-loaded route chunks and Suspense fallback `<PageLoader />`.
-- **State Management**: Zustand lightweight stores with persist middleware.
-- **Data Fetching**: Axios API client (`apiClient`) with React Query hooks.
+- **State Management**: Zustand lightweight stores with persist middleware and optimistic mutation queue (`syncQueue.ts`).
+- **Data Fetching**: Custom fetch-based API engine (`apiClient`) supporting fallbacks, snake_case/camelCase payload normalization, and dynamic base URL overrides.
 - **Layout Shell**: Responsive `AppShell` with desktop navigation drawer (`DesktopLayout`) and mobile bottom bar (`MobileLayout`).
 
 ---

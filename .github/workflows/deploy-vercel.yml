@@ -2,20 +2,36 @@ name: Deploy PCC to Vercel
 
 on:
   push:
-    branches: [ main, staging ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies & run pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pytest pytest-asyncio
+          python -m pytest backend
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Deploy PCC Backend Serverless to Vercel
+      - name: Deploy PCC Backend Serverless to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          npx vercel deploy --name pcc-backend --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+          npx vercel deploy --prod --yes
+

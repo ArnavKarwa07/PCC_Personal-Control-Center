@@ -15,13 +15,14 @@ PCC is a personal operating system built to integrate daily tasks, project manag
 
 ---
 
-## Core Standards & Architectural Highlights
+### Core Standards & Architectural Highlights
 
 - **Default Location & Currency**: Default location standard set to **Pune, India** with **₹ (INR)** currency format.
 - **Theme Priority**: Light Mode (`html[data-theme='light']`) prioritized by default, backed by a secondary dark glassmorphic mode toggle.
-- **Database Engine Support**: Native support for **Neon serverless PostgreSQL** (`postgresql://...sslmode=require`) in production and **SQLite 3** for offline local development.
+- **Serverless Production Host**: Deployed on **Vercel Serverless Python** (`https://pcc-backend-ten.vercel.app`) via `@vercel/python` and root `api/index.py` router.
+- **Database Engine Support**: Native support for **Neon serverless PostgreSQL** (`postgresql://...sslmode=require`) with connection pool recycling (`pool_recycle=300`, `pool_pre_ping=True`) in production and **SQLite 3** for offline local development.
 - **Cross-Platform Delivery**: Standalone native Android APKs (Capacitor v6) and cross-platform Desktop installers (Tauri v2 for Windows, macOS, Linux).
-- **24/7 Cloud Execution**: Lightweight Docker runtime (`backend/Dockerfile`, `docker-compose.yml`) supporting Hugging Face Spaces, Koyeb, and self-hosted container environments.
+- **24/7 Cloud & Local Execution**: Ephemeral Vercel Serverless functions paired with lightweight Docker container execution (`backend/Dockerfile`, `docker-compose.yml`).
 - **Iconography**: Clean, crisp monochromatic SVG icons (`stroke="currentColor"`) matching modern design system tokens.
 - **Command Architecture**: Global `Ctrl+K` CommandPalette providing instant navigation and search.
 
@@ -31,6 +32,7 @@ PCC is a personal operating system built to integrate daily tasks, project manag
 
 ```text
 PCC_Personal-Control-Center/
+├── api/                      # Vercel Serverless Python entrypoint (index.py)
 ├── frontend/                 # React 18 + TypeScript + Vite 5 SPA & Native App Shell
 │   ├── android/              # Capacitor v6 Android Gradle project (`./gradlew assembleDebug`)
 │   ├── src-tauri/            # Tauri v2 Desktop configuration & Rust manifest (`tauri.conf.json`)
@@ -47,22 +49,27 @@ PCC_Personal-Control-Center/
 │
 ├── backend/                  # FastAPI + SQLAlchemy 2.0 REST API
 │   ├── app/
-│   │   ├── api/v1/           # REST endpoints (auth, tasks, projects, notes, ideas, calendar, reminders, alarms, timers, weather, integrations)
-│   │   ├── core/             # Configuration, database session, security, dependencies
+│   │   ├── api/v1/           # REST endpoints (tasks, projects, notes, ideas, calendar, reminders, alarms, timers, weather, integrations, assistant)
+│   │   ├── core/             # Configuration (config.py with CORS_ORIGINS), database engine & pool recycling (database.py), dependencies
 │   │   ├── models/           # SQLAlchemy database entities (BaseModel with UUID & soft deletion)
 │   │   ├── schemas/          # Pydantic v2 request/response envelopes
 │   │   └── services/         # Business logic layer
 │   ├── worker/               # Async background worker loop (main.py)
-│   ├── tests/                # Pytest unit and integration test suite (104 tests)
+│   ├── tests/                # Pytest unit and integration test suite (79 tests)
 │   ├── requirements.txt      # Python dependencies
-│   └── Dockerfile            # 24/7 Production backend container configuration
+│   └── Dockerfile            # Production backend container configuration
 │
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml            # CI test runner pipeline
 │       └── build-release.yml # GitHub Actions Android APK & Tauri v2 Desktop release pipeline
-├── docs/                     # PRD, TRD, Architecture & Migration Notes (`MIGRATION_NOTES.md`)
+├── docs/                     # Architecture, Migration Notes (`MIGRATION_NOTES.md`), & PR Notes
+├── vercel.json               # Vercel Serverless Python route routing (@vercel/python)
 ├── docker-compose.yml        # PostgreSQL / SQLite + FastAPI + Worker multi-container manifest
+├── .env.example              # Production & development environment variable template
+├── Makefile                  # Project orchestration commands
+└── README.md
+```ker-compose.yml        # PostgreSQL / SQLite + FastAPI + Worker multi-container manifest
 ├── .env.example              # Production & development environment variable template
 ├── Makefile                  # Project orchestration commands
 └── README.md
@@ -166,8 +173,17 @@ Compiled desktop bundles will be generated in `frontend/src-tauri/target/release
 
 ## Production Deployment & CI/CD Pipelines
 
+### Vercel Serverless Python Deployment
+The production backend API is hosted at `https://pcc-backend-ten.vercel.app` powered by Vercel Serverless Python (`@vercel/python`):
+- Root `vercel.json` maps wildcard path `/(.*)` to `api/index.py`.
+- Entrypoint `api/index.py` dynamically injects `backend/` into `sys.path` and delegates execution to `app` in `backend/app/main.py`.
+- Deploy backend changes via Vercel CLI:
+  ```bash
+  vercel --prod
+  ```
+
 ### 24/7 Docker Container Deployment
-Launch the full production stack via Docker Compose:
+Launch the full production container stack via Docker Compose:
 ```bash
 docker-compose up -d --build
 ```

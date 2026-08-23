@@ -10,10 +10,19 @@ from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events for setup and teardown."""
-    # Startup actions
+    if settings.ENVIRONMENT == "production" and settings.DATABASE_URL.startswith("sqlite"):
+        logger.warning(
+            "CRITICAL WARNING: Running in production environment with SQLite database. "
+            "Data will be lost on serverless worker recycling! Set DATABASE_URL to PostgreSQL."
+        )
     yield
     # Shutdown actions
 
@@ -32,6 +41,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

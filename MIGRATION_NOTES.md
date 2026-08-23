@@ -4,6 +4,125 @@ This document aggregates release migration notes, database schema upgrades, stor
 
 ---
 
+# PCC Migration Notes - Release v1.1.0-beta (Vercel Serverless & Neon PostgreSQL Migration)
+
+## Release Overview
+Release `v1.1.0-beta` establishes the Vercel Serverless Python backend architecture, Neon PostgreSQL pool recycling and NullPool serverless handling, and cross-platform CORS configuration for PCC (Personal Control Center). Key features include Vercel Serverless Python deployment (`api/index.py` & `@vercel/python`), Neon PostgreSQL connection pool recycling (`pool_recycle=300` & `pool_pre_ping=True`), explicit SSL mode enforcement (`sslmode=require`), robust multi-origin CORS controls, client-side server URL override with fallback to `https://pcc-backend-ten.vercel.app`, and complete decommissioning of legacy GCP Cloud Run infrastructure.
+
+---
+
+## Key Changes & Architectural Specifications
+
+### 1. Vercel Serverless Python Backend Architecture
+- **Production Serverless Endpoint**: `https://pcc-backend-ten.vercel.app`
+- **Builder**: `@vercel/python` engine defined in root `vercel.json`.
+- **Routing Configuration (`vercel.json`)**:
+  ```json
+  {
+    "version": 2,
+    "builds": [
+      {
+        "src": "api/index.py",
+        "use": "@vercel/python"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "api/index.py"
+      }
+    ]
+  }
+  ```
+- **Entrypoint Routing (`api/index.py`)**:
+  - `api/index.py` acts as the serverless function bridge, dynamically appending the repository root and `backend/` directory to `sys.path`.
+  - Imports `app` from `backend.app.main` and exposes `__all__ = ["app"]`, allowing Vercel's Python runtime to invoke the FastAPI application without modifying internal package paths.
+  ```python
+  import os
+  import sys
+
+  current_dir = os.path.dirname(__file__)
+  root_path = os.path.abspath(os.path.join(current_dir, ".."))
+  backend_path = os.path.abspath(os.path.join(current_dir, "..", "backend"))
+
+  if root_path not in sys.path:
+      sys.path.insert(0, root_path)
+  if backend_path not in sys.path:
+      sys.path.insert(0, backend_path)
+
+  from app.main import app
+
+  __all__ = ["app"]
+  ```
+- **Stateless Execution Model**:
+  - Operates on ephemeral serverless instances, eliminating idle container compute costs.
+  - Background processes rely on client-side queues and scheduled heartbeat triggers rather than long-lived in-memory background worker daemons.
+- **Decommissioned GCP Infrastructure**:
+  - Fully decommissioned Google Cloud Run (`pcc-backend`) services and Google Container Registry (`gcr.io`) image repositories.
+  - Removed container build dependencies and GCP deployment scripts.
+
+### 2. Neon PostgreSQL Pool Recycling & Database Engine
+- **Supported Engines**: **Neon Serverless PostgreSQL** for production cloud persistence and **SQLite 3** for offline local development.
+- **Connection URI Normalization & SSL Enforcement (`backend/app/core/database.py`)**:
+  - Automatically converts `postgres://` URI schemes to `postgresql://`.
+  - Automatically appends `sslmode=require` if `sslmode` parameter is missing for PostgreSQL URIs.
+- **SQLAlchemy 2.0 Pool Recycling Strategy**:
+  - `pool_recycle = 300`: Recycles pooled database connections every 300 seconds (5 minutes). This is critical for Neon serverless PostgreSQL because Neon suspends compute endpoints after inactivity, causing stale connection handles to reset. Recycling prevents `OperationalError: SSL connection has been closed unexpectedly` errors.
+  - `pool_pre_ping = True`: Emits a lightweight `SELECT 1` ping before executing queries, verifying connection health and auto-reconnecting if Neon suspended the compute.
+  - `pool_size = 5`, `max_overflow = 10`: Standard connection limit settings tuned for Vercel serverless concurrent invocations.
+  - Dynamic `connect_args`: SQLite uses `check_same_thread=False` and `timeout=30`, whereas PostgreSQL relies on native connection pooling.
+  ```python
+  db_url = settings.DATABASE_URL
+  if db_url.startswith("postgres://"):
+      db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+  connect_args = {}
+  if db_url.startswith("sqlite"):
+      connect_args["check_same_thread"] = False
+      connect_args["timeout"] = 30
+  elif "sslmode" not in db_url and "postgresql" in db_url:
+      if "?" in db_url:
+          db_url += "&sslmode=require"
+      else:
+          db_url += "?sslmode=require"
+
+  engine_kwargs = {
+      "echo": settings.DEBUG,
+      "connect_args": connect_args,
+      "pool_pre_ping": True,
+  }
+
+  if not db_url.startswith("sqlite"):
+      engine_kwargs["pool_recycle"] = 300
+      engine_kwargs["pool_size"] = 5
+      engine_kwargs["max_overflow"] = 10
+
+  engine = create_engine(db_url, **engine_kwargs)
+  ```
+
+### 3. CORS Allowed Origins & Multi-Client Security
+- **Configuration Module (`backend/app/core/config.py`)**:
+  - `CORS_ORIGINS` environment variable string parsed via `@property def cors_origins_list` into a list of authorized origin strings.
+  - Standardized default allowed origins:
+    - Web Local Dev: `http://localhost:5173`, `http://localhost`
+    - Vercel Production Host: `https://pcc-backend-ten.vercel.app`
+    - Capacitor Android Mobile WebView: `capacitor://localhost`, `https://localhost`
+    - Tauri Desktop Native App WebView: `tauri://localhost`, `http://tauri.localhost`, `https://tauri.localhost`
+  ```python
+  class Settings(BaseSettings):
+      DATABASE_URL: str = "sqlite:///./pcc.db"
+      CORS_ORIGINS: str = "http://localhost:5173,https://pcc-backend-ten.vercel.app,capacitor://localhost,https://localhost,http://tauri.localhost,https://tauri.localhost,tauri://localhost,http://localhost"
+
+      @property
+      def cors_origins_list(self) -> List[str]:
+          return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+  ```
+- **Frontend API Base URL Resolution (`frontend/src/services/api.ts`)**:
+  - Resolution order: `localStorage.getItem('pcc_server_url')` -> `import.meta.env.VITE_API_URL` -> default `https://pcc-backend-ten.vercel.app`.
+  - Enables instant server URL switching from Settings without rebuilding frontend artifacts.
+
+---
+
 # PCC Migration Notes - Release v1.5.0
 
 ## Release Overview

@@ -115,7 +115,7 @@ export const ColdStartSyncLoader: React.FC = () => {
               Cloud Engine Connected
             </span>
             <span className="text-slate-500 font-mono text-[10px]">
-              Cloud Run (asia-south1)
+              Vercel Serverless (Neon Postgres)
             </span>
           </div>
         </>

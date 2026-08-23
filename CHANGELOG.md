@@ -5,6 +5,27 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.0-beta] - 2026-08-23
+
+### Added & Fixed
+- **Vercel Serverless Architecture & Python Bridge (`api/index.py`)**:
+  - Implemented root serverless wrapper importing `app` from `backend.app.main` with dynamic `sys.path` resolution for `@vercel/python`.
+  - Fixed module resolution by isolating package structure from Hugging Face Gradio entrypoint (`backend/hf_app.py`).
+  - Standardized modern `vercel.json` wildcard rewrites (`/(.*)` -> `/api/index.py`).
+- **Neon PostgreSQL Connection Resilience & NullPool Handling**:
+  - Enforced `sslmode=require` TLS parameters for Neon serverless PostgreSQL.
+  - Implemented `NullPool` allocation under Vercel serverless lambda execution to prevent DB connection pool exhaustion, alongside 5-minute pool recycling (`pool_recycle=300`) and pre-ping verification (`pool_pre_ping=True`) for stateful servers.
+  - Added explicit transaction rollback handling on exceptions in `get_db()` dependency.
+- **Frontend Cloud API Base URL & Error Envelope Extraction**:
+  - Updated `DEFAULT_CLOUD_API_URL` to point to production serverless backend (`https://pcc-backend-ten.vercel.app`).
+  - Added automatic base URL sanitization in `getApiBaseUrl()` to prevent `/api/v1` prefix double-stacking.
+  - Enhanced error parsing in `ApiException` engine to unwrap FastAPI nested `{"error": {"code": ..., "message": ...}}` payloads.
+  - Updated UI status indicators (`ColdStartSyncLoader.tsx`) to display `"Vercel Serverless (Neon Postgres)"`.
+- **CI/CD Security & Release Pipeline Updates (`.github/workflows/deploy-vercel.yml`)**:
+  - Restricted production Vercel deploys to `main` branch pushes and manual dispatches.
+  - Added automated `pytest` verification step prior to deployment.
+  - Secured Vercel deployment credentials via GitHub Actions environment secrets (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`).
+
 ## [v1.0.1beta] - 2026-08-23
 
 ### Added
@@ -57,6 +78,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `npx tsc --noEmit`: 0 TypeScript compiler errors.
   - `npm run build`: Vite production bundle generated successfully (232 modules transformed, 0 errors).
   - `python -m pytest`: 79/79 backend unit tests passing (100% success rate).
+
+## [1.0.0] - 2026-08-23
+
+### Added
+- **Vercel Serverless Python Execution Architecture**:
+  - Implemented `@vercel/python` serverless deployment with root `vercel.json` wildcard path routing (`/(.*)` -> `api/index.py`).
+  - Implemented `api/index.py` serverless entrypoint dynamically resolving `sys.path` for `backend/` and exporting `app` from `backend.app.main`.
+  - Configured client-side fallback URL (`DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app'`) in `frontend/src/services/api.ts` with local storage override capability (`pcc_server_url`).
+- **Neon PostgreSQL Pool Recycling & Connection Resiliency**:
+  - Configured SQLAlchemy 2.0 engine in `backend/app/core/database.py` with 5-minute pool recycling (`pool_recycle=300`) to prevent stale connections when Neon serverless compute endpoints suspend.
+  - Enabled connection viability verification (`pool_pre_ping=True`) emitting lightweight pre-query pings.
+  - Automated `postgres://` to `postgresql://` connection scheme normalization and enforced `sslmode=require` parameter on PostgreSQL database URIs.
+- **Dynamic Multi-Origin CORS Controls**:
+  - Updated `backend/app/core/config.py` with `CORS_ORIGINS` setting and `cors_origins_list` computed property.
+  - Explicitly authorized cross-origin requests for Vite web development (`http://localhost:5173`), Vercel production backend host (`https://pcc-backend-ten.vercel.app`), Capacitor Android native webview (`capacitor://localhost`), and Tauri desktop native webview (`tauri://localhost`, `http://tauri.localhost`).
 
 ## [1.5.0] - 2026-08-22
 

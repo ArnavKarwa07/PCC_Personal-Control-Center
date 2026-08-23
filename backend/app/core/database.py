@@ -1,9 +1,11 @@
 """Database engine, session factory, Base model, and session dependency."""
 
+import os
 from typing import Generator
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
@@ -28,9 +30,12 @@ engine_kwargs = {
 }
 
 if not db_url.startswith("sqlite"):
-    engine_kwargs["pool_recycle"] = 300
-    engine_kwargs["pool_size"] = 5
-    engine_kwargs["max_overflow"] = 10
+    if os.getenv("VERCEL") or os.getenv("SERVERLESS"):
+        engine_kwargs["poolclass"] = NullPool
+    else:
+        engine_kwargs["pool_recycle"] = 300
+        engine_kwargs["pool_size"] = 5
+        engine_kwargs["max_overflow"] = 10
 
 engine = create_engine(db_url, **engine_kwargs)
 
@@ -60,5 +65,9 @@ def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
+

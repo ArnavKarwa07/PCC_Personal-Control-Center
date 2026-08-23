@@ -1,3 +1,63 @@
+# Pull Request: PCC Vercel Serverless & Neon PostgreSQL Infrastructure Migration (v1.0.0)
+
+## Target Branch
+`origin/staging` (Merge preparation for production `main` release).
+
+## PR Title
+`release(v1.0.0): Vercel Serverless Python deployment, Neon PostgreSQL pool recycling, dynamic CORS origin handling, and API client cloud endpoint fallback`
+
+---
+
+## Executive Summary
+
+This pull request establishes the core cloud infrastructure and database persistence layer for PCC (Personal Control Center), migrating backend operations to **Vercel Serverless Python** (`@vercel/python`) and enabling **Neon Serverless PostgreSQL** with SQLAlchemy 2.0 pool recycling and SSL connection management.
+
+---
+
+## Comprehensive Change Inventory
+
+### 1. Vercel Serverless Function Routing (`api/index.py` & `vercel.json`)
+- **Files Modified**: `api/index.py`, `vercel.json`
+- **Detailed Summary**:
+  - `api/index.py` serves as the entrypoint for Vercel Serverless Functions (`@vercel/python`).
+  - Dynamically calculates relative paths to the repository root and `backend/` directory, inserting them into `sys.path` (`sys.path.insert(0, ...)`).
+  - Imports the FastAPI ASGI application instance `app` from `backend.app.main` and exposes it via `__all__ = ["app"]`.
+  - Enables Vercel Serverless Functions to execute FastAPI routes without changing internal package imports or breaking local Uvicorn development server execution.
+  - Paired with root `vercel.json` configuration specifying builder `@vercel/python` and routing wildcard path `/(.*)` to `api/index.py`.
+
+### 2. Neon PostgreSQL Pool Recycling & Engine Configuration (`backend/app/core/database.py`)
+- **Files Modified**: `backend/app/core/database.py`
+- **Detailed Summary**:
+  - Automatically normalizes database URIs, converting legacy `postgres://` prefixes to `postgresql://`.
+  - Automatically appends `sslmode=require` parameter to PostgreSQL connection URIs if omitted, enforcing TLS-encrypted connection security to Neon cloud endpoints.
+  - Implements SQLAlchemy 2.0 engine configuration tuned for serverless PostgreSQL:
+    - `pool_recycle = 300`: Recycles pooled connections every 5 minutes (300 seconds) to prevent stale connection handles when Neon serverless compute instances suspend after inactivity.
+    - `pool_pre_ping = True`: Emits a lightweight `SELECT 1` ping before executing queries, verifying connection health and automatically reconnecting if needed.
+    - `pool_size = 5`, `max_overflow = 10`: Standard connection capacity limits optimized for serverless function concurrency.
+  - Dynamic `connect_args`: Configures SQLite-specific arguments (`check_same_thread=False`, `timeout=30`) and attaches event listeners for SQLite pragmas (`PRAGMA foreign_keys=ON`, `PRAGMA journal_mode=WAL`, `PRAGMA busy_timeout=30000`) while allowing native PostgreSQL connection pooling in production.
+
+### 3. Frontend API Client & Fallback Cloud Endpoint (`frontend/src/services/api.ts`)
+- **Files Modified**: `frontend/src/services/api.ts`
+- **Detailed Summary**:
+  - Defines `DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app'` as the default cloud API host.
+  - Implements dynamic API base URL resolution (`getApiBaseUrl()`) with fallback hierarchy:
+    1. Saved local storage server override (`localStorage.getItem('pcc_server_url')`).
+    2. Build-time environment variable (`import.meta.env.VITE_API_URL`).
+    3. Production fallback endpoint (`DEFAULT_CLOUD_API_URL`).
+  - Implements `setApiBaseUrl(url)` for runtime server configuration.
+  - Constructs REST request pipeline (`request<T>()`) appending `/api/v1` prefix, standardizing headers, parsing 204 No Content responses, converting HTTP errors to structured `ApiException` instances, and normalizing response envelopes (`normalizeApiResponse` and `normalizeItem` for snake_case to camelCase mapping).
+  - Exports typed API modules (`projectsApi`, `tasksApi`, `notesApi`, `ideasApi`, `calendarApi`, `remindersApi`, `alarmsApi`, `timersApi`, `notificationsApi`, `integrationsApi`, `weatherApi`, `searchApi`, `goalsApi`, `assistantApi`, `contactsApi`, `boardsApi`).
+
+### 4. Application Configuration & Dynamic CORS Origins (`backend/app/core/config.py`)
+- **Files Modified**: `backend/app/core/config.py`
+- **Detailed Summary**:
+  - Utilizes Pydantic Settings (`BaseSettings` & `SettingsConfigDict`) to load environment variables from `.env` and `../.env` with UTF-8 encoding.
+  - Defines default `DATABASE_URL` (`sqlite:///./pcc.db`).
+  - Defines `CORS_ORIGINS` string containing authorized cross-origin URLs: `http://localhost:5173`, `https://pcc-backend-ten.vercel.app`, `capacitor://localhost`, `https://localhost`, `http://tauri.localhost`, `https://tauri.localhost`, `tauri://localhost`, `http://localhost`.
+  - Provides computed property `@property def cors_origins_list(self) -> List[str]` parsing the comma-separated string into a clean list of authorized origin strings passed to FastAPI's `CORSMiddleware`.
+
+---
+
 # Pull Request: PCC Third-Party Integrations Expansion & Security Readiness (v1.4.0)
 
 ## Target Branch
