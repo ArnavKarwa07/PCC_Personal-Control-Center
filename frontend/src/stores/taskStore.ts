@@ -113,6 +113,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     const newTask: Task = {
       ...taskData,
       id: generateId('tsk'),
+      status: taskData.status || 'todo',
       columnId,
       subtasks: taskData.subtasks || [],
       tags: taskData.tags || [],
@@ -122,23 +123,83 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       updatedAt: now,
     };
 
+    // Convert status for backend payload
+    let backendStatus = 'todo';
+    if (newTask.status === 'completed') backendStatus = 'done';
+    else if (newTask.status === 'in_progress') backendStatus = 'in_progress';
+    else if (newTask.status === 'todo') backendStatus = 'todo';
+
+    // Prepare clean payload for API & offline sync
+    const apiPayload: Record<string, any> = {
+      title: newTask.title,
+      description: newTask.description,
+      status: backendStatus,
+      priority: newTask.priority,
+      tags: newTask.tags,
+    };
+
+    if (newTask.dueDate) {
+      apiPayload.due_date = newTask.dueDate;
+    }
+    if (newTask.projectId) {
+      apiPayload.project_id = newTask.projectId;
+    }
+
+    // Strip recurrence if it is 'none' or not an object so Pydantic validation doesn't fail with 422
+    if (
+      newTask.recurrence &&
+      newTask.recurrence !== ('none' as any) &&
+      typeof newTask.recurrence === 'object'
+    ) {
+      apiPayload.recurrence = newTask.recurrence;
+    }
+
     try {
-      const created = await tasksApi.create(newTask);
+      const created = await tasksApi.create(apiPayload as any);
       if (created && created.id) {
+        const returnedTask: Task = {
+          ...newTask,
+          ...created,
+          id: String(created.id),
+          status:
+            (created.status as any) === 'done' || created.status === 'completed'
+              ? 'completed'
+              : created.status === 'in_progress'
+              ? 'in_progress'
+              : 'todo',
+          columnId:
+            created.columnId ||
+            ((created.status as any) === 'done' || created.status === 'completed'
+              ? 'done'
+              : created.status === 'in_progress'
+              ? 'in_progress'
+              : 'todo'),
+        };
         set((state) => {
-          const updated = [created, ...state.tasks];
+          const updated = [returnedTask, ...state.tasks];
           saveTasks(updated);
           return { tasks: updated };
         });
-        return created;
+        return returnedTask;
       }
     } catch (err: any) {
-      if (err?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+      const is422 =
+        err?.code === 422 ||
+        err?.status === 422 ||
+        err?.code === '422' ||
+        String(err?.message || '').includes('422');
+      const isNetworkError =
+        err?.code === 'NETWORK_ERROR' || !navigator.onLine;
+
+      if (is422 || isNetworkError) {
         syncQueue.enqueue({
           entityType: 'task',
           action: 'create',
           entityId: newTask.id,
-          payload: newTask,
+          payload: {
+            ...apiPayload,
+            id: newTask.id,
+          },
         });
       }
     }

@@ -11,6 +11,7 @@ import { useAutoSync } from '../hooks/useAutoSync';
 import { alarmScheduler } from '../services/alarmScheduler';
 import type { Alarm } from '../types';
 import { ColdStartSyncLoader } from '../components/ColdStartSyncLoader';
+import { PermissionModal } from '../components/PermissionModal';
 import { permissionService } from '../services/permissionService';
 import './AppShell.css';
 
@@ -29,9 +30,14 @@ export const AppShell: React.FC = () => {
   }, []);
 
   const handleGrantPermissions = async () => {
-    setShowPermBanner(false);
     localStorage.setItem('pcc_permissions_requested', 'true');
     await permissionService.requestAllPermissions();
+    setShowPermBanner(false);
+  };
+
+  const handleSkipPermissions = () => {
+    setShowPermBanner(false);
+    localStorage.setItem('pcc_permissions_requested', 'true');
   };
 
   // Mount global multi-device auto-sync hook
@@ -139,15 +145,12 @@ export const AppShell: React.FC = () => {
 
   return (
     <div className="pcc-app-shell">
-      {showPermBanner && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'var(--accent)', color: '#fff', padding: '10px 20px', zIndex: 9999, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>PCC needs permissions for notifications, alarms, and location telemetry to work correctly.</span>
-          <div>
-            <button onClick={handleGrantPermissions} style={{ background: '#fff', color: 'var(--accent)', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Grant</button>
-            <button onClick={() => { setShowPermBanner(false); localStorage.setItem('pcc_permissions_requested', 'true'); }} style={{ background: 'transparent', color: '#fff', border: '1px solid #fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Skip</button>
-          </div>
-        </div>
-      )}
+      {/* System Permissions Request Modal */}
+      <PermissionModal
+        isOpen={showPermBanner}
+        onGrantAll={handleGrantPermissions}
+        onSkip={handleSkipPermissions}
+      />
       {isDesktop ? <DesktopLayout /> : <MobileLayout />}
 
       {/* Global Toast Notification Container */}

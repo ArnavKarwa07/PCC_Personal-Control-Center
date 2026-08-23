@@ -3,6 +3,9 @@ import type {
   ApiError,
   Project,
   Task,
+  TaskStatus,
+  KanbanColumnId,
+  RecurrenceType,
   Note,
   Idea,
   CalendarEvent,
@@ -14,9 +17,28 @@ import type {
   SearchResponse,
   GoalItem,
 } from '../types';
+import { generateId } from '../utils';
 
 const STORAGE_KEY_SERVER_URL = 'pcc_server_url';
 export const DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app';
+
+export function sanitizeApiBaseUrl(url: string): string {
+  if (!url) return '';
+  let cleaned = url.trim();
+  let changed = true;
+  while (changed && cleaned.length > 0) {
+    changed = false;
+    if (cleaned.endsWith('/')) {
+      cleaned = cleaned.replace(/\/+$/, '');
+      changed = true;
+    }
+    if (/\/api\/v1$/i.test(cleaned)) {
+      cleaned = cleaned.replace(/\/api\/v1$/i, '');
+      changed = true;
+    }
+  }
+  return cleaned;
+}
 
 export function getApiBaseUrl(): string {
   let rawUrl = DEFAULT_CLOUD_API_URL;
@@ -36,7 +58,7 @@ export function getApiBaseUrl(): string {
       rawUrl = envUrl.trim();
     }
   }
-  return rawUrl.replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
+  return sanitizeApiBaseUrl(rawUrl);
 }
 
 export function setApiBaseUrl(url: string): void {
@@ -44,7 +66,7 @@ export function setApiBaseUrl(url: string): void {
     if (!url || url.trim() === '') {
       localStorage.removeItem(STORAGE_KEY_SERVER_URL);
     } else {
-      const sanitized = url.trim().replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
+      const sanitized = sanitizeApiBaseUrl(url);
       localStorage.setItem(STORAGE_KEY_SERVER_URL, sanitized);
     }
   }
@@ -193,17 +215,179 @@ export const projectsApi = {
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/projects/delete_project_by_id/${id}`),
 };
 
+/* ==========================================================================
+   Task & Alarm Payload Normalization Helpers
+   ========================================================================== */
+
+function sanitizeTaskPayload(data: Partial<Task> | any): Record<string, any> {
+  const payload: Record<string, any> = { ...data };
+
+  // Remove frontend-only properties that backend rejects
+  delete payload.columnId;
+  delete payload.subtasks;
+  delete payload.dependencies;
+  delete payload.projectName;
+  delete payload.order;
+  delete payload.createdAt;
+  delete payload.updatedAt;
+
+  // Convert camelCase keys to snake_case for backend compatibility
+  if ('dueDate' in payload) {
+    if (payload.dueDate) payload.due_date = payload.dueDate;
+    delete payload.dueDate;
+  }
+  if ('projectId' in payload) {
+    if (payload.projectId) payload.project_id = payload.projectId;
+    delete payload.projectId;
+  }
+  if ('goalId' in payload) {
+    if (payload.goalId) payload.goal_id = payload.goalId;
+    delete payload.goalId;
+  }
+  if ('dueTime' in payload) {
+    if (payload.dueTime) payload.due_time = payload.dueTime;
+    delete payload.dueTime;
+  }
+  if ('estimatedMinutes' in payload) {
+    if (payload.estimatedMinutes !== undefined) payload.estimated_minutes = payload.estimatedMinutes;
+    delete payload.estimatedMinutes;
+  }
+
+  // Convert status: 'completed' -> 'done', 'in_progress' -> 'in_progress', 'todo' -> 'todo'
+  if (payload.status === 'completed') {
+    payload.status = 'done';
+  } else if (payload.status === 'in_progress') {
+    payload.status = 'in_progress';
+  } else if (payload.status === 'todo') {
+    payload.status = 'todo';
+  }
+
+  // Strip recurrence if 'none' or not an object so Pydantic validation doesn't fail with 422
+  if (
+    payload.recurrence === 'none' ||
+    typeof payload.recurrence !== 'object' ||
+    payload.recurrence === null
+  ) {
+    delete payload.recurrence;
+  }
+
+  return payload;
+}
+
+function normalizeTask(t: any): Task {
+  if (!t) return t;
+  const rawStatus = t.status;
+  const status: TaskStatus =
+    rawStatus === 'done' || rawStatus === 'completed'
+      ? 'completed'
+      : rawStatus === 'in_progress'
+      ? 'in_progress'
+      : rawStatus === 'cancelled' || rawStatus === 'archived'
+      ? 'archived'
+      : 'todo';
+
+  const columnId: KanbanColumnId =
+    t.columnId ||
+    (status === 'completed' ? 'done' : status === 'in_progress' ? 'in_progress' : 'todo');
+
+  return {
+    ...t,
+    id: t.id ? String(t.id) : generateId('tsk'),
+    title: t.title || '',
+    description: t.description || undefined,
+    status,
+    priority: t.priority || 'medium',
+    columnId,
+    dueDate: t.dueDate || t.due_date || undefined,
+    projectId: t.projectId || t.project_id || undefined,
+    subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+    tags: Array.isArray(t.tags) ? t.tags : [],
+    dependencies: Array.isArray(t.dependencies) ? t.dependencies : [],
+    recurrence: typeof t.recurrence === 'string' ? (t.recurrence as RecurrenceType) : 'none',
+    createdAt: t.createdAt || t.created_at || new Date().toISOString(),
+    updatedAt: t.updatedAt || t.updated_at || new Date().toISOString(),
+  };
+}
+
+const DAYS_ABBR = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+function parseDaysOfWeekString(daysStr?: string | null): number[] {
+  if (!daysStr) return [];
+  const map: Record<string, number> = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+  return daysStr
+    .split(',')
+    .map((s) => map[s.trim().toUpperCase()])
+    .filter((n) => n !== undefined);
+}
+
+function formatDaysToWeekString(days?: number[] | string | null): string | null {
+  if (!days) return null;
+  if (typeof days === 'string') return days;
+  if (Array.isArray(days) && days.length > 0) {
+    return days.map((d) => DAYS_ABBR[d] || d).join(',');
+  }
+  return null;
+}
+
+function normalizeAlarm(a: any): Alarm {
+  if (!a) return a;
+  const time = typeof a.time === 'string' ? a.time.slice(0, 5) : a.time || '07:00';
+  const enabled =
+    a.enabled !== undefined
+      ? a.enabled
+      : a.isEnabled !== undefined
+      ? a.isEnabled
+      : a.is_enabled !== undefined
+      ? a.is_enabled
+      : true;
+
+  const days = Array.isArray(a.days)
+    ? a.days
+    : parseDaysOfWeekString(a.daysOfWeek || a.days_of_week);
+
+  return {
+    ...a,
+    id: a.id ? String(a.id) : generateId('alm'),
+    time,
+    label: a.label || '',
+    enabled: Boolean(enabled),
+    days: days || [],
+    sound: a.sound || 'radiant',
+    snoozeMinutes: a.snoozeMinutes || a.snooze_minutes || 10,
+    createdAt: a.createdAt || a.created_at || new Date().toISOString(),
+    updatedAt: a.updatedAt || a.updated_at || new Date().toISOString(),
+  };
+}
+
 export const tasksApi = {
-  getAll: (params?: { projectId?: string; status?: string }) => {
+  getAll: async (params?: { projectId?: string; status?: string }): Promise<Task[]> => {
     const query = new URLSearchParams();
     if (params?.projectId) query.append('project_id', params.projectId);
-    if (params?.status) query.append('status', params.status);
+    if (params?.status) {
+      const backendStatus = params.status === 'completed' ? 'done' : params.status;
+      query.append('status', backendStatus);
+    }
     const qs = query.toString();
-    return apiClient.get<Task[]>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`);
+    const res = await apiClient.get<any[]>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`);
+    if (Array.isArray(res)) {
+      return res.map(normalizeTask);
+    }
+    return [];
   },
-  getById: (id: string) => apiClient.get<Task>(`/tasks/get_task_by_id/${id}`),
-  create: (data: Partial<Task>) => apiClient.post<Task>('/tasks/create_task', data),
-  update: (id: string, data: Partial<Task>) => apiClient.patch<Task>(`/tasks/update_task_by_id/${id}`, data),
+  getById: async (id: string): Promise<Task> => {
+    const res = await apiClient.get<any>(`/tasks/get_task_by_id/${id}`);
+    return normalizeTask(res);
+  },
+  create: async (data: Partial<Task>): Promise<Task> => {
+    const payload = sanitizeTaskPayload(data);
+    const res = await apiClient.post<any>('/tasks/create_task', payload);
+    return normalizeTask(res);
+  },
+  update: async (id: string, data: Partial<Task>): Promise<Task> => {
+    const payload = sanitizeTaskPayload(data);
+    const res = await apiClient.patch<any>(`/tasks/update_task_by_id/${id}`, payload);
+    return normalizeTask(res);
+  },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/tasks/delete_task_by_id/${id}`),
 };
 
@@ -256,12 +440,70 @@ export const remindersApi = {
 };
 
 export const alarmsApi = {
-  getAll: () => apiClient.get<Alarm[]>('/alarms/list_alarms'),
-  getById: (id: string) => apiClient.get<Alarm>(`/alarms/get_alarm_by_id/${id}`),
-  create: (data: Partial<Alarm>) => apiClient.post<Alarm>('/alarms/create_alarm', data),
-  update: (id: string, data: Partial<Alarm>) => apiClient.patch<Alarm>(`/alarms/update_alarm_by_id/${id}`, data),
+  getAll: async (): Promise<Alarm[]> => {
+    const raw = await apiClient.get<any[]>('/alarms/list_alarms');
+    if (Array.isArray(raw)) {
+      return raw.map(normalizeAlarm);
+    }
+    return [];
+  },
+  getById: async (id: string): Promise<Alarm> => {
+    const raw = await apiClient.get<any>(`/alarms/get_alarm_by_id/${id}`);
+    return normalizeAlarm(raw);
+  },
+  create: async (data: Partial<Alarm> | any): Promise<Alarm> => {
+    const daysOfWeek = formatDaysToWeekString(data.days || data.days_of_week || data.daysOfWeek);
+    let timeStr = data.time || '07:00';
+    if (typeof timeStr === 'string' && timeStr.length === 5) {
+      timeStr = `${timeStr}:00`;
+    }
+
+    const payload: Record<string, any> = {
+      time: timeStr,
+      label: data.label || 'Alarm',
+      is_enabled:
+        data.enabled !== undefined
+          ? Boolean(data.enabled)
+          : data.is_enabled !== undefined
+          ? Boolean(data.is_enabled)
+          : true,
+      days_of_week: daysOfWeek,
+      is_recurring: Boolean(daysOfWeek && daysOfWeek.length > 0),
+    };
+
+    const res = await apiClient.post<any>('/alarms/create_alarm', payload);
+    return normalizeAlarm({
+      ...data,
+      ...res,
+    });
+  },
+  update: async (id: string, data: Partial<Alarm> | any): Promise<Alarm> => {
+    const payload: Record<string, any> = {};
+    if (data.label !== undefined) payload.label = data.label;
+    if (data.time !== undefined) {
+      let timeStr = data.time;
+      if (typeof timeStr === 'string' && timeStr.length === 5) {
+        timeStr = `${timeStr}:00`;
+      }
+      payload.time = timeStr;
+    }
+    if (data.enabled !== undefined) payload.is_enabled = Boolean(data.enabled);
+    if (data.is_enabled !== undefined) payload.is_enabled = Boolean(data.is_enabled);
+    if (data.days !== undefined || data.days_of_week !== undefined || data.daysOfWeek !== undefined) {
+      const daysOfWeek = formatDaysToWeekString(data.days || data.days_of_week || data.daysOfWeek);
+      payload.days_of_week = daysOfWeek;
+      payload.is_recurring = Boolean(daysOfWeek && daysOfWeek.length > 0);
+    }
+
+    const res = await apiClient.patch<any>(`/alarms/update_alarm_by_id/${id}`, payload);
+    return normalizeAlarm({
+      ...data,
+      ...res,
+    });
+  },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/alarms/delete_alarm_by_id/${id}`),
-  toggle: (id: string, enabled: boolean) => apiClient.patch<Alarm>(`/alarms/toggle_alarm_by_id/${id}`, { enabled }),
+  toggle: (id: string, enabled: boolean) =>
+    apiClient.patch<Alarm>(`/alarms/toggle_alarm_by_id/${id}`, { is_enabled: enabled }),
 };
 
 export const timersApi = {
