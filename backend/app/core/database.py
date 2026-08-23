@@ -15,13 +15,24 @@ connect_args = {}
 if db_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
     connect_args["timeout"] = 30
+elif "sslmode" not in db_url and "postgresql" in db_url:
+    if "?" in db_url:
+        db_url += "&sslmode=require"
+    else:
+        db_url += "?sslmode=require"
 
-engine = create_engine(
-    db_url,
-    echo=settings.DEBUG,
-    connect_args=connect_args,
-    pool_pre_ping=True,
-)
+engine_kwargs = {
+    "echo": settings.DEBUG,
+    "connect_args": connect_args,
+    "pool_pre_ping": True,
+}
+
+if not db_url.startswith("sqlite"):
+    engine_kwargs["pool_recycle"] = 300
+    engine_kwargs["pool_size"] = 5
+    engine_kwargs["max_overflow"] = 10
+
+engine = create_engine(db_url, **engine_kwargs)
 
 
 @event.listens_for(engine, "connect")

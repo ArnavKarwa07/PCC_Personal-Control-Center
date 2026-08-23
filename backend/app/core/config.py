@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment or .env files."""
 
     DATABASE_URL: str = "sqlite:///./pcc.db"
-    CORS_ORIGINS: str = "http://localhost:5173,capacitor://localhost,https://localhost,http://tauri.localhost,https://tauri.localhost,tauri://localhost,http://localhost"
+    CORS_ORIGINS: str = "http://localhost:5173,https://pcc-backend-ten.vercel.app,capacitor://localhost,https://localhost,http://tauri.localhost,https://tauri.localhost,tauri://localhost,http://localhost"
     WEATHER_API_KEY: str = "29b21b5a2f9aca2282088c7c61c30ea2"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
