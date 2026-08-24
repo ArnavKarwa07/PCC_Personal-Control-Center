@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Badge, Spinner } from '../../components/ui';
+import { Card, Badge, Modal } from '../../components/ui';
 import { apiClient } from '../../services/api';
 import './DashboardPage.css';
 
@@ -92,6 +92,28 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="pcc-dashboard-page">
+      {/* Initial Workspace Data Loading Modal */}
+      <Modal
+        isOpen={loading}
+        onClose={() => {}}
+        title=""
+        size="sm"
+      >
+        <div className="pcc-dashboard-loading-modal">
+          <div className="pcc-dashboard-loading-modal__logo-wrap">
+            <div className="pcc-dashboard-loading-modal__ring" />
+            <img src="/logo.png" alt="PCC Logo" className="pcc-dashboard-loading-modal__logo" />
+          </div>
+          <h3 className="pcc-dashboard-loading-modal__title">Syncing Personal OS</h3>
+          <p className="pcc-dashboard-loading-modal__subtitle">
+            Fetching daily briefing, task metrics & workspace telemetry...
+          </p>
+          <div className="pcc-dashboard-loading-modal__bar">
+            <div className="pcc-dashboard-loading-modal__bar-fill" />
+          </div>
+        </div>
+      </Modal>
+
       {/* 4 Metric Cards at Top */}
       <div className="pcc-dashboard-metrics">
         <Card
@@ -113,7 +135,9 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{pendingTasks}</div>
+          <div className="pcc-metric-card__val">
+            {loading ? <div className="pcc-skeleton-val" /> : pendingTasks}
+          </div>
           <Badge variant="warning" size="sm">Pending</Badge>
         </Card>
 
@@ -138,7 +162,9 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{upcomingEvents}</div>
+          <div className="pcc-metric-card__val">
+            {loading ? <div className="pcc-skeleton-val" /> : upcomingEvents}
+          </div>
           <Badge variant="primary" size="sm">Scheduled</Badge>
         </Card>
 
@@ -161,7 +187,9 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{overdueReminders}</div>
+          <div className="pcc-metric-card__val">
+            {loading ? <div className="pcc-skeleton-val" /> : overdueReminders}
+          </div>
           <Badge variant="accent" size="sm">Requires Attention</Badge>
         </Card>
 
@@ -183,7 +211,9 @@ export const DashboardPage: React.FC = () => {
               </svg>
             </span>
           </div>
-          <div className="pcc-metric-card__val">{activeProjects}</div>
+          <div className="pcc-metric-card__val">
+            {loading ? <div className="pcc-skeleton-val" /> : activeProjects}
+          </div>
           <Badge variant="success" size="sm">In Progress</Badge>
         </Card>
       </div>
@@ -196,9 +226,10 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="pcc-daily-briefing__loading">
-            <Spinner size="sm" />
-            <span>Loading briefing data...</span>
+          <div className="pcc-daily-briefing__skeleton">
+            <div className="pcc-skeleton-line pcc-skeleton-line--full" />
+            <div className="pcc-skeleton-line pcc-skeleton-line--3-4" />
+            <div className="pcc-skeleton-line pcc-skeleton-line--half" />
           </div>
         ) : error || !briefing ? (
           <div className="pcc-daily-briefing__fallback">

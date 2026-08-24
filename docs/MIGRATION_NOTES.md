@@ -12,7 +12,7 @@ Official Release `v1.0.0` completes the production deployment of PCC. It provisi
 ## Active Database Connection Parameters
 - **Active Neon Instance**: `holy-cell-73614246` (`ep-odd-bonus-azdke95p-pooler.c-3.ap-southeast-1.aws.neon.tech`)
 - **Connection URI**:
-  `DATABASE_URL=postgresql://neondb_owner:npg_6rlNEeCa1XBy@ep-odd-bonus-azdke95p-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+  `DATABASE_URL=postgresql://neondb_owner:<REDACTED_NEON_PASSWORD>@ep-odd-bonus-azdke95p-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
 - **Alembic Migration Command**:
   ```bash
   cd backend
