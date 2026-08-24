@@ -342,6 +342,15 @@
   animation: pcc-shimmer-bar 1.4s ease-in-out infinite alternate;
 }
 
+@keyframes pcc-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes pcc-shimmer-bar {
   0% {
     transform: translateX(-100%);
@@ -353,10 +362,12 @@
 
 /* Skeleton Pulse States */
 .pcc-skeleton-val {
-  width: 32px;
-  height: 28px;
+  display: inline-block;
+  width: 2.2rem;
+  height: 1.25em;
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-sm);
+  vertical-align: middle;
   animation: pcc-pulse 1.5s ease-in-out infinite;
 }
 
@@ -368,7 +379,7 @@
 }
 
 .pcc-skeleton-line {
-  height: 42px;
+  height: 44px;
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -389,9 +400,18 @@
 
 @keyframes pcc-pulse {
   0%, 100% {
-    opacity: 0.6;
+    opacity: 0.5;
   }
   50% {
-    opacity: 1;
+    opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcc-dashboard-loading-modal__ring,
+  .pcc-dashboard-loading-modal__bar-fill,
+  .pcc-skeleton-val,
+  .pcc-skeleton-line {
+    animation: none !important;
   }
 }

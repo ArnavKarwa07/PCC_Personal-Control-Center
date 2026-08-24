@@ -98,6 +98,7 @@ export const DashboardPage: React.FC = () => {
         onClose={() => {}}
         title=""
         size="sm"
+        showCloseButton={false}
       >
         <div className="pcc-dashboard-loading-modal">
           <div className="pcc-dashboard-loading-modal__logo-wrap">
