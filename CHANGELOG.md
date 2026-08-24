@@ -5,6 +5,24 @@ All notable changes to the PCC (Personal Control Center) project will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.0] - 2026-08-24
+
+### Consolidated Official Release Highlights (v1.0.0 Final)
+This official `v1.0.0` release establishes the final production release of PCC (Personal Control Center). It initializes the fresh single-tenant Neon PostgreSQL database instance (`holy-cell-73614246`) on AWS Singapore (`aws-ap-southeast-1`), executes full Alembic migrations creating all 28 core tables, establishes full synchronization between Web/Mobile/Desktop clients and the backend API, and adds desktop launch diagnostics for Rust toolchain verification.
+
+### Added & Fixed
+- **Fresh Active Neon Database Provisioning & Schema Migration**:
+  - Provisioned and migrated new single-tenant Neon PostgreSQL instance (`holy-cell-73614246` / `ep-odd-bonus-azdke95p`).
+  - Executed Alembic migration `105cb739b3f8_initial_single_tenant_schema` creating all 28 database tables (tasks, projects, calendar, goals, notes, ideas, contacts, reminders, alarms, timers, weather, notifications, integrations, automations, etc.).
+- **Desktop Launcher Diagnostics**:
+  - Enhanced `start_desktop.bat` with automated Rust toolchain (`cargo`/`rustc`) validation, providing user instructions if Rust is missing on the host.
+- **Frontend & Backend Sync Stabilization**:
+  - Verified REST API endpoint compatibility across all 13 core modules with zero schema mismatch.
+- **Production Environment Alignment**:
+  - Updated root `.env` and `backend/.env` with production Neon database connection parameters.
+
+---
+
 ## [v1.2.0] - 2026-08-24
 
 ### Consolidated Release Highlights

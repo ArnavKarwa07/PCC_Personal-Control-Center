@@ -1,6 +1,23 @@
-# PCC Migration Notes & Upgrade Guide - Release v1.2.0
+# PCC Migration Notes & Upgrade Guide - Official Release v1.0.0
 
-This document aggregates release migration notes, database schema upgrades, storage key transitions, deployment host environment configurations, and cross-platform setup guidelines for **Personal Control Center (PCC)** under release tag **`v1.2.0`**.
+This document aggregates release migration notes, database schema upgrades, storage key transitions, deployment host environment configurations, and cross-platform setup guidelines for **Personal Control Center (PCC)** under official release tag **`v1.0.0`**.
+
+---
+
+# PCC Migration Notes - Release v1.0.0 (Official Production Release)
+
+## Release Overview
+Official Release `v1.0.0` completes the production deployment of PCC. It provisions the fresh active single-tenant Neon PostgreSQL instance (`holy-cell-73614246`) on AWS Singapore (`aws-ap-southeast-1`), executes full Alembic migrations creating all 28 entity tables, verifies client-backend sync across web, mobile, and desktop, and adds desktop launcher toolchain validation.
+
+## Active Database Connection Parameters
+- **Active Neon Instance**: `holy-cell-73614246` (`ep-odd-bonus-azdke95p-pooler.c-3.ap-southeast-1.aws.neon.tech`)
+- **Connection URI**:
+  `DATABASE_URL=postgresql://neondb_owner:npg_6rlNEeCa1XBy@ep-odd-bonus-azdke95p-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+- **Alembic Migration Command**:
+  ```bash
+  cd backend
+  python -m alembic upgrade head
+  ```
 
 ---
 
