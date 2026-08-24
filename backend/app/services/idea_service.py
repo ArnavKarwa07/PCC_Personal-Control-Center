@@ -169,6 +169,7 @@ class IdeaService:
                 status=TaskStatus.TODO,
                 priority=priority,
                 due_date=data.due_date,
+                project_id=data.target_project_id,
             )
             task_resp = task_service.create_task(db=db, data=task_payload)
             idea.promoted_to_type = "task"

@@ -263,9 +263,10 @@ export const SearchPage: React.FC = () => {
   const groupedResults = useMemo(() => {
     const map = new Map<SearchEntityType, SearchResultItem[]>();
     results.forEach((item) => {
-      const list = map.get(item.entity_type) || [];
+      const typeKey = (item.entityType || item.entity_type) as SearchEntityType;
+      const list = map.get(typeKey) || [];
       list.push(item);
-      map.set(item.entity_type, list);
+      map.set(typeKey, list);
     });
     return Array.from(map.entries()).map(([entityType, items]) => ({
       entityType,
@@ -351,17 +352,19 @@ export const SearchPage: React.FC = () => {
         </span>
       );
     }
-    if (m.due_date || m.deadline) {
+    const due = m.due_date || m.dueDate || m.deadline;
+    if (due) {
       chips.push(
         <span key="due" className="pcc-search-chip">
-          Due: {String(m.due_date || m.deadline)}
+          Due: {String(due)}
         </span>
       );
     }
-    if (m.start_time) {
+    const startTime = m.start_time || m.startTime;
+    if (startTime) {
       chips.push(
         <span key="start" className="pcc-search-chip">
-          Time: {new Date(m.start_time).toLocaleDateString()}
+          Time: {new Date(startTime).toLocaleDateString()}
         </span>
       );
     }
@@ -543,46 +546,51 @@ export const SearchPage: React.FC = () => {
                 </div>
 
                 <div className="pcc-search-results-list">
-                  {group.items.map((item) => (
-                    <div
-                      key={`${item.entity_type}-${item.id}`}
-                      className="pcc-search-card"
-                      onClick={() => handleCardClick(item)}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="pcc-search-card__header">
-                        <div className="pcc-search-card__title-row">
-                          <span className={`pcc-search-card__type-tag ${ENTITY_CONFIG[item.entity_type]?.tagClass || ''}`}>
-                            {ENTITY_CONFIG[item.entity_type]?.singular || item.entity_type}
+                  {group.items.map((item) => {
+                    const eType = (item.entityType || item.entity_type) as SearchEntityType;
+                    const config = ENTITY_CONFIG[eType];
+                    return (
+                      <div
+                        key={`${eType}-${item.id}`}
+                        className="pcc-search-card"
+                        onClick={() => handleCardClick(item)}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="pcc-search-card__header">
+                          <div className="pcc-search-card__title-row">
+                            <span className={`pcc-search-card__type-tag ${config?.tagClass || ''}`}>
+                              {config?.singular || eType}
+                            </span>
+                            <h3 className="pcc-search-card__title">{highlightMatch(item.title, query)}</h3>
+                          </div>
+                          <span className="pcc-search-card__relevance">
+                            {Math.round(item.relevance * 100)}% match
                           </span>
-                          <h3 className="pcc-search-card__title">{highlightMatch(item.title, query)}</h3>
                         </div>
-                        <span className="pcc-search-card__relevance">
-                          {Math.round(item.relevance * 100)}% match
-                        </span>
-                      </div>
 
-                      {item.snippet && (
-                        <div className="pcc-search-card__snippet">{highlightMatch(item.snippet, query)}</div>
-                      )}
+                        {item.snippet && (
+                          <div className="pcc-search-card__snippet">{highlightMatch(item.snippet, query)}</div>
+                        )}
 
-                      <div className="pcc-search-card__metadata">
-                        {renderMetadataChips(item)}
-                        <span className="pcc-search-card__arrow">Open →</span>
+                        <div className="pcc-search-card__metadata">
+                          {renderMetadataChips(item)}
+                          <span className="pcc-search-card__arrow">Open →</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))
           ) : (
             <div className="pcc-search-results-list">
               {results.map((item) => {
-                const config = ENTITY_CONFIG[item.entity_type];
+                const eType = (item.entityType || item.entity_type) as SearchEntityType;
+                const config = ENTITY_CONFIG[eType];
                 return (
                   <div
-                    key={`${item.entity_type}-${item.id}`}
+                    key={`${eType}-${item.id}`}
                     className="pcc-search-card"
                     onClick={() => handleCardClick(item)}
                     role="button"
@@ -592,7 +600,7 @@ export const SearchPage: React.FC = () => {
                       <div className="pcc-search-card__title-row">
                         <span className={`pcc-search-card__type-tag ${config?.tagClass || ''}`}>
                           {config?.icon}
-                          {config?.singular || item.entity_type}
+                          {config?.singular || eType}
                         </span>
                         <h3 className="pcc-search-card__title">{highlightMatch(item.title, query)}</h3>
                       </div>

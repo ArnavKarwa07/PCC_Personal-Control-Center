@@ -399,14 +399,17 @@ export type SearchEntityType =
 
 export interface SearchResultItem {
   id: string;
-  entity_type: SearchEntityType;
+  entity_type?: SearchEntityType;
+  entityType?: SearchEntityType;
   title: string;
   snippet?: string;
   relevance: number;
   url: string;
   metadata?: Record<string, any>;
   created_at?: string;
+  createdAt?: string;
   updated_at?: string;
+  updatedAt?: string;
 }
 
 export interface SearchMeta {

@@ -16,7 +16,9 @@ This official `v1.0.0` release establishes the production release of PCC (Person
   - Executed Alembic migration `105cb739b3f8_initial_single_tenant_schema` creating all 28 database tables (tasks, projects, calendar, goals, notes, ideas, contacts, reminders, alarms, timers, weather, notifications, integrations, automations, etc.).
 - **Desktop Launcher Diagnostics**:
   - Enhanced `start_desktop.bat` with automated Rust toolchain (`cargo`/`rustc`) validation, providing user instructions if Rust is missing on the host.
-- **Frontend & Backend Sync Stabilization**:
+- **Frontend & Backend Sync Stabilization & API Response Envelope Unwrapping Fix**:
+  - Refactored `normalizeApiResponse` in `frontend/src/services/api.ts` to directly extract `resJson.data` when present, removing overly restrictive key-matching (`keys.every(...)`) and pagination metadata guards (`meta`/`pagination`).
+  - Restored seamless data synchronization across all global feature pages (Tasks, Projects, Notes, Calendar, Alarms, Finances, Fitness, Contacts, Career, Ideas, Integrations, Automations) on web, mobile, and desktop runtimes.
   - Verified REST API endpoint compatibility across all core modules with zero schema mismatch.
 - **Vercel Serverless Architecture & Python Bridge (`api/index.py`)**:
   - Implemented root serverless wrapper (`api/index.py`) importing FastAPI `app` from `backend.app.main` with dynamic `sys.path` resolution for `@vercel/python`.

@@ -43,6 +43,7 @@ class IdeaPromoteRequest(BaseModel):
     promote_to: str = Field(..., pattern="^(project|task)$", description="Target entity type: 'project' or 'task'")
     target_name: Optional[str] = Field(None, description="Optional custom title/name for created entity")
     target_description: Optional[str] = Field(None, description="Optional custom description")
+    target_project_id: Optional[uuid.UUID] = Field(None, description="Optional project ID when promoting to task")
     priority: Optional[str] = Field("medium", description="Priority level for created entity")
     due_date: Optional[date] = Field(None, description="Due date if promoting to task")
     deadline: Optional[date] = Field(None, description="Deadline if promoting to project")

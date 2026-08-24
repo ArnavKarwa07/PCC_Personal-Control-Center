@@ -159,6 +159,37 @@ def test_promote_idea_to_task(client, auth_headers):
     assert task_res.json()["data"]["due_date"] == "2026-08-25"
 
 
+def test_promote_idea_to_task_with_target_project_id(client, auth_headers):
+    """Test promoting an idea to a task with target_project_id preserving project linkage."""
+    # Create project first
+    p_res = client.post("/api/v1/projects/create_project", json={"name": "Target Project"}, headers=auth_headers)
+    assert p_res.status_code == 201
+    project_id = p_res.json()["data"]["id"]
+
+    # Create idea
+    create_res = client.post(
+        "/api/v1/ideas/create_idea",
+        json={"title": "Project Task Idea", "description": "Needs to be linked to project"},
+        headers=auth_headers,
+    )
+    idea_id = create_res.json()["data"]["id"]
+
+    # Promote to task with target_project_id
+    promote_res = client.post(
+        f"/api/v1/ideas/promote_idea_by_id/{idea_id}",
+        json={"promote_to": "task", "target_project_id": project_id},
+        headers=auth_headers,
+    )
+    assert promote_res.status_code == 200
+    task_id = promote_res.json()["data"]["idea"]["promoted_to_id"]
+
+    # Verify created task has project_id populated
+    task_res = client.get(f"/api/v1/tasks/get_task_by_id/{task_id}", headers=auth_headers)
+    assert task_res.status_code == 200
+    assert task_res.json()["data"]["project_id"] == project_id
+
+
+
 def test_notes_ideas_negative_missing_payload_fields(client, auth_headers):
     """Test 422 validation error format when creating notes/ideas with invalid field types."""
     res_note = client.post("/api/v1/notes/create_note", json={"is_pinned": ["invalid", "list"]}, headers=auth_headers)

@@ -159,6 +159,9 @@ function normalizeItem(item: any): any {
       const camelKey = key.replace(/_([a-z0-9])/gi, (_, letter) => letter.toUpperCase());
       const mappedVal = normalizeItem(val);
       normalized[camelKey] = mappedVal;
+      if (camelKey !== key) {
+        normalized[key] = mappedVal;
+      }
     }
     return normalized;
   }
@@ -167,23 +170,21 @@ function normalizeItem(item: any): any {
 
 function normalizeApiResponse<T>(resJson: any): T {
   if (!resJson) return resJson as T;
-  let data = resJson;
   if (
     typeof resJson === 'object' &&
     resJson !== null &&
     'data' in resJson &&
-    resJson.data !== undefined &&
-    !('meta' in resJson) &&
-    !('pagination' in resJson)
+    resJson.data !== undefined
   ) {
-    // Standard single data wrapper or status envelope
-    const keys = Object.keys(resJson);
-    const isEnvelope = keys.every((k) => ['data', 'status', 'success', 'message', 'code'].includes(k));
-    if (isEnvelope) {
-      data = resJson.data;
+    if ('meta' in resJson || 'pagination' in resJson) {
+      return {
+        data: normalizeItem(resJson.data),
+        meta: resJson.meta || resJson.pagination,
+      } as T;
     }
+    return normalizeItem(resJson.data) as T;
   }
-  return normalizeItem(data) as T;
+  return normalizeItem(resJson) as T;
 }
 
 export const apiClient = {
@@ -208,7 +209,11 @@ export const apiClient = {
    ========================================================================== */
 
 export const projectsApi = {
-  getAll: () => apiClient.get<Project[]>('/projects/list_projects'),
+  getAll: async (): Promise<Project[]> => {
+    const res = await apiClient.get<any>('/projects/list_projects');
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    return items;
+  },
   getById: (id: string) => apiClient.get<Project>(`/projects/get_project_by_id/${id}`),
   create: (data: Partial<Project>) => apiClient.post<Project>('/projects/create_project', data),
   update: (id: string, data: Partial<Project>) => apiClient.patch<Project>(`/projects/update_project_by_id/${id}`, data),
@@ -391,50 +396,298 @@ export const tasksApi = {
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/tasks/delete_task_by_id/${id}`),
 };
 
+function sanitizeNotePayload(data: Partial<Note> | any): Record<string, any> {
+  const payload: Record<string, any> = { ...data };
+  if ('pinned' in payload) {
+    payload.is_pinned = payload.pinned;
+    delete payload.pinned;
+  }
+  if ('isPinned' in payload) {
+    payload.is_pinned = payload.isPinned;
+    delete payload.isPinned;
+  }
+  delete payload.createdAt;
+  delete payload.created_at;
+  delete payload.updatedAt;
+  delete payload.updated_at;
+  return payload;
+}
+
+function normalizeNote(n: any): Note {
+  if (!n) return n;
+  const pinned =
+    n.pinned !== undefined
+      ? Boolean(n.pinned)
+      : n.isPinned !== undefined
+      ? Boolean(n.isPinned)
+      : n.is_pinned !== undefined
+      ? Boolean(n.is_pinned)
+      : false;
+
+  return {
+    ...n,
+    id: n.id ? String(n.id) : generateId('not'),
+    title: n.title || '',
+    content: n.content || '',
+    category: n.category || 'General',
+    pinned,
+    isPinned: pinned,
+    is_pinned: pinned,
+    createdAt: n.createdAt || n.created_at || new Date().toISOString(),
+    updatedAt: n.updatedAt || n.updated_at || new Date().toISOString(),
+  };
+}
+
 export const notesApi = {
-  getAll: (category?: string) => {
+  getAll: async (category?: string): Promise<Note[]> => {
     const query = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
-    return apiClient.get<Note[]>(`/notes/list_notes${query}`);
+    const res = await apiClient.get<any>(`/notes/list_notes${query}`);
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    return items.map(normalizeNote);
   },
-  getById: (id: string) => apiClient.get<Note>(`/notes/get_note_by_id/${id}`),
-  create: (data: Partial<Note>) => apiClient.post<Note>('/notes/create_note', data),
-  update: (id: string, data: Partial<Note>) => apiClient.patch<Note>(`/notes/update_note_by_id/${id}`, data),
+  getById: async (id: string): Promise<Note> => {
+    const res = await apiClient.get<any>(`/notes/get_note_by_id/${id}`);
+    return normalizeNote(res);
+  },
+  create: async (data: Partial<Note>): Promise<Note> => {
+    const payload = sanitizeNotePayload(data);
+    const res = await apiClient.post<any>('/notes/create_note', payload);
+    return normalizeNote(res);
+  },
+  update: async (id: string, data: Partial<Note>): Promise<Note> => {
+    const payload = sanitizeNotePayload(data);
+    const res = await apiClient.patch<any>(`/notes/update_note_by_id/${id}`, payload);
+    return normalizeNote(res);
+  },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notes/delete_note_by_id/${id}`),
 };
 
 export const ideasApi = {
-  getAll: (status?: string) => {
+  getAll: async (status?: string): Promise<Idea[]> => {
     const query = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return apiClient.get<Idea[]>(`/ideas/list_ideas${query}`);
+    const res = await apiClient.get<any>(`/ideas/list_ideas${query}`);
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    return items;
   },
   getById: (id: string) => apiClient.get<Idea>(`/ideas/get_idea_by_id/${id}`),
   create: (data: Partial<Idea>) => apiClient.post<Idea>('/ideas/create_idea', data),
   update: (id: string, data: Partial<Idea>) => apiClient.patch<Idea>(`/ideas/update_idea_by_id/${id}`, data),
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/ideas/delete_idea_by_id/${id}`),
-  promote: (id: string, promotion: { type: 'task' | 'project'; title?: string; projectId?: string }) =>
-    apiClient.post<Idea>(`/ideas/promote_idea_by_id/${id}`, promotion),
+  promote: async (id: string, promotion: { type: 'task' | 'project'; title?: string; projectId?: string }) => {
+    const res = await apiClient.post<any>(`/ideas/promote_idea_by_id/${id}`, {
+      promote_to: promotion.type,
+      target_name: promotion.title || undefined,
+      target_project_id: promotion.projectId || undefined,
+    });
+    return (res?.idea ? res.idea : res) as Idea;
+  },
 };
 
+function sanitizeCalendarEventPayload(data: Partial<CalendarEvent> | any): Record<string, any> {
+  const payload: Record<string, any> = { ...data };
+  if ('type' in payload) {
+    payload.event_type = payload.type;
+    delete payload.type;
+  }
+  if ('eventType' in payload) {
+    payload.event_type = payload.eventType;
+    delete payload.eventType;
+  }
+  if ('startDate' in payload) {
+    payload.start_time = payload.startDate;
+    delete payload.startDate;
+  }
+  if ('startTime' in payload) {
+    payload.start_time = payload.startTime;
+    delete payload.startTime;
+  }
+  if ('endDate' in payload) {
+    payload.end_time = payload.endDate;
+    delete payload.endDate;
+  }
+  if ('endTime' in payload) {
+    payload.end_time = payload.endTime;
+    delete payload.endTime;
+  }
+  const isAllDayVal =
+    payload.isAllDay !== undefined
+      ? payload.isAllDay
+      : payload.allDay !== undefined
+      ? payload.allDay
+      : payload.is_all_day !== undefined
+      ? payload.is_all_day
+      : payload.all_day;
+  if (isAllDayVal !== undefined) {
+    payload.all_day = Boolean(isAllDayVal);
+    payload.is_all_day = Boolean(isAllDayVal);
+    delete payload.isAllDay;
+    delete payload.allDay;
+  }
+  delete payload.createdAt;
+  delete payload.created_at;
+  delete payload.updatedAt;
+  delete payload.updated_at;
+  return payload;
+}
+
+function normalizeCalendarEvent(e: any): CalendarEvent {
+  if (!e) return e;
+  const isAllDay =
+    e.isAllDay !== undefined
+      ? Boolean(e.isAllDay)
+      : e.allDay !== undefined
+      ? Boolean(e.allDay)
+      : e.is_all_day !== undefined
+      ? Boolean(e.is_all_day)
+      : e.all_day !== undefined
+      ? Boolean(e.all_day)
+      : false;
+
+  return {
+    ...e,
+    id: e.id ? String(e.id) : generateId('evt'),
+    title: e.title || '',
+    description: e.description || undefined,
+    type: e.type || e.eventType || e.event_type || 'event',
+    startDate: e.startDate || e.startTime || e.start_time || new Date().toISOString(),
+    endDate: e.endDate || e.endTime || e.end_time || new Date().toISOString(),
+    isAllDay,
+    location: e.location || undefined,
+    createdAt: e.createdAt || e.created_at || new Date().toISOString(),
+    updatedAt: e.updatedAt || e.updated_at || new Date().toISOString(),
+  };
+}
+
 export const calendarApi = {
-  getAll: (params?: { start?: string; end?: string; type?: string }) => {
+  getAll: async (params?: { start?: string; end?: string; type?: string }): Promise<CalendarEvent[]> => {
     const query = new URLSearchParams();
     if (params?.start) query.append('start_date', params.start);
     if (params?.end) query.append('end_date', params.end);
     if (params?.type) query.append('event_type', params.type);
     const qs = query.toString();
-    return apiClient.get<CalendarEvent[]>(`/calendar/events/list_calendar_events${qs ? `?${qs}` : ''}`);
+    const res = await apiClient.get<any>(`/calendar/events/list_calendar_events${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    return items.map(normalizeCalendarEvent);
   },
-  getById: (id: string) => apiClient.get<CalendarEvent>(`/calendar/events/get_calendar_event_by_id/${id}`),
-  create: (data: Partial<CalendarEvent>) => apiClient.post<CalendarEvent>('/calendar/events/create_calendar_event', data),
-  update: (id: string, data: Partial<CalendarEvent>) => apiClient.patch<CalendarEvent>(`/calendar/events/update_calendar_event_by_id/${id}`, data),
+  getById: async (id: string): Promise<CalendarEvent> => {
+    const res = await apiClient.get<any>(`/calendar/events/get_calendar_event_by_id/${id}`);
+    return normalizeCalendarEvent(res);
+  },
+  create: async (data: Partial<CalendarEvent>): Promise<CalendarEvent> => {
+    const payload = sanitizeCalendarEventPayload(data);
+    const res = await apiClient.post<any>('/calendar/events/create_calendar_event', payload);
+    return normalizeCalendarEvent(res);
+  },
+  update: async (id: string, data: Partial<CalendarEvent>): Promise<CalendarEvent> => {
+    const payload = sanitizeCalendarEventPayload(data);
+    const res = await apiClient.patch<any>(`/calendar/events/update_calendar_event_by_id/${id}`, payload);
+    return normalizeCalendarEvent(res);
+  },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/calendar/events/delete_calendar_event_by_id/${id}`),
 };
 
+function sanitizeReminderPayload(data: Partial<Reminder> | any): Record<string, any> {
+  const payload: Record<string, any> = { ...data };
+  let remindAt = payload.remindAt || payload.remind_at;
+  if (!remindAt && payload.dueDate) {
+    let time = (payload.dueTime || '09:00').trim();
+    if (/^\d:\d\d$/.test(time)) {
+      time = `0${time}`;
+    }
+    try {
+      const dt = new Date(`${payload.dueDate}T${time}:00`);
+      if (!isNaN(dt.getTime())) {
+        remindAt = dt.toISOString();
+      }
+    } catch {
+      // ignore
+    }
+  }
+  if (!remindAt) {
+    remindAt = new Date().toISOString();
+  }
+  payload.remind_at = remindAt;
+
+  if ('completed' in payload) {
+    payload.status = payload.completed ? 'completed' : 'pending';
+    payload.is_completed = payload.completed;
+    delete payload.completed;
+  }
+  if ('isCompleted' in payload) {
+    payload.status = payload.isCompleted ? 'completed' : 'pending';
+    payload.is_completed = payload.isCompleted;
+    delete payload.isCompleted;
+  }
+  delete payload.remindAt;
+  delete payload.dueDate;
+  delete payload.dueTime;
+  delete payload.createdAt;
+  delete payload.created_at;
+  delete payload.updatedAt;
+  delete payload.updated_at;
+  return payload;
+}
+
+function normalizeReminder(r: any): Reminder {
+  if (!r) return r;
+  let dueDate = r.dueDate;
+  let dueTime = r.dueTime;
+  const remindAt = r.remindAt || r.remind_at;
+  if (remindAt && (!dueDate || !dueTime)) {
+    try {
+      const dt = new Date(remindAt);
+      if (!isNaN(dt.getTime())) {
+        dueDate = dt.toISOString().split('T')[0];
+        dueTime = dt.toTimeString().slice(0, 5);
+      }
+    } catch {
+      // ignore
+    }
+  }
+  const isCompleted =
+    r.completed !== undefined
+      ? Boolean(r.completed)
+      : r.isCompleted !== undefined
+      ? Boolean(r.isCompleted)
+      : r.is_completed !== undefined
+      ? Boolean(r.is_completed)
+      : r.status === 'completed';
+
+  return {
+    ...r,
+    id: r.id ? String(r.id) : generateId('rem'),
+    title: r.title || '',
+    dueDate: dueDate || new Date().toISOString().split('T')[0],
+    dueTime: dueTime || '09:00',
+    completed: isCompleted,
+    isCompleted,
+    is_completed: isCompleted,
+    category: r.category || 'General',
+    createdAt: r.createdAt || r.created_at || new Date().toISOString(),
+    updatedAt: r.updatedAt || r.updated_at || new Date().toISOString(),
+  };
+}
+
 export const remindersApi = {
-  getAll: () => apiClient.get<Reminder[]>('/reminders/list_reminders'),
-  getById: (id: string) => apiClient.get<Reminder>(`/reminders/get_reminder_by_id/${id}`),
-  create: (data: Partial<Reminder>) => apiClient.post<Reminder>('/reminders/create_reminder', data),
-  update: (id: string, data: Partial<Reminder>) => apiClient.patch<Reminder>(`/reminders/update_reminder_by_id/${id}`, data),
+  getAll: async (): Promise<Reminder[]> => {
+    const res = await apiClient.get<any>('/reminders/list_reminders');
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    return items.map(normalizeReminder);
+  },
+  getById: async (id: string): Promise<Reminder> => {
+    const res = await apiClient.get<any>(`/reminders/get_reminder_by_id/${id}`);
+    return normalizeReminder(res);
+  },
+  create: async (data: Partial<Reminder>): Promise<Reminder> => {
+    const payload = sanitizeReminderPayload(data);
+    const res = await apiClient.post<any>('/reminders/create_reminder', payload);
+    return normalizeReminder(res);
+  },
+  update: async (id: string, data: Partial<Reminder>): Promise<Reminder> => {
+    const payload = sanitizeReminderPayload(data);
+    const res = await apiClient.patch<any>(`/reminders/update_reminder_by_id/${id}`, payload);
+    return normalizeReminder(res);
+  },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/reminders/delete_reminder_by_id/${id}`),
   snooze: (id: string, snoozedUntil: string) => apiClient.post<Reminder>(`/reminders/snooze_reminder_by_id/${id}`, { snoozedUntil }),
 };
@@ -572,21 +825,84 @@ export const searchApi = {
 };
 
 
+function sanitizeGoalPayload(data: Partial<GoalItem> | any): Record<string, any> {
+  const payload: Record<string, any> = { ...data };
+  if ('title' in payload && !payload.name) {
+    payload.name = payload.title;
+    delete payload.title;
+  } else if ('title' in payload) {
+    delete payload.title;
+  }
+  const target = payload.target !== undefined ? payload.target : payload.target_value;
+  const current = payload.current !== undefined ? payload.current : payload.current_value;
+  if (payload.progress === undefined && target !== undefined && current !== undefined && Number(target) > 0) {
+    payload.progress = Math.min(100, Math.max(0, (Number(current) / Number(target)) * 100));
+  }
+  delete payload.target;
+  delete payload.target_value;
+  delete payload.current;
+  delete payload.current_value;
+  delete payload.dueDate;
+  delete payload.due_date;
+  delete payload.createdAt;
+  delete payload.created_at;
+  delete payload.updatedAt;
+  delete payload.updated_at;
+  return payload;
+}
+
+function normalizeGoal(g: any): GoalItem {
+  if (!g) return g;
+  const currentVal = g.current !== undefined ? g.current : g.currentValue !== undefined ? g.currentValue : g.current_value;
+  const targetVal = g.target !== undefined ? g.target : g.targetValue !== undefined ? g.targetValue : g.target_value;
+  let progress = g.progress;
+  if (progress === undefined && targetVal !== undefined && currentVal !== undefined && Number(targetVal) > 0) {
+    progress = Math.min(100, Math.max(0, (Number(currentVal) / Number(targetVal)) * 100));
+  }
+  return {
+    ...g,
+    id: g.id ? String(g.id) : generateId('gol'),
+    name: g.name || g.title || '',
+    title: g.title || g.name || '',
+    description: g.description || undefined,
+    target: targetVal !== undefined ? Number(targetVal) : 100,
+    current: currentVal !== undefined ? Number(currentVal) : 0,
+    progress: progress !== undefined ? Number(progress) : 0.0,
+    unit: g.unit || '%',
+    category: g.category || 'General',
+    dueDate: g.dueDate || g.due_date || undefined,
+    status: g.status || 'in_progress',
+    createdAt: g.createdAt || g.created_at || new Date().toISOString(),
+    updatedAt: g.updatedAt || g.updated_at || new Date().toISOString(),
+  };
+}
+
 export const goalsApi = {
-  getAll: (params?: { status?: string; time_period?: string; page?: number; per_page?: number }) => {
+  getAll: async (params?: { status?: string; time_period?: string; page?: number; per_page?: number }) => {
     const query = new URLSearchParams();
     if (params?.status && params.status !== 'all') query.append('status', params.status);
     if (params?.time_period) query.append('time_period', params.time_period);
     if (params?.page) query.append('page', String(params.page));
     if (params?.per_page) query.append('per_page', String(params.per_page));
     const qs = query.toString();
-    return apiClient.get<{
-      data: GoalItem[];
-      meta: { total: number; page: number; per_page: number; total_pages: number };
-    }>(`/goals/list_goals${qs ? `?${qs}` : ''}`);
+    const res = await apiClient.get<any>(`/goals/list_goals${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    const normalizedItems = items.map(normalizeGoal);
+    return {
+      data: normalizedItems,
+      meta: res?.meta || { total: normalizedItems.length, page: 1, per_page: 20, total_pages: 1 },
+    };
   },
-  create: (data: Partial<GoalItem>) => apiClient.post<{ data: GoalItem }>('/goals/create_goal', data),
-  update: (id: string, data: Partial<GoalItem>) => apiClient.patch<{ data: GoalItem }>(`/goals/update_goal_by_id/${id}`, data),
+  create: async (data: Partial<GoalItem>): Promise<{ data: GoalItem }> => {
+    const payload = sanitizeGoalPayload(data);
+    const res = await apiClient.post<any>('/goals/create_goal', payload);
+    return { data: normalizeGoal(res) };
+  },
+  update: async (id: string, data: Partial<GoalItem>): Promise<{ data: GoalItem }> => {
+    const payload = sanitizeGoalPayload(data);
+    const res = await apiClient.patch<any>(`/goals/update_goal_by_id/${id}`, payload);
+    return { data: normalizeGoal(res) };
+  },
   delete: (id: string) => apiClient.delete<void>(`/goals/delete_goal_by_id/${id}`),
 };
 

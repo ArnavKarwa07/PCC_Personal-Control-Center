@@ -86,6 +86,9 @@ Official Release `v1.0.0` completes the production deployment of PCC. It provisi
   - Leverages browser `localStorage` under key `pcc_sync_queue`.
   - Manages optimistic UI updates for 9 core domain entities: `tasks`, `notes`, `projects`, `ideas`, `calendar`, `reminders`, `alarms`, `goals`, `contacts`.
   - Merges duplicate update mutations and discards invalid create/delete sequences before network execution.
+- **API Client Response Envelope Unwrapping (`frontend/src/services/api.ts`)**:
+  - Simplified `normalizeApiResponse` to check `typeof resJson === 'object' && resJson !== null && 'data' in resJson && resJson.data !== undefined` to directly extract `resJson.data`.
+  - Removed restrictive key-matching (`keys.every(...)`) and `meta`/`pagination` property guards, preventing raw envelope objects (`{ data: [...] }`) from causing frontend array or hydration errors across feature pages.
 - **Auto-Sync Trigger Mechanisms (`frontend/src/hooks/useAutoSync.ts`)**:
   - Triggers automatic queue flushing on `window.addEventListener('online')` network reconnection.
   - Periodically flushes pending items on background window focus and heartbeat intervals.

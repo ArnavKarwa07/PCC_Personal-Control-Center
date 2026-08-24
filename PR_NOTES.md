@@ -14,7 +14,7 @@ This pull request packages the official **PCC v1.0.0** final production release,
 
 1. **Active Neon Database Provisioning & Schema Migration**: Provisioned active Neon PostgreSQL database `holy-cell-73614246` on AWS Singapore (`aws-ap-southeast-1`). Executed full Alembic migration `105cb739b3f8_initial_single_tenant_schema` creating all 28 core database tables.
 2. **Desktop Launcher Diagnostics**: Enhanced `start_desktop.bat` with automated Rust toolchain (`cargo`/`rustc`) validation to provide clear diagnostic feedback when Rust is missing.
-3. **Frontend & Backend Sync Verification**: Validated full synchronization between web/mobile/desktop clients and the backend API with zero schema mismatches.
+3. **Frontend & Backend Sync Verification & Response Envelope Fix**: Validated full synchronization between web/mobile/desktop clients and backend REST endpoints, streamlining `normalizeApiResponse` in `frontend/src/services/api.ts` to directly extract `resJson.data` when present without restrictive key checks.
 4. **Vercel Serverless & Neon PostgreSQL Architecture**: Serverless Python entrypoint (`api/index.py` & `@vercel/python`), `NullPool` serverless lambda handling, Neon PostgreSQL connection pool recycling (`pool_recycle=300`), explicit SSL enforcement (`sslmode=require`), and decommissioning of legacy GCP Cloud Run infrastructure.
 5. **Offline-First Resilience**: Persistent client-side mutation queue (`pcc_sync_queue`) with automatic deduplication, batch merging, exponential backoff, and reconnection auto-flush.
 6. **Desktop System Tray & Background Alarm Persistence**: Tauri v2 system tray menu ("Show PCC" / "Quit") with close-to-tray window management (`window.hide()`) ensuring continuous alarm monitoring.
@@ -38,6 +38,7 @@ This pull request packages the official **PCC v1.0.0** final production release,
   - Automatically normalizes database URIs (`postgres://` -> `postgresql://`) and enforces `sslmode=require`.
   - Implements SQLAlchemy 2.0 engine configuration with `NullPool` under Vercel serverless execution and 5-minute pool recycling (`pool_recycle=300`) with pre-ping (`pool_pre_ping=True`) on stateful servers.
   - Standardized `DEFAULT_CLOUD_API_URL = 'https://pcc-backend-ten.vercel.app'` with fallback hierarchy and base URL sanitization.
+  - Refactored `normalizeApiResponse` in `frontend/src/services/api.ts` to directly unpack `resJson.data` when present, removing overly restrictive key-matching and pagination metadata check guards.
 
 ### 2. Offline-First Mutation Queue & Background Auto-Sync (v1.0.0)
 - **Files Modified**: `frontend/src/services/syncQueue.ts`, `frontend/src/services/api.ts`, `frontend/src/hooks/useAutoSync.ts`
