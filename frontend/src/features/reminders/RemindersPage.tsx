@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useReminderStore, ReminderFilterStatus } from '../../stores/reminderStore';
 import { useToast } from '../../hooks/useToast';
 import { Button, Input, Badge, EmptyState, Dropdown } from '../../components/ui';
@@ -10,6 +10,7 @@ import './Reminders.css';
 export const RemindersPage: React.FC = () => {
   const {
     reminders,
+    fetchReminders,
     filterStatus,
     filterCategory,
     searchQuery,
@@ -23,6 +24,10 @@ export const RemindersPage: React.FC = () => {
 
   const { toast } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
 

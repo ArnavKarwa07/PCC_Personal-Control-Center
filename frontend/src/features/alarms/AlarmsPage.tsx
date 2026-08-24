@@ -11,13 +11,17 @@ import './Alarms.css';
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // 0=Sun..6=Sat
 
 export const AlarmsPage: React.FC = () => {
-  const { alarms, toggleAlarm, deleteAlarm, duplicateAlarm, previewAlarmSound, getNextAlarmText } =
+  const { alarms, fetchAlarms, toggleAlarm, deleteAlarm, duplicateAlarm, previewAlarmSound, getNextAlarmText } =
     useAlarmStore();
   const { toast } = useToast();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingAlarm, setEditingAlarm] = useState<Alarm | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    fetchAlarms();
+  }, [fetchAlarms]);
 
   // Live ticking clock
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
@@ -11,7 +11,7 @@ import './ProjectsPage.css';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { projects, updateProject, deleteProject } = useProjectStore();
+  const { projects, fetchProjects, updateProject, deleteProject } = useProjectStore();
   const { tasks } = useTaskStore();
   const { addToast } = useToast();
 
@@ -19,6 +19,10 @@ export const ProjectsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   // Compute stats
   const activeCount = projects.filter((p) => p.status === 'active').length;

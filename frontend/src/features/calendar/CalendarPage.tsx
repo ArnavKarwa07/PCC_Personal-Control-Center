@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCalendarStore } from '../../stores/calendarStore';
 import { CalendarEvent } from '../../types';
 import { Button } from '../../components/ui';
@@ -12,11 +12,16 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const CalendarPage: React.FC = () => {
   const {
     events,
+    fetchEvents,
     activeView,
     filterTypes,
     setActiveView,
     toggleFilterType,
   } = useCalendarStore();
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   // Navigation state (Default August 2026)
   const [currentYear, setCurrentYear] = useState<number>(2026);

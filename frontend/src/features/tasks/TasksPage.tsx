@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
@@ -15,6 +15,7 @@ export const TasksPage: React.FC = () => {
   const navigate = useNavigate();
   const {
     tasks,
+    fetchTasks,
     viewMode,
     filterStatus,
     filterPriority,
@@ -35,6 +36,10 @@ export const TasksPage: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   // Compute stats
   const totalTasks = tasks.length;

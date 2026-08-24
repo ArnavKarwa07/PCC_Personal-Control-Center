@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Badge, Modal } from '../../components/ui';
+import { Card, Badge } from '../../components/ui';
 import { apiClient } from '../../services/api';
 import './DashboardPage.css';
 
@@ -92,29 +92,6 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="pcc-dashboard-page">
-      {/* Initial Workspace Data Loading Modal */}
-      <Modal
-        isOpen={loading}
-        onClose={() => {}}
-        title=""
-        size="sm"
-        showCloseButton={false}
-      >
-        <div className="pcc-dashboard-loading-modal">
-          <div className="pcc-dashboard-loading-modal__logo-wrap">
-            <div className="pcc-dashboard-loading-modal__ring" />
-            <img src="/logo.png" alt="PCC Logo" className="pcc-dashboard-loading-modal__logo" />
-          </div>
-          <h3 className="pcc-dashboard-loading-modal__title">Syncing Personal OS</h3>
-          <p className="pcc-dashboard-loading-modal__subtitle">
-            Fetching daily briefing, task metrics & workspace telemetry...
-          </p>
-          <div className="pcc-dashboard-loading-modal__bar">
-            <div className="pcc-dashboard-loading-modal__bar-fill" />
-          </div>
-        </div>
-      </Modal>
-
       {/* 4 Metric Cards at Top */}
       <div className="pcc-dashboard-metrics">
         <Card

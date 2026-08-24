@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useIdeaStore } from '../../stores/ideaStore';
 import { useToast } from '../../hooks/useToast';
 import { Idea, IdeaStatus } from '../../types';
@@ -21,13 +21,17 @@ const COLUMNS: ColumnDef[] = [
 ];
 
 export const IdeasPage: React.FC = () => {
-  const { ideas, addIdea, deleteIdea, moveIdeaStatus } = useIdeaStore();
+  const { ideas, fetchIdeas, addIdea, deleteIdea, moveIdeaStatus } = useIdeaStore();
   const { addToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPromoteIdea, setSelectedPromoteIdea] = useState<Idea | null>(null);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchIdeas();
+  }, [fetchIdeas]);
 
   // New spark modal fields
   const [newTitle, setNewTitle] = useState('');

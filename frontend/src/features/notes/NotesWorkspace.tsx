@@ -19,6 +19,7 @@ const COLOR_OPTIONS = [
 export const NotesWorkspace: React.FC = () => {
   const {
     notes,
+    fetchNotes,
     activeNoteId,
     searchQuery,
     isSaving,
@@ -36,6 +37,10 @@ export const NotesWorkspace: React.FC = () => {
   } = useNoteStore();
 
   const { addToast } = useToast();
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
   const activeNote = getActiveNote();
 
   // Tab & Gallery State
