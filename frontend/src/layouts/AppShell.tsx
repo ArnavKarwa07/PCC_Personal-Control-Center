@@ -168,9 +168,6 @@ export const AppShell: React.FC = () => {
         onDismiss={handleDismissRinging}
         onSnooze={handleSnoozeRinging}
       />
-
-      {/* Cloud Engine Cold Start Indicator */}
-      <ColdStartSyncLoader />
     </div>
   );
 };

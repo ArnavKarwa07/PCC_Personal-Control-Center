@@ -40,9 +40,9 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_ENV
           node -e '
             const fs = require("fs");
-            const tag = process.env.TAG || "v1.1.0-beta";
+            const tag = process.env.TAG || "v1.0.0";
             const version = tag.replace(/^v/, "");
-            const semver = (version.match(/^\d+\.\d+\.\d+/) || ["1.1.0"])[0];
+            const semver = (version.match(/^\d+\.\d+\.\d+/) || ["1.0.0"])[0];
 
             // 1. package.json
             const pkgPath = "frontend/package.json";
@@ -153,9 +153,9 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_ENV
           node -e '
             const fs = require("fs");
-            const tag = process.env.TAG || "v1.1.0-beta";
+            const tag = process.env.TAG || "v1.0.0";
             const version = tag.replace(/^v/, "");
-            const semver = (version.match(/^\d+\.\d+\.\d+/) || ["1.1.0"])[0];
+            const semver = (version.match(/^\d+\.\d+\.\d+/) || ["1.0.0"])[0];
 
             // 1. package.json
             const pkgPath = "frontend/package.json";

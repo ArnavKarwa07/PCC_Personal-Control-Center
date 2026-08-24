@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="PCC API",
-    version="0.1.0",
+    version="1.0.0",
     description="Personal Control Center Backend API",
     lifespan=lifespan,
     docs_url="/docs",
@@ -57,7 +57,7 @@ def root():
     """Root endpoint for gateway health check and documentation link."""
     return {
         "name": "PCC API",
-        "version": "0.1.0",
+        "version": "1.0.0",
         "docs": "/docs",
         "api_v1": "/api/v1",
     }

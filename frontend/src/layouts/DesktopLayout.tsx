@@ -311,38 +311,6 @@ export const DesktopLayout: React.FC = () => {
           </div>
 
           <div className="pcc-desktop-header__actions">
-            {/* Sync Badge */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "12px",
-                fontWeight: 500,
-                padding: "4px 8px",
-                borderRadius: "12px",
-                backgroundColor: "var(--color-bg-secondary)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              {!isOnline ? (
-                <>
-                  <span style={{ color: "#ef4444" }}>🔴</span> Offline
-                </>
-              ) : isSyncing ? (
-                <>
-                  <span style={{ color: "#f59e0b" }}>🟡</span>{" "}
-                  {pendingQueueCount > 0
-                    ? `Syncing (${pendingQueueCount})`
-                    : "Syncing"}
-                </>
-              ) : (
-                <>
-                  <span style={{ color: "#10b981" }}>🟢</span> Online
-                </>
-              )}
-            </div>
-
             {/* JSON Data Onboarding Loader Button */}
             <Button
               id="header-load-json"
