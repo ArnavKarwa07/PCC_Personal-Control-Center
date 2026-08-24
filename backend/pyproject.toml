@@ -1,6 +1,6 @@
 [project]
 name = "pcc-backend"
-version = "0.1.0"
+version = "1.0.0"
 description = "Personal Control Center (PCC) Backend API"
 requires-python = ">=3.11"
 dependencies = [

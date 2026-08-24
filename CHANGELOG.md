@@ -7,120 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.0.0] - 2026-08-24
 
-### Consolidated Official Release Highlights (v1.0.0 Final)
-This official `v1.0.0` release establishes the final production release of PCC (Personal Control Center). It initializes the fresh single-tenant Neon PostgreSQL database instance (`holy-cell-73614246`) on AWS Singapore (`aws-ap-southeast-1`), executes full Alembic migrations creating all 28 core tables, establishes full synchronization between Web/Mobile/Desktop clients and the backend API, and adds desktop launch diagnostics for Rust toolchain verification.
+### Official Production Release Highlights (v1.0.0 Final)
+This official `v1.0.0` release establishes the production release of PCC (Personal Control Center). It initializes the fresh single-tenant Neon PostgreSQL database instance (`holy-cell-73614246`) on AWS Singapore (`aws-ap-southeast-1`), executes full Alembic migrations creating all 28 core tables, establishes full synchronization between Web/Mobile/Desktop clients and the backend API, provides Vercel serverless Python deployment (`api/index.py`), offline-first sync mutation queue, native Tauri v2 desktop system tray background alarm persistence, Android Capacitor v6 alarm notification channels, AI Executive Assistant integration (Gemini 2.0 Flash), enterprise third-party connectors (Teams, Slack, GitLab, Jira) with sensitive credential masking, Google Keep-style Notes workspace, and desktop launch diagnostics.
 
-### Added & Fixed
+### Core Enhancements & Features
 - **Fresh Active Neon Database Provisioning & Schema Migration**:
-  - Provisioned and migrated new single-tenant Neon PostgreSQL instance (`holy-cell-73614246` / `ep-odd-bonus-azdke95p`).
+  - Provisioned single-tenant Neon PostgreSQL instance (`holy-cell-73614246` / `ep-odd-bonus-azdke95p` on `aws-ap-southeast-1`).
   - Executed Alembic migration `105cb739b3f8_initial_single_tenant_schema` creating all 28 database tables (tasks, projects, calendar, goals, notes, ideas, contacts, reminders, alarms, timers, weather, notifications, integrations, automations, etc.).
 - **Desktop Launcher Diagnostics**:
   - Enhanced `start_desktop.bat` with automated Rust toolchain (`cargo`/`rustc`) validation, providing user instructions if Rust is missing on the host.
 - **Frontend & Backend Sync Stabilization**:
-  - Verified REST API endpoint compatibility across all 13 core modules with zero schema mismatch.
-- **Production Environment Alignment**:
-  - Updated root `.env` and `backend/.env` with production Neon database connection parameters.
-
----
-
-## [v1.2.0] - 2026-08-24
-
-### Consolidated Release Highlights
-This `v1.2.0` release completely revamps the database schema to single-tenant mode (removing all `user_id` foreign keys and `users` table overhead), migrates the production database to Neon PostgreSQL in the Asia Pacific 1 (Singapore) region (`aws-ap-southeast-1`), fixes the desktop app launch capabilities, and resolves mobile permission sequencing and dashboard count synchronization.
-
-### Added & Fixed
-- **Database Deployment Region Migration to Asia Pacific 1 (Singapore)**:
-  - Provisioned and connected new Neon serverless PostgreSQL database running PostgreSQL 18.6 on AWS Singapore (`aws-ap-southeast-1` / `ep-mute-sun-afksmbnc-pooler.c-2.us-west-2.aws.neon.tech`).
-  - Executed clean Alembic migration (`105cb739b3f8_initial_single_tenant_schema`) creating all 28 entity tables on the Singapore region instance with zero legacy user table overhead.
-- **Tauri v2 Desktop App Launch Capabilities**:
-  - Updated Tauri capability configuration (`frontend/src-tauri/capabilities/default.json`) to declare `"notification:default"`, `"notification:allow-notify"`, and `"autostart:default"` permissions required by `lib.rs` plugin initialization, eliminating desktop startup crashes.
-- **Sequential Mobile Permission Request Flow**:
-  - Refactored `permissionService.ts` (`requestAllPermissions`) to request notification and location permissions sequentially instead of concurrently via `Promise.allSettled`, preventing mobile OS dialog drops.
-- **Dashboard Count Synchronization & API Key Alignment**:
-  - Fixed property mapping in `DashboardPage` (`index.tsx`) to support camelCase normalized keys (`pendingTasksCount`, `upcomingEventsCount`, `overdueRemindersCount`, `activeProjectsCount`), resolving dashboard task count display issues.
-
-### Changed & Single-Tenant Schema Revamp
-- **Single-Tenant Database Revamp**:
-  - Removed `users` table and `user_id` foreign key columns across all SQLAlchemy ORM models, Pydantic schemas, service layer methods, API route handlers, background worker processes, and unit test suites.
-  - Eliminated `Depends(get_current_user)` authentication overhead in Vercel serverless functions, preventing transaction failures on Vercel lambda execution.
+  - Verified REST API endpoint compatibility across all core modules with zero schema mismatch.
+- **Vercel Serverless Architecture & Python Bridge (`api/index.py`)**:
+  - Implemented root serverless wrapper (`api/index.py`) importing FastAPI `app` from `backend.app.main` with dynamic `sys.path` resolution for `@vercel/python`.
+  - Configured modern `vercel.json` wildcard rewrites (`/(.*)` -> `/api/index.py`).
+  - Decommissioned legacy Google Cloud Run and Google Container Registry infrastructure.
+- **Neon PostgreSQL Connection Resilience & NullPool Handling**:
+  - Enforced `sslmode=require` TLS parameters for Neon serverless PostgreSQL connection URIs.
+  - Implemented `NullPool` allocation under Vercel serverless lambda execution to prevent DB connection pool exhaustion, alongside 5-minute pool recycling (`pool_recycle=300`) and pre-ping verification (`pool_pre_ping=True`) for stateful servers.
+- **Offline-First Mutation Queue & Background Auto-Sync**:
+  - Client-side persistent mutation queue service (`frontend/src/services/syncQueue.ts`) backed by `localStorage` (`pcc_sync_queue`).
+  - Intelligent mutation deduplication, batch merging, auto-flush on reconnection (`online` event), app visibility changes, and periodic sync triggers with exponential backoff.
+- **Native Desktop Alarm Scheduling & System Tray Integration (Tauri v2)**:
+  - Configured Tauri v2 desktop runtime (`frontend/src-tauri/`) with native system tray menu integration ("Show PCC" and "Quit").
+  - Close-to-tray background persistence (`window.hide()` and `api.prevent_close()`), ensuring continuous background alarm monitoring without process interruption.
+- **Capacitor 6 Native Notification Channels & Custom Audio Asset (Android)**:
+  - Dedicated high-priority native notification channel (`pcc_alarms_channel`) with MAX importance (level 5), public lockscreen visibility, custom vibration, and bundled `alarm.wav` audio asset.
+  - Low-power OS doze-mode wakeup support via `allowWhileIdle: true` on `@capacitor/local-notifications`.
+- **AI Executive Assistant Service & Gemini 2.0 Flash Integration**:
+  - Direct endpoint routing to `/api/v1/assistant/process_assistant_query` powered by Google Gemini 2.0 Flash (`gemini-2.0-flash`).
+  - Natural language intent parsing: creates tasks (`CREATE_TASK`), notes (`CREATE_NOTE`) and synthesizes daily workspace briefings (`/assistant/get_daily_briefing`).
+- **Enterprise Third-Party Integrations Expansion & Credential Masking**:
+  - Integrated connectors for Microsoft Teams Calendar, Slack, GitLab, and Jira.
+  - Automatic sensitive credential masking (`token`, `api_token`, `secret`, `password`) into prefix-preserved masked strings (e.g. `ghp_****`, `xoxb-****`, `glpat-****`).
 
 ### Compliance & Quality Assurance
 - **Empirical Verification**:
   - `npx tsc --noEmit` & `npm run build`: 0 TypeScript compiler errors, clean Vite production bundle build.
-  - `python -m pytest`: 79/79 backend unit tests passing (100% success rate).
-
-## [v1.1.0-beta] - 2026-08-23
-
-### Consolidated Release Highlights
-This consolidated `v1.1.0-beta` release unifies all platform enhancements, Vercel Serverless & Neon PostgreSQL architecture migrations, offline-first sync capabilities, native cross-platform packaging, AI executive assistant capabilities, enterprise integrations, and security hardening into a single production-ready release tag.
-
-### Added & Fixed
-- **Vercel Serverless Architecture & Python Bridge (`api/index.py`)**:
-  - Implemented root serverless wrapper (`api/index.py`) importing FastAPI `app` from `backend.app.main` with dynamic `sys.path` resolution for `@vercel/python`.
-  - Fixed module resolution by isolating package structure from Hugging Face Gradio entrypoint (`backend/hf_app.py`).
-  - Standardized modern `vercel.json` wildcard rewrites (`/(.*)` -> `/api/index.py`).
-  - Completely decommissioned legacy Google Cloud Run (`pcc-backend`) and Google Container Registry (`gcr.io`) infrastructure.
-- **Neon PostgreSQL Connection Resilience & NullPool Handling**:
-  - Enforced `sslmode=require` TLS parameters for Neon serverless PostgreSQL connection URIs.
-  - Implemented `NullPool` allocation under Vercel serverless lambda execution to prevent DB connection pool exhaustion, alongside 5-minute pool recycling (`pool_recycle=300`) and pre-ping verification (`pool_pre_ping=True`) for stateful servers.
-  - Added explicit transaction rollback handling on exceptions in `get_db()` dependency.
-- **Frontend Cloud API Base URL & Error Envelope Extraction**:
-  - Updated `DEFAULT_CLOUD_API_URL` to point to production serverless backend (`https://pcc-backend-ten.vercel.app`).
-  - Added automatic base URL sanitization in `getApiBaseUrl()` to prevent `/api/v1` prefix double-stacking.
-  - Enhanced error parsing in `ApiException` engine to unwrap FastAPI nested `{"error": {"code": ..., "message": ...}}` payloads.
-  - Updated UI status indicators (`ColdStartSyncLoader.tsx`) to display `"Vercel Serverless (Neon Postgres)"`.
-- **CI/CD Security & Release Pipeline Updates (`.github/workflows/deploy-vercel.yml`, `build-release.yml`)**:
-  - Restricted production Vercel deploys to `main` branch pushes and manual dispatches.
-  - Automated `pytest` and TypeScript build verification step prior to deployment.
-  - Secured Vercel deployment credentials via GitHub Actions environment secrets (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`).
-  - Automated version tag extraction (`v1.1.0-beta` -> `1.1.0-beta`) across `package.json`, `tauri.conf.json`, `Cargo.toml`, and `build.gradle` (`versionCode` & `versionName`).
-  - Produces and publishes signed cross-platform release artifacts to GitHub Releases: Android APK (`PCC_v1.1.0-beta.apk`) and desktop binaries (`.exe` NSIS installer, `.dmg`, `.AppImage`, `.deb`).
-- **Offline-First Mutation Queue & Background Auto-Sync**:
-  - Client-side persistent mutation queue service (`frontend/src/services/syncQueue.ts`) backed by `localStorage` (`pcc_sync_queue`).
-  - Supports non-blocking optimistic UI mutations for 9 core domain entities (`tasks`, `notes`, `projects`, `ideas`, `calendar`, `reminders`, `alarms`, `goals`, `contacts`) across `create`, `update`, and `delete` actions.
-  - Intelligent mutation deduplication, batch merging, auto-flush on reconnection (`online` event), app visibility changes, or periodic sync triggers with exponential backoff and dead-letter pruning.
-- **Native Desktop Alarm Scheduling & System Tray Integration (Tauri v2)**:
-  - Configured Tauri v2 desktop runtime (`frontend/src-tauri/`) with native system tray menu integration featuring "Show PCC" and "Quit" options.
-  - Close-to-tray background persistence (`tauri::WindowEvent::CloseRequested` with `window.hide()` and `api.prevent_close()`), ensuring continuous background alarm monitoring without terminal interruption.
-  - Integrated `@tauri-apps/plugin-notification` and `@tauri-apps/plugin-autostart` for persistent desktop alerts and automatic system startup.
-  - Exact timeout scheduling for alarms and reminders within Tauri runtime (`alarmScheduler.ts`).
-- **Capacitor 6 Native Notification Channels & Custom Audio Asset (Android)**:
-  - Configured dedicated high-priority native notification channel (`pcc_alarms_channel`) with MAX importance (level 5), public lockscreen visibility, custom vibration patterns, and bundled `alarm.wav` audio asset (`frontend/android/app/src/main/res/raw/alarm.wav`).
-  - Low-power OS doze-mode wakeup support via `allowWhileIdle: true` on `@capacitor/local-notifications` to guarantee on-time wake-up alerts on mobile devices.
-  - Deterministic numeric notification ID generation via FNV-1a hashing algorithm (`100000000+` namespace for alarms, `200000000+` for reminders).
-- **Proactive Startup Permission Management Banner**:
-  - Added proactive, non-intrusive startup permissions prompt (`AppShell.tsx`, `permissionService.ts`) to request notification access, background alarm execution, and Open-Meteo geolocation telemetry on initial launch.
-  - Unified multi-platform permission queries handling Capacitor native Android, Tauri v2 desktop, and modern standard browser environments.
-- **AI Executive Assistant Service & Gemini 2.0 Flash Integration**:
-  - Overhauled the AI Executive Assistant floating widget (`AIAssistantWidget.tsx`), restoring direct endpoint routing to `/api/v1/assistant/process_assistant_query`.
-  - Integrated Google Gemini 2.0 Flash (`gemini-2.0-flash` via `google.generativeai`) within `backend/app/services/assistant_service.py` for high-speed conversational querying, contextual workspace reasoning, and task/note auto-dispatch.
-  - Added natural language intent detection (`CREATE_TASK`, `CREATE_NOTE`, `GENERAL_QUERY`) and automated executive morning briefing generation (`/assistant/get_daily_briefing`).
-- **Enterprise Third-Party Integrations Expansion & Credential Masking**:
-  - Integrated 4 new connectors: Microsoft Teams Calendar, Slack, GitLab, and Jira.
-  - Implemented automatic sensitive credential masking (`token`, `api_token`, `secret`, `password`) in API responses into prefix-preserved masked strings (e.g. `ghp_****`, `xoxb-****`, `glpat-****`).
-  - Expanded Settings workspace UI grid with 100% monochromatic vector SVG brand icons and accessible `aria-*` attributes.
-- **Google Keep-Style Notes Application Refactor**:
-  - Keep-style knowledge capture workspace (`NotesWorkspace.tsx`, `noteStore.ts`) with semantic `<h1>Notes</h1>` top page header, 100% monochromatic vector SVG icons, interactive checklists, custom color palettes, grid/list view toggles, quick creation input bar, and split-view markdown editor modal.
-
-### Changed & Single-Tenant Refactoring
-- **Transition to Single-Tenant Owner Architecture**:
-  - Streamlined backend REST architecture into a zero-friction single-tenant mode for Arnav Karwa (`arnavkarwa07@gmail.com` / `00000000-0000-0000-0000-000000000001`), eliminating redundant multi-user login, register, and token management overhead.
-  - Removed client-side `authStore.ts`, login/register modals, and authorization bearer header blockers across API calls (`frontend/src/services/api.ts`).
-  - Retained database-level user isolation with automatic default owner provisioning in dependency injections (`backend/app/core/dependencies.py`).
-- **Vercel Serverless Python Deployment & Complete GCP Removal**:
-  - Migrated backend API serverless deployment to Vercel Serverless Python (`@vercel/python`) hosted at `https://pcc-backend-ten.vercel.app`.
-  - Added root `vercel.json` routing configuration and `api/index.py` entrypoint delegating requests to FastAPI application instance (`backend/app/main.py`).
-  - Completely decommissioned and removed Google Cloud Run (`pcc-backend`) infrastructure, transitioning to zero-overhead serverless execution on Vercel.
-
-### Removed
-- **Complete GCP Cloud Infrastructure Removal**:
-  - Decommissioned legacy GCP Cloud Run (`pcc-backend`) service and Google Container Registry artifacts.
-- **Financial & Fitness Modules Cleanup (Database Migration)**:
-  - Created Alembic database migration `drop_deprecated_tables` (`backend/alembic/versions/drop_deprecated_tables.py`) to drop legacy `finances` table.
-  - Purged obsolete auth endpoints (`backend/app/api/v1/auth.py`, `backend/app/api/v1/users.py`), auth schemas (`backend/app/schemas/auth.py`, `backend/app/schemas/user.py`), and test modules (`backend/tests/test_auth.py`).
-
-### Compliance & Quality Assurance
-- **Empirical Verification**:
-  - `npx tsc --noEmit`: 0 TypeScript compiler errors.
-  - `npm run build`: Vite production bundle generated successfully (0 errors).
   - `python -m pytest`: 79/79 backend unit tests passing (100% success rate).

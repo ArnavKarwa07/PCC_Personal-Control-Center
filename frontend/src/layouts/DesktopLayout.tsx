@@ -32,7 +32,7 @@ export const DesktopLayout: React.FC = () => {
   } = useUIStore();
   const user = { email: "owner@pcc.local", name: "Owner", role: "owner" };
   const { getUnreadCount } = useNotificationStore();
-  const { isOnline, isSyncing, pendingQueueCount } = useAutoSync();
+  useAutoSync();
   const { toast } = useToast();
 
   const unreadCount = getUnreadCount();

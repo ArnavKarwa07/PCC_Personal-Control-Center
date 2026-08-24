@@ -24,8 +24,8 @@ pub fn run() {
                     .on_menu_event(|app, event| match event.id.as_ref() {
                         "show" => {
                             if let Some(window) = app.get_webview_window("main") {
-                                window.show().unwrap();
-                                window.set_focus().unwrap();
+                                let _ = window.show();
+                                let _ = window.set_focus();
                             }
                         }
                         "quit" => {
@@ -36,8 +36,8 @@ pub fn run() {
                     .on_tray_icon_event(|tray, event| match event {
                         TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } => {
                             if let Some(window) = tray.app_handle().get_webview_window("main") {
-                                window.show().unwrap();
-                                window.set_focus().unwrap();
+                                let _ = window.show();
+                                let _ = window.set_focus();
                             }
                         }
                         _ => {}
@@ -51,7 +51,7 @@ pub fn run() {
             tauri::WindowEvent::CloseRequested { api, .. } => {
                 #[cfg(desktop)]
                 {
-                    window.hide().unwrap();
+                    let _ = window.hide();
                     api.prevent_close();
                 }
             }

@@ -10,7 +10,6 @@ import { useAlarmStore } from '../stores/alarmStore';
 import { useAutoSync } from '../hooks/useAutoSync';
 import { alarmScheduler } from '../services/alarmScheduler';
 import type { Alarm } from '../types';
-import { ColdStartSyncLoader } from '../components/ColdStartSyncLoader';
 import { PermissionModal } from '../components/PermissionModal';
 import { permissionService } from '../services/permissionService';
 import './AppShell.css';

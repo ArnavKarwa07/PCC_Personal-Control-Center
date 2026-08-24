@@ -1,6 +1,6 @@
 # PCC - Personal Control Center (Personal OS)
 
-[![Release v1.1.0-beta](https://img.shields.io/badge/Release-v1.1.0--beta-blue.svg)](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/releases)
+[![Release v1.0.0](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/releases)
 [![CI/CD Pipeline](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/actions/workflows/ci.yml/badge.svg)](https://github.com/ArnavKarwa07/PCC_Personal-Control-Center/actions)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
@@ -18,7 +18,7 @@ PCC is a personal operating system built to integrate daily tasks, project manag
 
 ### Core Standards & Architectural Highlights
 
-- **Release Tag**: Consolidated **v1.1.0-beta** release.
+- **Release Tag**: Official **v1.0.0** release.
 - **Default Location & Currency**: Default location standard set to **Pune, India** with **₹ (INR)** currency format.
 - **Theme Priority**: Light Mode (`html[data-theme='light']`) prioritized by default, backed by a secondary dark glassmorphic mode toggle.
 - **Serverless Production Host**: Deployed on **Vercel Serverless Python** (`https://pcc-backend-ten.vercel.app`) via `@vercel/python` and root `api/index.py` router.
@@ -71,9 +71,9 @@ PCC_Personal-Control-Center/
 ├── vercel.json               # Vercel Serverless Python route routing (@vercel/python)
 ├── docker-compose.yml        # PostgreSQL / SQLite + FastAPI + Worker multi-container manifest
 ├── .env.example              # Production & development environment variable template
-├── CHANGELOG.md              # Consolidated release changelog (v1.1.0-beta)
+├── CHANGELOG.md              # Official release changelog (v1.0.0)
 ├── MIGRATION_NOTES.md        # Migration pathways & serverless architecture specifications
-├── PR_NOTES.md               # Unified PR notes for release v1.1.0-beta
+├── PR_NOTES.md               # Unified PR notes for release v1.0.0
 ├── Makefile                  # Project orchestration commands
 └── README.md
 ```
@@ -208,9 +208,9 @@ docker run -d -p 8000:7860 -e DATABASE_URL="postgresql://..." pcc-backend
 ```
 
 ### Automated GitHub Actions Release Workflow
-The `.github/workflows/build-release.yml` pipeline automatically triggers on pushes to `v1.1.0-beta` tags:
-1. **Version Sync**: Dynamically synchronizes version tag `v1.1.0-beta` across `package.json`, `tauri.conf.json`, `Cargo.toml`, and `build.gradle`.
-2. **Android APK Job**: Compiles `PCC_v1.1.0-beta.apk` using Java 17 and Gradle.
+The `.github/workflows/build-release.yml` pipeline automatically triggers on pushes to `v*` release tags (e.g. `v1.0.0`):
+1. **Version Sync**: Dynamically synchronizes release version tag `v1.0.0` across `package.json`, `tauri.conf.json`, `Cargo.toml`, and `build.gradle`.
+2. **Android APK Job**: Compiles `PCC_v1.0.0.apk` using Java 17 and Gradle.
 3. **Desktop Release Job**: Executes matrix builds on `windows-latest`, `macos-latest`, and `ubuntu-latest` to build cross-platform desktop installers.
 4. **GitHub Release Publication**: Uploads all compiled binaries directly to GitHub Releases.
 
