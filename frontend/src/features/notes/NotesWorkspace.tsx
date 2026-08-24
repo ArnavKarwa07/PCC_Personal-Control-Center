@@ -23,6 +23,7 @@ export const NotesWorkspace: React.FC = () => {
     activeNoteId,
     searchQuery,
     isSaving,
+    isLoading,
     addNote,
     updateNote,
     deleteNote,
@@ -615,7 +616,17 @@ export const NotesWorkspace: React.FC = () => {
 
       {/* 4. Note Gallery Grid / List */}
       <div className="pcc-notes-gallery-container">
-        {filteredNotes.length === 0 ? (
+        {isLoading && notes.length === 0 ? (
+          <div className={cn('pcc-notes-gallery', galleryView === 'list' && 'pcc-notes-gallery--list')}>
+            {[1, 2, 3, 4, 5, 6].map((idx) => (
+              <div key={idx} className="pcc-note-card pcc-note-card--skeleton">
+                <div className="pcc-skeleton-line pcc-skeleton-line--full" style={{ height: '20px', marginBottom: '12px' }} />
+                <div className="pcc-skeleton-line pcc-skeleton-line--3-4" style={{ height: '14px', marginBottom: '8px' }} />
+                <div className="pcc-skeleton-line pcc-skeleton-line--half" style={{ height: '14px' }} />
+              </div>
+            ))}
+          </div>
+        ) : filteredNotes.length === 0 ? (
           <EmptyState
             title={
               filterTab === 'trash'

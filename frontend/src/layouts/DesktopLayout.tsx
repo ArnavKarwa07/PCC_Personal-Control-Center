@@ -57,7 +57,7 @@ export const DesktopLayout: React.FC = () => {
       } else if (quickType === "project") {
         await useProjectStore
           .getState()
-          .addProject({ title, status: "active", category: "General" });
+          .addProject({ title, name: title, status: "active", category: "General" });
       } else if (quickType === "note") {
         await useNoteStore
           .getState()

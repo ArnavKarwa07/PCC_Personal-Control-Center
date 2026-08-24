@@ -19,6 +19,7 @@ export const ContactsPage: React.FC = () => {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [name, setName] = useState('');
@@ -33,6 +34,7 @@ export const ContactsPage: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchContacts = async () => {
+      setIsLoading(true);
       try {
         const res = await contactsApi.getAll();
         const rawList = (res as any)?.data || (Array.isArray(res) ? res : []);
@@ -58,6 +60,7 @@ export const ContactsPage: React.FC = () => {
           } catch {
             // ignore
           }
+          if (isMounted) setIsLoading(false);
           return;
         }
       } catch {
@@ -74,6 +77,8 @@ export const ContactsPage: React.FC = () => {
         }
       } catch {
         // ignore
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -214,7 +219,21 @@ export const ContactsPage: React.FC = () => {
 
       <div className="pcc-contacts-content">
         <div className="pcc-contacts-list">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  style={{
+                    height: '110px',
+                    background: 'var(--color-bg-tertiary)',
+                    borderRadius: 'var(--radius-lg)',
+                    opacity: 0.6,
+                  }}
+                />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <EmptyState
               title="No Contacts Found"
               description={

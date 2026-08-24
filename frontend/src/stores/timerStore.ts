@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import type { TimerMode, PomodoroState, StopwatchLap } from '../types';
 import { soundEffects } from '../utils/audio';
+import { timersApi } from '../services/api';
 
 interface TimerStore {
   activeTab: TimerMode;
   setActiveTab: (tab: TimerMode) => void;
+  isLoading: boolean;
+  fetchTimers: () => Promise<void>;
 
   // --- Pomodoro State ---
   pomodoroState: PomodoroState;
@@ -61,6 +64,17 @@ const DEFAULT_COUNTDOWN = 10 * 60;
 export const useTimerStore = create<TimerStore>((set, get) => ({
   activeTab: 'pomodoro',
   setActiveTab: (activeTab) => set({ activeTab }),
+  isLoading: false,
+
+  fetchTimers: async () => {
+    set({ isLoading: true });
+    try {
+      await timersApi.getAll();
+    } catch {
+      // Fallback to local timer state
+    }
+    set({ isLoading: false });
+  },
 
   // Pomodoro
   pomodoroState: 'work',

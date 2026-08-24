@@ -4,7 +4,7 @@ import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { useToast } from '../../hooks/useToast';
 import { Task, Priority } from '../../types';
-import { Badge, Button, Input, EmptyState, Dropdown } from '../../components/ui';
+import { Badge, Button, Input, EmptyState, Dropdown, PageLoader } from '../../components/ui';
 import { TaskDetailModal } from './TaskDetailModal';
 import { CreateTaskModal } from './CreateTaskModal';
 import { KanbanBoard } from '../projects/KanbanBoard';
@@ -16,6 +16,7 @@ export const TasksPage: React.FC = () => {
   const {
     tasks,
     fetchTasks,
+    isLoading,
     viewMode,
     filterStatus,
     filterPriority,
@@ -30,7 +31,7 @@ export const TasksPage: React.FC = () => {
     setSearchQuery,
   } = useTaskStore();
 
-  const { projects } = useProjectStore();
+  const { projects, fetchProjects } = useProjectStore();
   const { addToast } = useToast();
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -39,7 +40,8 @@ export const TasksPage: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+    fetchProjects();
+  }, [fetchTasks, fetchProjects]);
 
   // Compute stats
   const totalTasks = tasks.length;
@@ -58,8 +60,9 @@ export const TasksPage: React.FC = () => {
     if (filterPriority !== 'all' && task.priority !== filterPriority) return false;
 
     // Due Date filter
-    if (filterDueDate === 'today' && task.dueDate !== '2026-08-15') return false;
-    if (filterDueDate === 'overdue' && task.dueDate && task.dueDate < '2026-08-15' && task.status !== 'completed') return false;
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    if (filterDueDate === 'today' && task.dueDate !== todayStr) return false;
+    if (filterDueDate === 'overdue' && task.dueDate && task.dueDate < todayStr && task.status !== 'completed') return false;
 
     // Search query
     if (searchQuery.trim()) {
@@ -202,9 +205,9 @@ export const TasksPage: React.FC = () => {
                 <span
                   className={cn(
                     'pcc-task-item__due-badge',
-                    task.dueDate === '2026-08-15'
+                    task.dueDate === new Date().toLocaleDateString('en-CA')
                       ? 'pcc-task-item__due-badge--today'
-                      : task.dueDate < '2026-08-15' && !isCompleted
+                      : task.dueDate < new Date().toLocaleDateString('en-CA') && !isCompleted
                       ? 'pcc-task-item__due-badge--overdue'
                       : 'pcc-task-item__due-badge--future'
                   )}
@@ -502,7 +505,9 @@ export const TasksPage: React.FC = () => {
       </div>
 
       {/* Task Content */}
-      {filteredTasks.length === 0 ? (
+      {isLoading && tasks.length === 0 ? (
+        <PageLoader message="Fetching action items..." />
+      ) : filteredTasks.length === 0 ? (
         <EmptyState
           id="tasks-empty-state"
           title="No Tasks Found"

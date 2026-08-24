@@ -931,3 +931,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Skeleton Loading Animation */
+.pcc-note-card--skeleton {
+  pointer-events: none;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.pcc-skeleton-line {
+  background: linear-gradient(90deg, var(--color-bg-elevated) 25%, var(--color-surface) 50%, var(--color-bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: pccShimmer 1.5s infinite;
+  border-radius: var(--radius-xs);
+}
+
+.pcc-skeleton-line--full { width: 100%; }
+.pcc-skeleton-line--3-4 { width: 75%; }
+.pcc-skeleton-line--half { width: 50%; }
+
+@keyframes pccShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+

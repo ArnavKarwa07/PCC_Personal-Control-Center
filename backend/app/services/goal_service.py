@@ -43,11 +43,14 @@ class GoalService:
         db.add(goal)
         db.flush()
 
+        from datetime import datetime, timezone
+
         for m_data in data.milestones:
             m = GoalMilestone(
                 goal_id=goal.id,
                 name=m_data.name,
                 target_date=m_data.target_date,
+                completed_at=datetime.now(timezone.utc) if getattr(m_data, "completed", False) else None,
             )
             db.add(m)
 
@@ -56,12 +59,31 @@ class GoalService:
         return goal
 
     def update_goal(self, db: Session, goal_id: uuid.UUID, data: GoalUpdate) -> Optional[Goal]:
+        from datetime import datetime, timezone
+
         goal = db.query(Goal).filter(Goal.id == goal_id).first()
         if not goal:
             return None
 
-        for key, val in data.model_dump(exclude_unset=True).items():
+        update_data = data.model_dump(exclude_unset=True)
+        milestones_data = update_data.pop("milestones", None)
+
+        for key, val in update_data.items():
             setattr(goal, key, val)
+
+        if milestones_data is not None:
+            db.query(GoalMilestone).filter(GoalMilestone.goal_id == goal_id).delete()
+            for m_item in milestones_data:
+                name = m_item.get("name") if isinstance(m_item, dict) else getattr(m_item, "name", "Milestone")
+                target_date = m_item.get("target_date") if isinstance(m_item, dict) else getattr(m_item, "target_date", None)
+                completed = m_item.get("completed") if isinstance(m_item, dict) else getattr(m_item, "completed", False)
+                m = GoalMilestone(
+                    goal_id=goal.id,
+                    name=name,
+                    target_date=target_date,
+                    completed_at=datetime.now(timezone.utc) if completed else None,
+                )
+                db.add(m)
 
         # Auto-update status if progress is 100%
         if goal.progress >= 100.0:

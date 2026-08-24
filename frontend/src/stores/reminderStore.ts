@@ -193,7 +193,7 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
   snoozeReminder: async (id, minutes) => {
     const snoozeDate = new Date(Date.now() + minutes * 60 * 1000).toISOString();
     try {
-      await remindersApi.snooze(id, snoozeDate);
+      await remindersApi.snooze(id, snoozeDate, minutes);
     } catch {
       // Fallback
     }

@@ -12,6 +12,7 @@ from app.models.goal import GoalStatus
 class MilestoneBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     target_date: Optional[date] = None
+    completed: Optional[bool] = False
 
 
 class MilestoneCreate(MilestoneBase):
@@ -24,6 +25,14 @@ class MilestoneRead(MilestoneBase):
     id: uuid.UUID
     goal_id: uuid.UUID
     completed_at: Optional[datetime] = None
+    completed: bool = False
+
+    @classmethod
+    def model_validate(cls, obj: any, *args: any, **kwargs: any) -> "MilestoneRead":
+        res = super().model_validate(obj, *args, **kwargs)
+        if getattr(obj, "completed_at", None) is not None:
+            res.completed = True
+        return res
 
 
 class GoalBase(BaseModel):
@@ -46,6 +55,7 @@ class GoalUpdate(BaseModel):
     time_period: Optional[str] = None
     status: Optional[GoalStatus] = None
     progress: Optional[float] = Field(default=None, ge=0.0, le=100.0)
+    milestones: Optional[List[MilestoneCreate]] = None
 
 
 class GoalRead(GoalBase):
@@ -53,3 +63,4 @@ class GoalRead(GoalBase):
 
     id: uuid.UUID
     milestones: List[MilestoneRead] = Field(default_factory=list)
+

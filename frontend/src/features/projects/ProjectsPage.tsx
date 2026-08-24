@@ -4,15 +4,15 @@ import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
 import { useToast } from '../../hooks/useToast';
 import { Project, ProjectStatus, Priority } from '../../types';
-import { Card, Badge, Button, Input, Tabs, EmptyState, Dropdown } from '../../components/ui';
+import { Card, Badge, Button, Input, Tabs, EmptyState, Dropdown, PageLoader } from '../../components/ui';
 import { CreateProjectModal } from './CreateProjectModal';
 import { formatDate } from '../../utils';
 import './ProjectsPage.css';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { projects, fetchProjects, updateProject, deleteProject } = useProjectStore();
-  const { tasks } = useTaskStore();
+  const { projects, fetchProjects, isLoading, updateProject, deleteProject } = useProjectStore();
+  const { tasks, fetchTasks } = useTaskStore();
   const { addToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -22,7 +22,8 @@ export const ProjectsPage: React.FC = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [fetchProjects]);
+    fetchTasks();
+  }, [fetchProjects, fetchTasks]);
 
   // Compute stats
   const activeCount = projects.filter((p) => p.status === 'active').length;
@@ -232,7 +233,9 @@ export const ProjectsPage: React.FC = () => {
       </div>
 
       {/* Projects Grid */}
-      {filteredProjects.length === 0 ? (
+      {isLoading && projects.length === 0 ? (
+        <PageLoader message="Loading active initiatives..." />
+      ) : filteredProjects.length === 0 ? (
         <EmptyState
           id="projects-empty-state"
           title="No projects found"

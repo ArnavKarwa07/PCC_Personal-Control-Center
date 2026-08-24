@@ -21,13 +21,14 @@ const COLUMNS: ColumnDef[] = [
 ];
 
 export const IdeasPage: React.FC = () => {
-  const { ideas, fetchIdeas, addIdea, deleteIdea, moveIdeaStatus } = useIdeaStore();
+  const { ideas, fetchIdeas, isLoading, addIdea, deleteIdea, moveIdeaStatus } = useIdeaStore();
   const { addToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPromoteIdea, setSelectedPromoteIdea] = useState<Idea | null>(null);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
+  const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchIdeas();
@@ -153,7 +154,45 @@ export const IdeasPage: React.FC = () => {
           const colIdeas = getColumnIdeas(col.id);
 
           return (
-            <div key={col.id} className="pcc-ideas-column" id={`ideas-col-${col.id}`}>
+            <div
+              key={col.id}
+              className={cn('pcc-ideas-column', dragOverColumnId === col.id && 'pcc-ideas-column--drag-over')}
+              id={`ideas-col-${col.id}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (dragOverColumnId !== col.id) {
+                  setDragOverColumnId(col.id);
+                }
+              }}
+              onDragLeave={(e) => {
+                if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                setDragOverColumnId(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOverColumnId(null);
+                const ideaId = e.dataTransfer.getData('text/plain');
+                if (ideaId) {
+                  const targetIdea = ideas.find((i) => i.id === ideaId);
+                  if (!targetIdea) return;
+                  if (targetIdea.status === col.id) return;
+
+                  if (col.id === 'promoted') {
+                    handleOpenPromote(targetIdea);
+                    return;
+                  }
+
+                  moveIdeaStatus(ideaId, col.id);
+                  addToast({
+                    type: 'info',
+                    title: 'Idea Status Updated',
+                    message: `Moved "${targetIdea.title}" to ${col.title}.`,
+                    duration: 2000,
+                  });
+                }
+              }}
+            >
               <div className="pcc-ideas-column__header">
                 <div className="pcc-ideas-column__title-wrap">
                   <span className={cn('pcc-ideas-column__dot', col.dotClass)} />
@@ -163,7 +202,17 @@ export const IdeasPage: React.FC = () => {
               </div>
 
               <div className="pcc-ideas-column__cards-list">
-                {colIdeas.length === 0 ? (
+                {isLoading && ideas.length === 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                    {[1, 2].map((idx) => (
+                      <div key={idx} className="pcc-idea-card pcc-idea-card--skeleton">
+                        <div className="pcc-skeleton-line pcc-skeleton-line--full" style={{ height: '16px', marginBottom: '8px' }} />
+                        <div className="pcc-skeleton-line pcc-skeleton-line--3-4" style={{ height: '12px', marginBottom: '6px' }} />
+                        <div className="pcc-skeleton-line pcc-skeleton-line--half" style={{ height: '12px' }} />
+                      </div>
+                    ))}
+                  </div>
+                ) : colIdeas.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: 'var(--space-8) var(--space-2)', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)' }}>
                     No items in {col.title}
                   </div>
@@ -214,7 +263,16 @@ export const IdeasPage: React.FC = () => {
                     ];
 
                     return (
-                      <div key={idea.id} id={`idea-card-${idea.id}`} className="pcc-idea-card">
+                      <div
+                        key={idea.id}
+                        id={`idea-card-${idea.id}`}
+                        className="pcc-idea-card"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', idea.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                      >
                         <div className="pcc-idea-card__header">
                           <h4 className="pcc-idea-card__title">{idea.title}</h4>
                           {idea.category && (

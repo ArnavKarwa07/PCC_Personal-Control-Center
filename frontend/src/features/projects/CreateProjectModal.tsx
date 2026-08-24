@@ -47,6 +47,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     try {
       await addProject({
         title: title.trim(),
+        name: title.trim(),
         description: description.trim() || undefined,
         priority,
         status,

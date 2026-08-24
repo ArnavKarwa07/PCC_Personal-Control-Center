@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
@@ -11,9 +11,14 @@ import './Tasks.css';
 export const TaskDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getTaskById, updateTask, deleteTask, addSubtask, toggleSubtask, deleteSubtask } = useTaskStore();
-  const { projects } = useProjectStore();
+  const { fetchTasks, getTaskById, updateTask, deleteTask, addSubtask, toggleSubtask, deleteSubtask } = useTaskStore();
+  const { projects, fetchProjects } = useProjectStore();
   const { addToast } = useToast();
+
+  useEffect(() => {
+    fetchTasks();
+    fetchProjects();
+  }, [fetchTasks, fetchProjects]);
 
   const task = id ? getTaskById(id) : undefined;
 
@@ -28,6 +33,18 @@ export const TaskDetailPage: React.FC = () => {
   const [editProjectId, setEditProjectId] = useState<string>(task?.projectId || '');
   const [editDueDate, setEditDueDate] = useState(task?.dueDate || '');
   const [editRecurrence, setEditRecurrence] = useState<RecurrenceType>(task?.recurrence || 'none');
+
+  useEffect(() => {
+    if (task) {
+      setEditTitle(task.title);
+      setEditDesc(task.description || '');
+      setEditStatus(task.status);
+      setEditPriority(task.priority);
+      setEditProjectId(task.projectId || '');
+      setEditDueDate(task.dueDate || '');
+      setEditRecurrence(task.recurrence || 'none');
+    }
+  }, [task]);
 
   if (!task) {
     return (

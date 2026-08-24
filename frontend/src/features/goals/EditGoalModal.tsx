@@ -66,11 +66,7 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
   };
 
   const handleRemoveMilestone = (id: string) => {
-    if (milestones.length === 1 && !isEdit) {
-      setMilestones([{ id: `${Date.now()}-0`, text: '', completed: false }]);
-    } else {
-      setMilestones(milestones.filter((m) => m.id !== id));
-    }
+    setMilestones(milestones.filter((m) => m.id !== id));
   };
 
   const handleMilestoneTextChange = (id: string, text: string) => {
@@ -93,19 +89,8 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
       .filter((m) => m.text.trim() !== '')
       .map((m) => ({ ...m, text: m.text.trim() }));
 
-    const finalMilestones: Milestone[] =
-      validMilestones.length > 0
-        ? validMilestones
-        : [
-            {
-              id: `${Date.now()}-0`,
-              text: 'Initial Objective Setup',
-              completed: false,
-            },
-          ];
-
-    const total = finalMilestones.length;
-    const completed = finalMilestones.filter((m) => m.completed).length;
+    const total = validMilestones.length;
+    const completed = validMilestones.filter((m) => m.completed).length;
     const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
 
     const goalToSave: Goal = {
@@ -114,7 +99,7 @@ export const EditGoalModal: React.FC<EditGoalModalProps> = ({
       period: period || new Date().toISOString().split('T')[0],
       status: progress === 100 ? 'Completed' : status,
       progress,
-      milestones: finalMilestones,
+      milestones: validMilestones,
     };
 
     onSave(goalToSave);

@@ -14,6 +14,7 @@ export const RemindersPage: React.FC = () => {
     filterStatus,
     filterCategory,
     searchQuery,
+    isLoading,
     setFilterStatus,
     setFilterCategory,
     setSearchQuery,
@@ -134,8 +135,12 @@ export const RemindersPage: React.FC = () => {
         </svg>
       ),
       onClick: () => {
-        snoozeReminder(reminderId, 14 * 60);
-        toast.info('Snoozed until tomorrow');
+        const tomorrow9AM = new Date();
+        tomorrow9AM.setDate(tomorrow9AM.getDate() + 1);
+        tomorrow9AM.setHours(9, 0, 0, 0);
+        const diffMins = Math.max(10, Math.round((tomorrow9AM.getTime() - Date.now()) / 60000));
+        snoozeReminder(reminderId, diffMins);
+        toast.info('Snoozed until tomorrow 09:00 AM');
       },
     },
   ];
@@ -271,7 +276,17 @@ export const RemindersPage: React.FC = () => {
 
       {/* Reminders List */}
       <div className="pcc-reminders-list">
-        {filteredReminders.length === 0 ? (
+        {isLoading ? (
+          <div className="pcc-reminders-skeletons" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="pcc-reminder-card pcc-reminder-card--skeleton"
+                style={{ height: '76px', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-lg)', opacity: 0.6 }}
+              />
+            ))}
+          </div>
+        ) : filteredReminders.length === 0 ? (
           <EmptyState
             title="No reminders match your filter"
             description="Create a new reminder to schedule time-based or recurring alerts."

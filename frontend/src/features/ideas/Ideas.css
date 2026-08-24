@@ -225,3 +225,16 @@
   box-shadow: 0 0 10px var(--color-accent-glow);
   transform: scale(1.15);
 }
+
+.pcc-ideas-column--drag-over {
+  border-color: var(--color-accent) !important;
+  background: var(--color-bg-elevated) !important;
+  box-shadow: 0 0 12px var(--color-accent-glow);
+}
+
+.pcc-idea-card--skeleton {
+  pointer-events: none;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+

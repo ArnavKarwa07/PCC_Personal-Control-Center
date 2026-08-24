@@ -18,9 +18,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const { addEvent } = useCalendarStore();
   const { addToast } = useToast();
 
+  const todayStr = new Date().toLocaleDateString('en-CA');
   const [title, setTitle] = useState('');
   const [type, setType] = useState<CalendarEventType>('event');
-  const [date, setDate] = useState(initialDate || '2026-08-15');
+  const [date, setDate] = useState(initialDate || todayStr);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [allDay, setAllDay] = useState(false);

@@ -16,7 +16,7 @@ interface IdeaStore {
   updateIdea: (id: string, updates: Partial<Idea>) => Promise<void>;
   deleteIdea: (id: string) => Promise<void>;
   moveIdeaStatus: (id: string, status: IdeaStatus) => Promise<void>;
-  promoteIdea: (id: string, promotion: { type: 'task' | 'project'; id: string; title: string }) => Promise<void>;
+  promoteIdea: (id: string, promotion: { type: 'task' | 'project'; id: string; title: string; targetProjectId?: string }) => Promise<void>;
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (cat: string) => void;
 }
@@ -157,7 +157,7 @@ export const useIdeaStore = create<IdeaStore>((set, get) => ({
       await ideasApi.promote(id, {
         type: promotion.type,
         title: promotion.title,
-        projectId: promotion.type === 'task' ? promotion.id : undefined,
+        projectId: promotion.type === 'task' ? promotion.targetProjectId : undefined,
       });
     } catch {
       // Ignore API offline error
@@ -169,7 +169,11 @@ export const useIdeaStore = create<IdeaStore>((set, get) => ({
           ? {
               ...i,
               status: 'promoted' as IdeaStatus,
-              promotedTo: promotion,
+              promotedTo: {
+                type: promotion.type,
+                id: promotion.id,
+                title: promotion.title,
+              },
               updatedAt: now,
             }
           : i

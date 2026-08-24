@@ -13,7 +13,7 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({ isOpen, onCl
   const { addReminder } = useReminderStore();
   const { toast } = useToast();
 
-  const todayStr = '2026-08-15';
+  const todayStr = new Date().toISOString().slice(0, 10);
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [dueDate, setDueDate] = useState(todayStr);

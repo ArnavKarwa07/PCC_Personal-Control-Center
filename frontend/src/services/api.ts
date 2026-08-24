@@ -208,15 +208,85 @@ export const apiClient = {
    Typed Feature API Endpoints
    ========================================================================== */
 
+function sanitizeProjectPayload(data: Partial<Project> | any, isCreate = false): Record<string, any> {
+  const payload: Record<string, any> = { ...data };
+  if ('title' in payload && !payload.name) {
+    payload.name = payload.title;
+  }
+  if (isCreate) {
+    if (!payload.name || !String(payload.name).trim()) {
+      payload.name = payload.title?.trim() || 'Untitled Project';
+    }
+  } else {
+    // On update, only send name if title or name was explicitly provided
+    if (('title' in data || 'name' in data) && (!payload.name || !String(payload.name).trim())) {
+      payload.name = 'Untitled Project';
+    }
+  }
+  if ('dueDate' in payload) {
+    if (!payload.deadline && payload.dueDate) {
+      payload.deadline = payload.dueDate;
+    }
+    delete payload.dueDate;
+  }
+  if ('startDate' in payload) {
+    if (!payload.start_date && payload.startDate) {
+      payload.start_date = payload.startDate;
+    }
+    delete payload.startDate;
+  }
+  delete payload.title;
+  delete payload.tasksCount;
+  delete payload.completedTasksCount;
+  delete payload.createdAt;
+  delete payload.created_at;
+  delete payload.updatedAt;
+  delete payload.updated_at;
+  return payload;
+}
+
+function normalizeProject(p: any): Project {
+  if (!p) return p;
+  const deadlineStr = p.dueDate || p.deadline || undefined;
+  const startDateStr = p.startDate || p.start_date || undefined;
+  return {
+    ...p,
+    id: p.id ? String(p.id) : generateId('prj'),
+    name: p.name || p.title || 'Untitled Project',
+    title: p.title || p.name || 'Untitled Project',
+    description: p.description || undefined,
+    status: p.status || 'active',
+    category: p.category || 'General',
+    progress: typeof p.progress === 'number' ? p.progress : 0,
+    dueDate: deadlineStr ? String(deadlineStr).split('T')[0] : undefined,
+    startDate: startDateStr ? String(startDateStr).split('T')[0] : undefined,
+    tasksCount: p.tasksCount !== undefined ? p.tasksCount : p.tasks_count || 0,
+    completedTasksCount: p.completedTasksCount !== undefined ? p.completedTasksCount : p.completed_tasks_count || 0,
+    createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+    updatedAt: p.updatedAt || p.updated_at || new Date().toISOString(),
+  };
+}
+
 export const projectsApi = {
   getAll: async (): Promise<Project[]> => {
     const res = await apiClient.get<any>('/projects/list_projects');
     const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
-    return items;
+    return items.map(normalizeProject);
   },
-  getById: (id: string) => apiClient.get<Project>(`/projects/get_project_by_id/${id}`),
-  create: (data: Partial<Project>) => apiClient.post<Project>('/projects/create_project', data),
-  update: (id: string, data: Partial<Project>) => apiClient.patch<Project>(`/projects/update_project_by_id/${id}`, data),
+  getById: async (id: string): Promise<Project> => {
+    const res = await apiClient.get<any>(`/projects/get_project_by_id/${id}`);
+    return normalizeProject(res);
+  },
+  create: async (data: Partial<Project>): Promise<Project> => {
+    const payload = sanitizeProjectPayload(data, true);
+    const res = await apiClient.post<any>('/projects/create_project', payload);
+    return normalizeProject(res);
+  },
+  update: async (id: string, data: Partial<Project>): Promise<Project> => {
+    const payload = sanitizeProjectPayload(data);
+    const res = await apiClient.patch<any>(`/projects/update_project_by_id/${id}`, payload);
+    return normalizeProject(res);
+  },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/projects/delete_project_by_id/${id}`),
 };
 
@@ -689,7 +759,11 @@ export const remindersApi = {
     return normalizeReminder(res);
   },
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/reminders/delete_reminder_by_id/${id}`),
-  snooze: (id: string, snoozedUntil: string) => apiClient.post<Reminder>(`/reminders/snooze_reminder_by_id/${id}`, { snoozedUntil }),
+  snooze: (id: string, snoozedUntil: string, snoozeMinutes?: number) =>
+    apiClient.post<Reminder>(`/reminders/snooze_reminder_by_id/${id}`, {
+      snooze_until: snoozedUntil,
+      snooze_minutes: snoozeMinutes,
+    }),
 };
 
 export const alarmsApi = {

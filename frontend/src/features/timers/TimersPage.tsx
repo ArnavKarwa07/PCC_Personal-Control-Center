@@ -9,6 +9,7 @@ export const TimersPage: React.FC = () => {
   const {
     activeTab,
     setActiveTab,
+    fetchTimers,
 
     // Pomodoro
     pomodoroState,
@@ -99,10 +100,19 @@ export const TimersPage: React.FC = () => {
     return () => cancelAnimationFrame(animId);
   }, [isStopwatchRunning, tickStopwatch]);
 
-  // Format MM:SS
+  // Fetch live timers on mount
+  useEffect(() => {
+    fetchTimers();
+  }, [fetchTimers]);
+
+  // Format MM:SS or HH:MM:SS
   const formatTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
     const secs = totalSeconds % 60;
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 

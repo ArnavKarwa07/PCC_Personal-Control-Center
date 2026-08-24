@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
@@ -11,9 +11,14 @@ import './ProjectDetailPage.css';
 export const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getProjectById, updateProject, deleteProject } = useProjectStore();
-  const { tasks, addTask, toggleTaskComplete, deleteTask } = useTaskStore();
+  const { fetchProjects, getProjectById, updateProject, deleteProject } = useProjectStore();
+  const { tasks, fetchTasks, addTask, toggleTaskComplete, deleteTask } = useTaskStore();
   const { addToast } = useToast();
+
+  useEffect(() => {
+    fetchProjects();
+    fetchTasks();
+  }, [fetchProjects, fetchTasks]);
 
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -26,6 +31,16 @@ export const ProjectDetailPage: React.FC = () => {
   const [editStatus, setEditStatus] = useState<ProjectStatus>(project?.status || 'active');
   const [editPriority, setEditPriority] = useState<Priority>(project?.priority || 'medium');
   const [editDueDate, setEditDueDate] = useState(project?.dueDate || '');
+
+  useEffect(() => {
+    if (project) {
+      setEditTitle(project.title);
+      setEditDesc(project.description || '');
+      setEditStatus(project.status);
+      setEditPriority(project.priority || 'medium');
+      setEditDueDate(project.dueDate || '');
+    }
+  }, [project]);
 
   // New task form state
   const [newTaskTitle, setNewTaskTitle] = useState('');

@@ -69,6 +69,7 @@ export const PromoteIdeaModal: React.FC<PromoteIdeaModalProps> = ({
           type: 'task',
           id: createdTask.id,
           title: createdTask.title,
+          targetProjectId: targetProjectId || undefined,
         });
 
         addToast({

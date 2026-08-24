@@ -18,7 +18,8 @@ export const OKRProgressRing: React.FC<OKRProgressRingProps> = ({
   status,
   className = '',
 }) => {
-  const normalizedProgress = Math.min(100, Math.max(0, progress));
+  const safeProgress = typeof progress === 'number' && !isNaN(progress) ? progress : 0;
+  const normalizedProgress = Math.min(100, Math.max(0, safeProgress));
   // Keep stroke and linecaps safely inside container bounds
   const padding = 2; 
   const radius = (size - strokeWidth - padding * 2) / 2;

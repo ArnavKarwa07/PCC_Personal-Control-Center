@@ -11,7 +11,7 @@ import './Alarms.css';
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // 0=Sun..6=Sat
 
 export const AlarmsPage: React.FC = () => {
-  const { alarms, fetchAlarms, toggleAlarm, deleteAlarm, duplicateAlarm, previewAlarmSound, getNextAlarmText } =
+  const { alarms, fetchAlarms, isLoading, toggleAlarm, deleteAlarm, duplicateAlarm, previewAlarmSound, getNextAlarmText } =
     useAlarmStore();
   const { toast } = useToast();
 
@@ -96,7 +96,16 @@ export const AlarmsPage: React.FC = () => {
 
       {/* Alarms Grid */}
       <div className="pcc-alarms-grid">
-        {alarms.length === 0 ? (
+        {isLoading ? (
+          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            {[1, 2].map((n) => (
+              <div
+                key={n}
+                style={{ height: '180px', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-xl)', opacity: 0.6 }}
+              />
+            ))}
+          </div>
+        ) : alarms.length === 0 ? (
           <div style={{ gridColumn: '1 / -1' }}>
             <EmptyState
               title="No alarms configured"
