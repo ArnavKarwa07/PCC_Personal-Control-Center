@@ -34,14 +34,21 @@ class NotFoundException(PCCException):
 class UnauthorizedException(PCCException):
     """Authentication failed or missing credentials."""
 
-    def __init__(self, message: str = "Authentication required", code: str = "UNAUTHORIZED", details: Optional[Any] = None):
+    def __init__(
+        self, message: str = "Authentication required", code: str = "UNAUTHORIZED", details: Optional[Any] = None
+    ):
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, code=code, message=message, details=details)
 
 
 class ForbiddenException(PCCException):
     """Action forbidden due to permissions or ownership check."""
 
-    def __init__(self, message: str = "You do not have permission to access this resource", code: str = "FORBIDDEN", details: Optional[Any] = None):
+    def __init__(
+        self,
+        message: str = "You do not have permission to access this resource",
+        code: str = "FORBIDDEN",
+        details: Optional[Any] = None,
+    ):
         super().__init__(status_code=status.HTTP_403_FORBIDDEN, code=code, message=message, details=details)
 
 
@@ -62,9 +69,10 @@ class BadRequestException(PCCException):
 class ValidationException(PCCException):
     """Validation failure on domain or business rules."""
 
-    def __init__(self, message: str = "Validation failed", code: str = "VALIDATION_ERROR", details: Optional[Any] = None):
+    def __init__(
+        self, message: str = "Validation failed", code: str = "VALIDATION_ERROR", details: Optional[Any] = None
+    ):
         super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, code=code, message=message, details=details)
-
 
 
 def register_exception_handlers(app: FastAPI) -> None:

@@ -44,13 +44,27 @@ def calculate_next_occurrence(
     elif pattern_str == "weekly":
         if days_of_week:
             day_map = {
-                "mon": 0, "mo": 0, "0": 0,
-                "tue": 1, "tu": 1, "1": 1,
-                "wed": 2, "we": 2, "2": 2,
-                "thu": 3, "th": 3, "3": 3,
-                "fri": 4, "fr": 4, "4": 4,
-                "sat": 5, "sa": 5, "5": 5,
-                "sun": 6, "su": 6, "6": 6,
+                "mon": 0,
+                "mo": 0,
+                "0": 0,
+                "tue": 1,
+                "tu": 1,
+                "1": 1,
+                "wed": 2,
+                "we": 2,
+                "2": 2,
+                "thu": 3,
+                "th": 3,
+                "3": 3,
+                "fri": 4,
+                "fr": 4,
+                "4": 4,
+                "sat": 5,
+                "sa": 5,
+                "5": 5,
+                "sun": 6,
+                "su": 6,
+                "6": 6,
             }
             parsed_days = []
             for part in days_of_week.split(","):
@@ -261,7 +275,9 @@ class TaskService:
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
 
         offset = (page - 1) * per_page
-        tasks = query.order_by(Task.due_date.asc().nullslast(), Task.created_at.desc()).offset(offset).limit(per_page).all()
+        tasks = (
+            query.order_by(Task.due_date.asc().nullslast(), Task.created_at.desc()).offset(offset).limit(per_page).all()
+        )
 
         formatted_tasks = [cls._format_task_response(task) for task in tasks]
         return formatted_tasks, total, total_pages

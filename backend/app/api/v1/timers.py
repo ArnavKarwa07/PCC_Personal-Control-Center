@@ -86,7 +86,9 @@ def update_timer(
     }
 
 
-@router.patch("/update_timer_state_by_id/{timer_id}", operation_id="update_timer_state_by_id", summary="Update Timer State By Id")
+@router.patch(
+    "/update_timer_state_by_id/{timer_id}", operation_id="update_timer_state_by_id", summary="Update Timer State By Id"
+)
 def update_timer_state(
     timer_id: uuid.UUID,
     data: TimerStateAction,

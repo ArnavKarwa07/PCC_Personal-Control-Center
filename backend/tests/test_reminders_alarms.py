@@ -356,7 +356,9 @@ def test_reminders_alarms_timers_negative_missing_payload_fields(client, auth_he
     assert res_a.status_code == 422
     assert res_a.json()["error"]["code"] == "VALIDATION_ERROR"
 
-    res_t = client.post("/api/v1/timers/create_timer", json={"duration_seconds": ["invalid", "list"]}, headers=auth_headers)
+    res_t = client.post(
+        "/api/v1/timers/create_timer", json={"duration_seconds": ["invalid", "list"]}, headers=auth_headers
+    )
     assert res_t.status_code == 422
     assert res_t.json()["error"]["code"] == "VALIDATION_ERROR"
 
@@ -368,20 +370,37 @@ def test_reminders_alarms_timers_negative_nonexistent_resource_lookup(client, au
     fake_id = str(uuid.uuid4())
 
     assert client.get(f"/api/v1/reminders/get_reminder_by_id/{fake_id}", headers=auth_headers).status_code == 404
-    assert client.get(f"/api/v1/reminders/get_reminder_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("REMINDER_NOT_FOUND", "NOT_FOUND")
-    assert client.patch(f"/api/v1/reminders/update_reminder_by_id/{fake_id}", json={"title": "X"}, headers=auth_headers).status_code == 404
+    assert client.get(f"/api/v1/reminders/get_reminder_by_id/{fake_id}", headers=auth_headers).json()["error"][
+        "code"
+    ] in ("REMINDER_NOT_FOUND", "NOT_FOUND")
+    assert (
+        client.patch(
+            f"/api/v1/reminders/update_reminder_by_id/{fake_id}", json={"title": "X"}, headers=auth_headers
+        ).status_code
+        == 404
+    )
     assert client.delete(f"/api/v1/reminders/delete_reminder_by_id/{fake_id}", headers=auth_headers).status_code == 404
 
     assert client.patch(f"/api/v1/alarms/toggle_alarm_by_id/{fake_id}", headers=auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/alarms/toggle_alarm_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("ALARM_NOT_FOUND", "NOT_FOUND")
+    assert client.patch(f"/api/v1/alarms/toggle_alarm_by_id/{fake_id}", headers=auth_headers).json()["error"][
+        "code"
+    ] in ("ALARM_NOT_FOUND", "NOT_FOUND")
     assert client.delete(f"/api/v1/alarms/delete_alarm_by_id/{fake_id}", headers=auth_headers).status_code == 404
 
     assert client.get(f"/api/v1/timers/get_timer_by_id/{fake_id}", headers=auth_headers).status_code == 404
-    assert client.get(f"/api/v1/timers/get_timer_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("TIMER_NOT_FOUND", "NOT_FOUND")
+    assert client.get(f"/api/v1/timers/get_timer_by_id/{fake_id}", headers=auth_headers).json()["error"]["code"] in (
+        "TIMER_NOT_FOUND",
+        "NOT_FOUND",
+    )
     assert client.delete(f"/api/v1/timers/delete_timer_by_id/{fake_id}", headers=auth_headers).status_code == 404
 
-    assert client.patch(f"/api/v1/notifications/mark_notification_as_read/{fake_id}", headers=auth_headers).status_code == 404
-    assert client.patch(f"/api/v1/notifications/mark_notification_as_read/{fake_id}", headers=auth_headers).json()["error"]["code"] in ("NOTIFICATION_NOT_FOUND", "NOT_FOUND")
+    assert (
+        client.patch(f"/api/v1/notifications/mark_notification_as_read/{fake_id}", headers=auth_headers).status_code
+        == 404
+    )
+    assert client.patch(f"/api/v1/notifications/mark_notification_as_read/{fake_id}", headers=auth_headers).json()[
+        "error"
+    ]["code"] in ("NOTIFICATION_NOT_FOUND", "NOT_FOUND")
 
 
 def test_reminders_alarms_timers_operation_ids_and_route_contracts(client):

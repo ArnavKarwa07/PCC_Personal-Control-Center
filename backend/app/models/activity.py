@@ -1,6 +1,6 @@
 """Activity log model for audit trails and productivity analytics."""
 
-from sqlalchemy import JSON, Column, ForeignKey, String, Uuid
+from sqlalchemy import JSON, Column, String, Uuid
 
 from app.models.base import BaseModel
 

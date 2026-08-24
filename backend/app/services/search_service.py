@@ -1,7 +1,6 @@
 """Global search service aggregating cross-entity SQLite LIKE queries with relevance scoring."""
 
 import re
-import uuid
 from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy.orm import Session

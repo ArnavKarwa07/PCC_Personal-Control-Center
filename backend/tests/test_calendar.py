@@ -41,7 +41,10 @@ def test_calendar_event_crud(client, auth_headers):
     assert del_res.status_code == 200
 
     # Verify not found
-    assert client.get(f"/api/v1/calendar/events/get_calendar_event_by_id/{event_id}", headers=auth_headers).status_code == 404
+    assert (
+        client.get(f"/api/v1/calendar/events/get_calendar_event_by_id/{event_id}", headers=auth_headers).status_code
+        == 404
+    )
 
 
 def test_calendar_date_range_and_type_filtering(client, auth_headers):

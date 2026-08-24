@@ -41,7 +41,12 @@ def get_board(
     }
 
 
-@router.post("/create_board_column/{board_id}", operation_id="create_board_column", status_code=status.HTTP_201_CREATED, summary="Create Board Column")
+@router.post(
+    "/create_board_column/{board_id}",
+    operation_id="create_board_column",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create Board Column",
+)
 def create_column(
     board_id: uuid.UUID,
     data: BoardColumnCreate,
@@ -58,7 +63,12 @@ def create_column(
     }
 
 
-@router.post("/create_board_card", operation_id="create_board_card", status_code=status.HTTP_201_CREATED, summary="Create Board Card")
+@router.post(
+    "/create_board_card",
+    operation_id="create_board_card",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create Board Card",
+)
 def create_card(
     data: BoardCardCreate,
     db: Session = Depends(get_db),

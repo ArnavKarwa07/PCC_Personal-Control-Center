@@ -1,6 +1,5 @@
 """Integration framework and connector implementations for third-party services."""
 
-import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -118,19 +117,28 @@ class GitHubConnector(BaseConnector):
 
     def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
-        token = data.access_token or data.api_key or cfg.get("token") or cfg.get("api_token") or cfg.get("apiToken") or "mock_gh_token"
+        token = (
+            data.access_token
+            or data.api_key
+            or cfg.get("token")
+            or cfg.get("api_token")
+            or cfg.get("apiToken")
+            or "mock_gh_token"
+        )
         username = cfg.get("username") or "user"
         token_masked = mask_credential_value(token)
         if token_masked == "****":
             token_masked = f"ghp_{token[:4]}***" if len(token) > 4 else "ghp_****"
 
         res = dict(cfg)
-        res.update({
-            "username": username,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "scope": ["repo", "user", "read:org"],
-            "token_masked": token_masked,
-        })
+        res.update(
+            {
+                "username": username,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "scope": ["repo", "user", "read:org"],
+                "token_masked": token_masked,
+            }
+        )
         return res
 
     def disconnect(self, db: Session, integration: Integration) -> None:
@@ -165,11 +173,13 @@ class GoogleCalendarConnector(BaseConnector):
         cfg = dict(data.config or {})
         calendar_id = cfg.get("calendar_id") or cfg.get("calendarId") or "primary"
         res = dict(cfg)
-        res.update({
-            "calendar_id": calendar_id,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "sync_token": "mock_sync_token_init",
-        })
+        res.update(
+            {
+                "calendar_id": calendar_id,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "sync_token": "mock_sync_token_init",
+            }
+        )
         return res
 
     def disconnect(self, db: Session, integration: Integration) -> None:
@@ -202,7 +212,16 @@ class TeamsCalendarConnector(BaseConnector):
 
     def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
-        token = data.access_token or data.api_key or cfg.get("token") or cfg.get("user_token") or cfg.get("userToken") or cfg.get("api_token") or cfg.get("apiToken") or "mock_teams_token"
+        token = (
+            data.access_token
+            or data.api_key
+            or cfg.get("token")
+            or cfg.get("user_token")
+            or cfg.get("userToken")
+            or cfg.get("api_token")
+            or cfg.get("apiToken")
+            or "mock_teams_token"
+        )
         calendar_id = cfg.get("calendar_id") or cfg.get("calendarId") or "teams_primary"
         tenant_id = cfg.get("tenant_id") or cfg.get("tenantId") or "default_tenant"
         client_id = cfg.get("client_id") or cfg.get("clientId")
@@ -212,13 +231,15 @@ class TeamsCalendarConnector(BaseConnector):
             token_masked = f"msteams_{token[:4]}***" if len(token) > 4 else "msteams_****"
 
         res = dict(cfg)
-        res.update({
-            "calendar_id": calendar_id,
-            "tenant_id": tenant_id,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "token_masked": token_masked,
-            "sync_token": "mock_teams_sync_token_init",
-        })
+        res.update(
+            {
+                "calendar_id": calendar_id,
+                "tenant_id": tenant_id,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "token_masked": token_masked,
+                "sync_token": "mock_teams_sync_token_init",
+            }
+        )
         if client_id:
             res["client_id"] = client_id
         return res
@@ -262,22 +283,30 @@ class SlackConnector(BaseConnector):
         user_token = cfg.get("user_token") or cfg.get("userToken")
         bot_token = cfg.get("bot_token") or cfg.get("botToken")
         default_channel = cfg.get("default_channel") or cfg.get("defaultChannel")
-        token = data.access_token or data.api_key or cfg.get("token") or user_token or bot_token or "xoxb_mock_slack_token"
+        token = (
+            data.access_token or data.api_key or cfg.get("token") or user_token or bot_token or "xoxb_mock_slack_token"
+        )
         workspace = cfg.get("workspace") or cfg.get("team_name") or cfg.get("teamName") or "PCC Workspace"
         bot_user = cfg.get("bot_user") or cfg.get("botUser") or "pcc_bot"
 
         token_masked = mask_credential_value(token)
         if token_masked == "****":
-            token_masked = f"xoxb-{token[5:9]}***" if len(token) > 9 else (f"slack_{token[:4]}***" if len(token) > 4 else "slack_****")
+            token_masked = (
+                f"xoxb-{token[5:9]}***"
+                if len(token) > 9
+                else (f"slack_{token[:4]}***" if len(token) > 4 else "slack_****")
+            )
 
         res = dict(cfg)
-        res.update({
-            "workspace": workspace,
-            "bot_user": bot_user,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "scope": ["channels:read", "chat:write", "users:read"],
-            "token_masked": token_masked,
-        })
+        res.update(
+            {
+                "workspace": workspace,
+                "bot_user": bot_user,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "scope": ["channels:read", "chat:write", "users:read"],
+                "token_masked": token_masked,
+            }
+        )
         if default_channel:
             res["default_channel"] = default_channel
         if user_token:
@@ -323,23 +352,36 @@ class GitLabConnector(BaseConnector):
 
     def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
-        token = data.access_token or data.api_key or cfg.get("token") or cfg.get("api_token") or cfg.get("apiToken") or "glpat_mock_gitlab_token"
+        token = (
+            data.access_token
+            or data.api_key
+            or cfg.get("token")
+            or cfg.get("api_token")
+            or cfg.get("apiToken")
+            or "glpat_mock_gitlab_token"
+        )
         gitlab_url = cfg.get("gitlab_url") or cfg.get("gitlabUrl") or "https://gitlab.com"
         username = cfg.get("username") or "gitlab_user"
         project_ids = cfg.get("project_ids") or cfg.get("projectIds")
 
         token_masked = mask_credential_value(token)
         if token_masked == "****":
-            token_masked = f"glpat_{token[6:10]}***" if len(token) > 10 else (f"glpat_{token[:4]}***" if len(token) > 4 else "glpat_****")
+            token_masked = (
+                f"glpat_{token[6:10]}***"
+                if len(token) > 10
+                else (f"glpat_{token[:4]}***" if len(token) > 4 else "glpat_****")
+            )
 
         res = dict(cfg)
-        res.update({
-            "gitlab_url": gitlab_url,
-            "username": username,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "scope": ["api", "read_repository", "read_user"],
-            "token_masked": token_masked,
-        })
+        res.update(
+            {
+                "gitlab_url": gitlab_url,
+                "username": username,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "scope": ["api", "read_repository", "read_user"],
+                "token_masked": token_masked,
+            }
+        )
         if project_ids:
             res["project_ids"] = project_ids
         return res
@@ -392,13 +434,15 @@ class JiraConnector(BaseConnector):
             token_masked = f"jira_{token[:4]}***" if len(token) > 4 else "jira_****"
 
         res = dict(cfg)
-        res.update({
-            "domain": domain,
-            "email": email,
-            "project_key": project_key,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "token_masked": token_masked,
-        })
+        res.update(
+            {
+                "domain": domain,
+                "email": email,
+                "project_key": project_key,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "token_masked": token_masked,
+            }
+        )
         if api_token:
             res["api_token"] = api_token
         return res
@@ -441,12 +485,14 @@ class TelegramConnector(BaseConnector):
         chat_id = cfg.get("chat_id") or cfg.get("chatId") or "12345678"
         token_masked = mask_credential_value(bot_token)
         res = dict(cfg)
-        res.update({
-            "bot_token": bot_token,
-            "chat_id": chat_id,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "token_masked": token_masked,
-        })
+        res.update(
+            {
+                "bot_token": bot_token,
+                "chat_id": chat_id,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "token_masked": token_masked,
+            }
+        )
         return res
 
     def disconnect(self, db: Session, integration: Integration) -> None:
@@ -478,15 +524,25 @@ class NotionConnector(BaseConnector):
 
     def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
-        token = data.access_token or data.api_key or cfg.get("integrationToken") or cfg.get("integration_token") or cfg.get("apiKey") or cfg.get("api_key") or "secret_mock_notion_token"
+        token = (
+            data.access_token
+            or data.api_key
+            or cfg.get("integrationToken")
+            or cfg.get("integration_token")
+            or cfg.get("apiKey")
+            or cfg.get("api_key")
+            or "secret_mock_notion_token"
+        )
         workspace_id = cfg.get("workspaceId") or cfg.get("workspace_id") or "workspace_main"
         token_masked = mask_credential_value(token)
         res = dict(cfg)
-        res.update({
-            "workspace_id": workspace_id,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "token_masked": token_masked,
-        })
+        res.update(
+            {
+                "workspace_id": workspace_id,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "token_masked": token_masked,
+            }
+        )
         return res
 
     def disconnect(self, db: Session, integration: Integration) -> None:
@@ -518,14 +574,22 @@ class DiscordConnector(BaseConnector):
 
     def connect(self, db: Session, data: IntegrationConnectRequest) -> Dict[str, Any]:
         cfg = dict(data.config or {})
-        webhook_url = cfg.get("webhookUrl") or cfg.get("webhook_url") or data.access_token or data.api_key or "https://discord.com/api/webhooks/mock"
+        webhook_url = (
+            cfg.get("webhookUrl")
+            or cfg.get("webhook_url")
+            or data.access_token
+            or data.api_key
+            or "https://discord.com/api/webhooks/mock"
+        )
         url_masked = mask_credential_value(webhook_url)
         res = dict(cfg)
-        res.update({
-            "webhook_url": webhook_url,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "webhook_masked": url_masked,
-        })
+        res.update(
+            {
+                "webhook_url": webhook_url,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "webhook_masked": url_masked,
+            }
+        )
         return res
 
     def disconnect(self, db: Session, integration: Integration) -> None:
@@ -537,7 +601,9 @@ class DiscordConnector(BaseConnector):
         cfg = integration.config or {}
         return {
             "service": "Discord",
-            "webhook_url_masked": mask_credential_value(cfg.get("webhook_url") or cfg.get("webhookUrl", "https://discord.com/api/webhooks/mock")),
+            "webhook_url_masked": mask_credential_value(
+                cfg.get("webhook_url") or cfg.get("webhookUrl", "https://discord.com/api/webhooks/mock")
+            ),
             "last_synced_at": cfg.get("last_synced_at"),
             "dispatched_webhooks_count": cfg.get("dispatched_webhooks_count", 6),
         }
@@ -596,12 +662,7 @@ class IntegrationService:
     @classmethod
     def list_integrations(cls, db: Session) -> List[IntegrationResponse]:
         """List all supported providers with connection state."""
-        existing_records = {
-            r.provider: r
-            for r in db.query(Integration)
-            .filter(Integration.deleted_at.is_(None))
-            .all()
-        }
+        existing_records = {r.provider: r for r in db.query(Integration).filter(Integration.deleted_at.is_(None)).all()}
 
         results: List[IntegrationResponse] = []
         for provider in IntegrationProvider:
@@ -758,4 +819,3 @@ class IntegrationService:
 
 
 integration_service = IntegrationService()
-

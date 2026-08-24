@@ -24,7 +24,11 @@ class Goal(BaseModel):
     description = Column(Text, nullable=True)
     parent_goal_id = Column(Uuid(as_uuid=True), ForeignKey("goals.id", ondelete="SET NULL"), nullable=True)
     time_period = Column(String(100), nullable=True)
-    status = Column(Enum(GoalStatus, name="goal_status", values_callable=lambda obj: [e.value for e in obj]), default=GoalStatus.NOT_STARTED, nullable=False)
+    status = Column(
+        Enum(GoalStatus, name="goal_status", values_callable=lambda obj: [e.value for e in obj]),
+        default=GoalStatus.NOT_STARTED,
+        nullable=False,
+    )
     progress = Column(Float, default=0.0, nullable=False)
 
     milestones = relationship("GoalMilestone", back_populates="goal", cascade="all, delete-orphan")

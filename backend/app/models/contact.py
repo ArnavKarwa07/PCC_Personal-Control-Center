@@ -1,6 +1,6 @@
 """Contact model for CRM and networking directory."""
 
-from sqlalchemy import Column, Date, ForeignKey, String, Text, Uuid
+from sqlalchemy import Column, Date, String, Text
 
 from app.models.base import BaseModel
 

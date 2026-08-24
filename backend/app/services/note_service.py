@@ -48,20 +48,13 @@ class NoteService:
         if category:
             query = query.filter(Note.category == category)
         if search:
-            query = query.filter(
-                (Note.title.ilike(f"%{search}%")) | (Note.content.ilike(f"%{search}%"))
-            )
+            query = query.filter((Note.title.ilike(f"%{search}%")) | (Note.content.ilike(f"%{search}%")))
 
         total = query.count()
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
 
         offset = (page - 1) * per_page
-        notes = (
-            query.order_by(Note.is_pinned.desc(), Note.updated_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
-        )
+        notes = query.order_by(Note.is_pinned.desc(), Note.updated_at.desc()).offset(offset).limit(per_page).all()
 
         formatted_notes = [cls._format_note_response(n) for n in notes]
         return formatted_notes, total, total_pages

@@ -280,7 +280,9 @@ class WeatherService:
                                 temp_max=float(max_t[i]) if i < len(max_t) else 25.0,
                                 condition=d_meta["condition"],
                                 weather_code=d_code,
-                                precipitation_probability=int(precip[i]) if i < len(precip) and precip[i] is not None else None,
+                                precipitation_probability=int(precip[i])
+                                if i < len(precip) and precip[i] is not None
+                                else None,
                                 icon=d_meta["icon"],
                             )
                         )
@@ -299,4 +301,3 @@ class WeatherService:
 
 
 weather_service = WeatherService()
-

@@ -13,6 +13,7 @@ from app.schemas.base import PaginationMeta
 # Project Member Schemas
 # ---------------------------------------------------------------------------
 
+
 class ProjectMemberCreate(BaseModel):
     """Payload to add a member/contact to a project."""
 
@@ -35,6 +36,7 @@ class ProjectMemberResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Project Schemas
 # ---------------------------------------------------------------------------
+
 
 class ProjectBase(BaseModel):
     """Base project attributes."""
@@ -105,6 +107,7 @@ class ProjectListResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Kanban Board Schemas
 # ---------------------------------------------------------------------------
+
 
 class BoardCardTaskSummary(BaseModel):
     """Summary of task embedded in a board card."""

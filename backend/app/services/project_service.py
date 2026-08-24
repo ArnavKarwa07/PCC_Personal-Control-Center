@@ -279,11 +279,7 @@ class ProjectService:
         project = cls.get_project(db, project_id)
 
         # Validate contact exists
-        contact = (
-            db.query(Contact)
-            .filter(Contact.id == data.contact_id, Contact.deleted_at.is_(None))
-            .first()
-        )
+        contact = db.query(Contact).filter(Contact.id == data.contact_id, Contact.deleted_at.is_(None)).first()
         if not contact:
             raise NotFoundException(message="Contact not found", code="CONTACT_NOT_FOUND")
 
@@ -414,11 +410,7 @@ class ProjectService:
     @classmethod
     def create_column(cls, db: Session, board_id: uuid.UUID, data: BoardColumnCreate) -> BoardColumnResponse:
         """Add a column to an existing board."""
-        board = (
-            db.query(Board)
-            .filter(Board.id == board_id, Board.deleted_at.is_(None))
-            .first()
-        )
+        board = db.query(Board).filter(Board.id == board_id, Board.deleted_at.is_(None)).first()
         if not board:
             raise NotFoundException(message="Board not found", code="BOARD_NOT_FOUND")
 
@@ -457,19 +449,13 @@ class ProjectService:
         """Create a board card placing a task in a column."""
         # Verify column
         column = (
-            db.query(BoardColumn)
-            .filter(BoardColumn.id == data.column_id, BoardColumn.deleted_at.is_(None))
-            .first()
+            db.query(BoardColumn).filter(BoardColumn.id == data.column_id, BoardColumn.deleted_at.is_(None)).first()
         )
         if not column:
             raise NotFoundException(message="Column not found", code="COLUMN_NOT_FOUND")
 
         # Verify task
-        task = (
-            db.query(Task)
-            .filter(Task.id == data.task_id, Task.deleted_at.is_(None))
-            .first()
-        )
+        task = db.query(Task).filter(Task.id == data.task_id, Task.deleted_at.is_(None)).first()
         if not task:
             raise NotFoundException(message="Task not found", code="TASK_NOT_FOUND")
 
@@ -495,11 +481,7 @@ class ProjectService:
     @classmethod
     def move_card(cls, db: Session, card_id: uuid.UUID, data: BoardCardMove) -> BoardCardResponse:
         """Move and reorder a board card within or across columns."""
-        card = (
-            db.query(BoardCard)
-            .filter(BoardCard.id == card_id, BoardCard.deleted_at.is_(None))
-            .first()
-        )
+        card = db.query(BoardCard).filter(BoardCard.id == card_id, BoardCard.deleted_at.is_(None)).first()
         if not card:
             raise NotFoundException(message="Card not found", code="CARD_NOT_FOUND")
 
@@ -507,9 +489,7 @@ class ProjectService:
 
         # Verify target column
         target_column = (
-            db.query(BoardColumn)
-            .filter(BoardColumn.id == target_column_id, BoardColumn.deleted_at.is_(None))
-            .first()
+            db.query(BoardColumn).filter(BoardColumn.id == target_column_id, BoardColumn.deleted_at.is_(None)).first()
         )
         if not target_column:
             raise NotFoundException(message="Target column not found", code="COLUMN_NOT_FOUND")

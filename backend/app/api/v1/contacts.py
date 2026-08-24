@@ -31,7 +31,9 @@ def list_contacts(
     }
 
 
-@router.post("/create_contact", operation_id="create_contact", status_code=status.HTTP_201_CREATED, summary="Create Contact")
+@router.post(
+    "/create_contact", operation_id="create_contact", status_code=status.HTTP_201_CREATED, summary="Create Contact"
+)
 def create_contact(
     data: ContactCreate,
     db: Session = Depends(get_db),
@@ -66,7 +68,9 @@ def update_contact(
     return {"data": ContactRead.model_validate(contact).model_dump()}
 
 
-@router.delete("/delete_contact_by_id/{contact_id}", operation_id="delete_contact_by_id", summary="Delete Contact By Id")
+@router.delete(
+    "/delete_contact_by_id/{contact_id}", operation_id="delete_contact_by_id", summary="Delete Contact By Id"
+)
 def delete_contact(
     contact_id: uuid.UUID,
     db: Session = Depends(get_db),

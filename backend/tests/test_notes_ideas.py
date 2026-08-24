@@ -8,7 +8,12 @@ def test_notes_crud_and_pin(client, auth_headers):
     # 1. Create notes
     res1 = client.post(
         "/api/v1/notes/create_note",
-        json={"title": "Architecture Plan", "content": "FastAPI + React + Postgres", "category": "engineering", "is_pinned": False},
+        json={
+            "title": "Architecture Plan",
+            "content": "FastAPI + React + Postgres",
+            "category": "engineering",
+            "is_pinned": False,
+        },
         headers=auth_headers,
     )
     assert res1.status_code == 201
@@ -181,7 +186,9 @@ def test_notes_ideas_negative_nonexistent_resource_lookup(client, auth_headers):
     assert res_n_get.status_code == 404
     assert res_n_get.json()["error"]["code"] in ("NOTE_NOT_FOUND", "NOT_FOUND")
 
-    res_n_patch = client.patch(f"/api/v1/notes/update_note_by_id/{fake_id}", json={"title": "Updated"}, headers=auth_headers)
+    res_n_patch = client.patch(
+        f"/api/v1/notes/update_note_by_id/{fake_id}", json={"title": "Updated"}, headers=auth_headers
+    )
     assert res_n_patch.status_code == 404
 
     res_n_del = client.delete(f"/api/v1/notes/delete_note_by_id/{fake_id}", headers=auth_headers)
@@ -191,7 +198,9 @@ def test_notes_ideas_negative_nonexistent_resource_lookup(client, auth_headers):
     assert res_i_get.status_code == 404
     assert res_i_get.json()["error"]["code"] in ("IDEA_NOT_FOUND", "NOT_FOUND")
 
-    res_i_promote = client.post(f"/api/v1/ideas/promote_idea_by_id/{fake_id}", json={"promote_to": "task"}, headers=auth_headers)
+    res_i_promote = client.post(
+        f"/api/v1/ideas/promote_idea_by_id/{fake_id}", json={"promote_to": "task"}, headers=auth_headers
+    )
     assert res_i_promote.status_code == 404
 
     res_i_del = client.delete(f"/api/v1/ideas/delete_idea_by_id/{fake_id}", headers=auth_headers)

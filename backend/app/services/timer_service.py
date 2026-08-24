@@ -55,12 +55,7 @@ class TimerService:
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
 
         offset = (page - 1) * per_page
-        timers = (
-            query.order_by(TimerModel.created_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
-        )
+        timers = query.order_by(TimerModel.created_at.desc()).offset(offset).limit(per_page).all()
 
         formatted = [cls._format_timer_response(t) for t in timers]
         return formatted, total, total_pages
@@ -72,11 +67,7 @@ class TimerService:
         data: TimerCreate,
     ) -> TimerResponse:
         """Create a new timer instance."""
-        initial_remaining = (
-            data.remaining_seconds
-            if data.remaining_seconds is not None
-            else data.duration_seconds
-        )
+        initial_remaining = data.remaining_seconds if data.remaining_seconds is not None else data.duration_seconds
 
         timer = TimerModel(
             label=data.label,

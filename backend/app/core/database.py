@@ -50,7 +50,6 @@ def _set_sqlite_pragma(dbapi_conn, connection_record):
         cursor.close()
 
 
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -70,4 +69,3 @@ def get_db() -> Generator[Session, None, None]:
         raise
     finally:
         db.close()
-

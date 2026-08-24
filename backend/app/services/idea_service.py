@@ -61,9 +61,7 @@ class IdeaService:
         if category:
             query = query.filter(Idea.category == category)
         if search:
-            query = query.filter(
-                (Idea.title.ilike(f"%{search}%")) | (Idea.description.ilike(f"%{search}%"))
-            )
+            query = query.filter((Idea.title.ilike(f"%{search}%")) | (Idea.description.ilike(f"%{search}%")))
 
         total = query.count()
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1

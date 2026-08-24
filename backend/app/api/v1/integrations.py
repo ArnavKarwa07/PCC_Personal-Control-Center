@@ -22,7 +22,12 @@ def list_integrations(
     }
 
 
-@router.post("/connect_integration/{provider}", operation_id="connect_integration", status_code=status.HTTP_200_OK, summary="Connect Integration")
+@router.post(
+    "/connect_integration/{provider}",
+    operation_id="connect_integration",
+    status_code=status.HTTP_200_OK,
+    summary="Connect Integration",
+)
 def connect_integration(
     provider: IntegrationProvider,
     data: IntegrationConnectRequest,
@@ -39,7 +44,9 @@ def connect_integration(
     }
 
 
-@router.post("/disconnect_integration/{provider}", operation_id="disconnect_integration", summary="Disconnect Integration")
+@router.post(
+    "/disconnect_integration/{provider}", operation_id="disconnect_integration", summary="Disconnect Integration"
+)
 def disconnect_integration(
     provider: IntegrationProvider,
     db: Session = Depends(get_db),
@@ -54,7 +61,9 @@ def disconnect_integration(
     }
 
 
-@router.get("/get_integration_status/{provider}", operation_id="get_integration_status", summary="Get Integration Status")
+@router.get(
+    "/get_integration_status/{provider}", operation_id="get_integration_status", summary="Get Integration Status"
+)
 def get_integration_status(
     provider: IntegrationProvider,
     db: Session = Depends(get_db),
@@ -70,7 +79,9 @@ def get_integration_status(
 
 
 @router.post("/sync_integration/{provider}", operation_id="sync_integration", summary="Sync Integration")
-@router.post("/{provider}/sync", operation_id="sync_integration_alias", summary="Sync Integration Alias", include_in_schema=False)
+@router.post(
+    "/{provider}/sync", operation_id="sync_integration_alias", summary="Sync Integration Alias", include_in_schema=False
+)
 def sync_integration(
     provider: IntegrationProvider,
     db: Session = Depends(get_db),
@@ -83,4 +94,3 @@ def sync_integration(
     return {
         "data": result,
     }
-

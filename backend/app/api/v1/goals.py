@@ -67,7 +67,12 @@ def update_goal_by_id(
     return {"data": GoalRead.model_validate(goal).model_dump()}
 
 
-@router.delete("/delete_goal_by_id/{goal_id}", operation_id="delete_goal_by_id", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Goal By Id")
+@router.delete(
+    "/delete_goal_by_id/{goal_id}",
+    operation_id="delete_goal_by_id",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete Goal By Id",
+)
 def delete_goal_by_id(
     goal_id: uuid.UUID,
     db: Session = Depends(get_db),

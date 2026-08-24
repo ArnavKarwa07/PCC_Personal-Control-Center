@@ -42,6 +42,7 @@ def db_session():
 @pytest.fixture
 def client(db_session):
     """Provide a TestClient with overridden get_db dependency."""
+
     def override_get_db():
         try:
             yield db_session

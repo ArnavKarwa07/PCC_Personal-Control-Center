@@ -39,4 +39,3 @@ api_v1_router.include_router(contacts_router)
 api_v1_router.include_router(goals_router)
 api_v1_router.include_router(assistant_router)
 api_v1_router.include_router(search_router)
-

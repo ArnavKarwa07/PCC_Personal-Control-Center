@@ -34,4 +34,3 @@ class DailyBriefingRead(BaseModel):
     executive_summary: str
     focus_recommendation: str
     bullet_points: List[str] = Field(default_factory=list)
-

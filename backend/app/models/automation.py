@@ -34,7 +34,9 @@ class AutomationRun(BaseModel):
 
     __tablename__ = "automation_runs"
 
-    automation_id = Column(Uuid(as_uuid=True), ForeignKey("automations.id", ondelete="CASCADE"), nullable=False, index=True)
+    automation_id = Column(
+        Uuid(as_uuid=True), ForeignKey("automations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     status = Column(
         Enum(AutomationRunStatus, name="automation_run_status", values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,

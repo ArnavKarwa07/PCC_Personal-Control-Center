@@ -6,13 +6,16 @@ import huggingface_hub
 
 # Monkey-patch HfFolder for huggingface_hub compatibility
 if not hasattr(huggingface_hub, "HfFolder"):
+
     class MockHfFolder:
         @classmethod
         def get_token(cls):
             return None
+
         @classmethod
         def save_token(cls, token):
             pass
+
     huggingface_hub.HfFolder = MockHfFolder
 
 import gradio as gr

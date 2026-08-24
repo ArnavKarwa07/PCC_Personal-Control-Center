@@ -159,9 +159,7 @@ def test_search_relevance_ranking(client: TestClient, db_session: Session):
     assert data[0]["relevance"] > data[1]["relevance"]
 
 
-def test_search_soft_deleted_excluded(
-    client: TestClient, db_session: Session
-):
+def test_search_soft_deleted_excluded(client: TestClient, db_session: Session):
     """Verify soft-deleted items do not appear in search results."""
     active_task = Task(
         title="Active Target Task",
@@ -183,9 +181,7 @@ def test_search_soft_deleted_excluded(
     assert data[0]["title"] == "Active Target Task"
 
 
-def test_search_case_insensitivity_and_snippet(
-    client: TestClient, db_session: Session
-):
+def test_search_case_insensitivity_and_snippet(client: TestClient, db_session: Session):
     """Verify search is case-insensitive and generates informative context snippets."""
     long_desc = (
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
@@ -209,9 +205,7 @@ def test_search_case_insensitivity_and_snippet(
     assert "HYPERDRIVE" in data[0]["snippet"] or "hyperdrive" in data[0]["snippet"].lower()
 
 
-def test_search_empty_and_no_matches(
-    client: TestClient, db_session: Session
-):
+def test_search_empty_and_no_matches(client: TestClient, db_session: Session):
     """Verify behavior when no results match or invalid query is passed."""
     response = client.get("/api/v1/search/search_entities?q=NonExistentTermXYZ12345")
     assert response.status_code == 200
@@ -220,14 +214,9 @@ def test_search_empty_and_no_matches(
     assert res["meta"]["total"] == 0
 
 
-def test_search_pagination_limit_offset(
-    client: TestClient, db_session: Session
-):
+def test_search_pagination_limit_offset(client: TestClient, db_session: Session):
     """Verify limit and offset pagination parameters work correctly."""
-    tasks = [
-        Task(title=f"BatchItem {i}")
-        for i in range(10)
-    ]
+    tasks = [Task(title=f"BatchItem {i}") for i in range(10)]
     db_session.add_all(tasks)
     db_session.commit()
 

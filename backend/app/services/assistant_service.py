@@ -1,6 +1,5 @@
 """AI Executive Assistant service layer with natural language query parsing and briefing generator."""
 
-import uuid
 from datetime import date
 
 import google.generativeai as genai
@@ -22,7 +21,6 @@ class AssistantService:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
-
 
     def process_query(self, db: Session, request: AssistantQueryRequest) -> AssistantQueryResponse:
         q = request.query.lower().strip()
@@ -70,9 +68,11 @@ class AssistantService:
         else:
             # Informational query dispatcher
             pending_count = db.query(Task).filter(Task.status != TaskStatus.DONE, Task.deleted_at.is_(None)).count()
-            summary_text = f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace."
+            summary_text = (
+                f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace."
+            )
 
-            if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != 'AIzaSyBk_example_key_placeholder':
+            if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "AIzaSyBk_example_key_placeholder":
                 try:
                     model = genai.GenerativeModel("gemini-2.0-flash")
                     prompt = "You are a Personal Control Center assistant. The user said: " + request.query
@@ -80,6 +80,7 @@ class AssistantService:
                     summary_text = response.text
                 except Exception as e:
                     import logging
+
                     logging.getLogger("assistant_service").error("Gemini AI API error: %s", e)
                     summary_text = f"PCC Assistant operational. You currently have {pending_count} pending tasks across your workspace. (Note: Gemini AI call failed: {str(e)})"
 
@@ -96,9 +97,17 @@ class AssistantService:
     def generate_daily_briefing(self, db: Session) -> DailyBriefingRead:
         pending_tasks_list = db.query(Task).filter(Task.status != TaskStatus.DONE, Task.deleted_at.is_(None)).all()
         upcoming_events_list = db.query(CalendarEvent).filter(CalendarEvent.deleted_at.is_(None)).all()
-        overdue_reminders_list = db.query(Reminder).filter(Reminder.status == ReminderStatus.PENDING, Reminder.deleted_at.is_(None)).all()
-        active_projects_list = db.query(Project).filter(Project.status == ProjectStatus.ACTIVE, Project.deleted_at.is_(None)).all()
-        unread_notifications = db.query(Notification).filter(Notification.status != NotificationDeliveryStatus.READ, Notification.deleted_at.is_(None)).count()
+        overdue_reminders_list = (
+            db.query(Reminder).filter(Reminder.status == ReminderStatus.PENDING, Reminder.deleted_at.is_(None)).all()
+        )
+        active_projects_list = (
+            db.query(Project).filter(Project.status == ProjectStatus.ACTIVE, Project.deleted_at.is_(None)).all()
+        )
+        unread_notifications = (
+            db.query(Notification)
+            .filter(Notification.status != NotificationDeliveryStatus.READ, Notification.deleted_at.is_(None))
+            .count()
+        )
 
         pending_tasks = len(pending_tasks_list)
         upcoming_events = len(upcoming_events_list)
@@ -111,7 +120,11 @@ class AssistantService:
             raw_bullet_points.append(f"Reminder: {r.title}")
 
         for t in pending_tasks_list[:5]:
-            prio = f" ({t.priority.value.upper()})" if hasattr(t, "priority") and t.priority and t.priority.value != "none" else ""
+            prio = (
+                f" ({t.priority.value.upper()})"
+                if hasattr(t, "priority") and t.priority and t.priority.value != "none"
+                else ""
+            )
             raw_bullet_points.append(f"Task: {t.title}{prio}")
 
         for e in upcoming_events_list[:4]:
@@ -138,7 +151,9 @@ class AssistantService:
                 bullet_points.append(bp)
 
         if pending_tasks == 0 and upcoming_events == 0 and active_projects == 0:
-            summary_text = "Welcome to Personal Control Center! Your workspace is completely clean with no pending items."
+            summary_text = (
+                "Welcome to Personal Control Center! Your workspace is completely clean with no pending items."
+            )
             recommendation = "Start by adding your first project, task, or setting your goals in the workspace."
         else:
             summary_text = (
@@ -159,7 +174,6 @@ class AssistantService:
             focus_recommendation=recommendation,
             bullet_points=bullet_points,
         )
-
 
 
 assistant_service = AssistantService()

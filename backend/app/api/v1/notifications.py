@@ -48,7 +48,11 @@ def list_notifications(
     }
 
 
-@router.patch("/mark_notification_as_read/{notification_id}", operation_id="mark_notification_as_read", summary="Mark Notification As Read")
+@router.patch(
+    "/mark_notification_as_read/{notification_id}",
+    operation_id="mark_notification_as_read",
+    summary="Mark Notification As Read",
+)
 def mark_notification_read(
     notification_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -63,7 +67,11 @@ def mark_notification_read(
     }
 
 
-@router.patch("/mark_all_notifications_as_read", operation_id="mark_all_notifications_as_read", summary="Mark All Notifications As Read")
+@router.patch(
+    "/mark_all_notifications_as_read",
+    operation_id="mark_all_notifications_as_read",
+    summary="Mark All Notifications As Read",
+)
 def mark_all_notifications_read(
     db: Session = Depends(get_db),
 ):
@@ -79,7 +87,11 @@ def mark_all_notifications_read(
     }
 
 
-@router.delete("/delete_notification_by_id/{notification_id}", operation_id="delete_notification_by_id", summary="Delete Notification By Id")
+@router.delete(
+    "/delete_notification_by_id/{notification_id}",
+    operation_id="delete_notification_by_id",
+    summary="Delete Notification By Id",
+)
 def delete_notification(
     notification_id: uuid.UUID,
     db: Session = Depends(get_db),

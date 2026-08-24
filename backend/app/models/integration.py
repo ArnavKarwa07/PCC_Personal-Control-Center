@@ -49,7 +49,9 @@ class IntegrationToken(BaseModel):
 
     __tablename__ = "integration_tokens"
 
-    integration_id = Column(Uuid(as_uuid=True), ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False, index=True)
+    integration_id = Column(
+        Uuid(as_uuid=True), ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     access_token_encrypted = Column(String(1000), nullable=False)
     refresh_token_encrypted = Column(String(1000), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)

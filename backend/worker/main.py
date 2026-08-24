@@ -50,9 +50,7 @@ def dispatch_pending_reminders(db: Session) -> int:
         db.query(Reminder)
         .filter(
             Reminder.deleted_at.is_(None),
-            (
-                (Reminder.status == ReminderStatus.PENDING) & (Reminder.remind_at <= now)
-            )
+            ((Reminder.status == ReminderStatus.PENDING) & (Reminder.remind_at <= now))
             | (
                 (Reminder.status == ReminderStatus.SNOOZED)
                 & (Reminder.snoozed_until.isnot(None))
@@ -104,11 +102,7 @@ def process_recurring_tasks(db: Session) -> int:
 
     generated_count = 0
     for recurrence in due_recurrences:
-        parent_task = (
-            db.query(Task)
-            .filter(Task.id == recurrence.task_id, Task.deleted_at.is_(None))
-            .first()
-        )
+        parent_task = db.query(Task).filter(Task.id == recurrence.task_id, Task.deleted_at.is_(None)).first()
         if not parent_task:
             continue
 

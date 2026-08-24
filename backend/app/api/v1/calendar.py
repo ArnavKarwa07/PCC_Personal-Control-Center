@@ -46,7 +46,12 @@ def list_calendar_events(
     }
 
 
-@router.post("/events/create_calendar_event", operation_id="create_calendar_event", status_code=status.HTTP_201_CREATED, summary="Create Calendar Event")
+@router.post(
+    "/events/create_calendar_event",
+    operation_id="create_calendar_event",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create Calendar Event",
+)
 def create_calendar_event(
     data: CalendarEventCreate,
     db: Session = Depends(get_db),
@@ -58,7 +63,11 @@ def create_calendar_event(
     }
 
 
-@router.get("/events/get_calendar_event_by_id/{event_id}", operation_id="get_calendar_event_by_id", summary="Get Calendar Event By Id")
+@router.get(
+    "/events/get_calendar_event_by_id/{event_id}",
+    operation_id="get_calendar_event_by_id",
+    summary="Get Calendar Event By Id",
+)
 def get_calendar_event(
     event_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -70,7 +79,11 @@ def get_calendar_event(
     }
 
 
-@router.patch("/events/update_calendar_event_by_id/{event_id}", operation_id="update_calendar_event_by_id", summary="Update Calendar Event By Id")
+@router.patch(
+    "/events/update_calendar_event_by_id/{event_id}",
+    operation_id="update_calendar_event_by_id",
+    summary="Update Calendar Event By Id",
+)
 def update_calendar_event(
     event_id: uuid.UUID,
     data: CalendarEventUpdate,
@@ -87,7 +100,11 @@ def update_calendar_event(
     }
 
 
-@router.delete("/events/delete_calendar_event_by_id/{event_id}", operation_id="delete_calendar_event_by_id", summary="Delete Calendar Event By Id")
+@router.delete(
+    "/events/delete_calendar_event_by_id/{event_id}",
+    operation_id="delete_calendar_event_by_id",
+    summary="Delete Calendar Event By Id",
+)
 def delete_calendar_event(
     event_id: uuid.UUID,
     db: Session = Depends(get_db),

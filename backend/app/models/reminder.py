@@ -2,7 +2,7 @@
 
 import enum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, String, Text, Uuid
+from sqlalchemy import Boolean, Column, DateTime, Enum, String, Text
 
 from app.models.base import BaseModel
 

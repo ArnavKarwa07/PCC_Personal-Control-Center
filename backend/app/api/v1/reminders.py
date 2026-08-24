@@ -50,7 +50,9 @@ def list_reminders(
     }
 
 
-@router.post("/create_reminder", operation_id="create_reminder", status_code=status.HTTP_201_CREATED, summary="Create Reminder")
+@router.post(
+    "/create_reminder", operation_id="create_reminder", status_code=status.HTTP_201_CREATED, summary="Create Reminder"
+)
 def create_reminder(
     data: ReminderCreate,
     db: Session = Depends(get_db),
@@ -74,7 +76,9 @@ def get_reminder(
     }
 
 
-@router.patch("/update_reminder_by_id/{reminder_id}", operation_id="update_reminder_by_id", summary="Update Reminder By Id")
+@router.patch(
+    "/update_reminder_by_id/{reminder_id}", operation_id="update_reminder_by_id", summary="Update Reminder By Id"
+)
 def update_reminder(
     reminder_id: uuid.UUID,
     data: ReminderUpdate,
@@ -91,7 +95,9 @@ def update_reminder(
     }
 
 
-@router.post("/snooze_reminder_by_id/{reminder_id}", operation_id="snooze_reminder_by_id", summary="Snooze Reminder By Id")
+@router.post(
+    "/snooze_reminder_by_id/{reminder_id}", operation_id="snooze_reminder_by_id", summary="Snooze Reminder By Id"
+)
 def snooze_reminder(
     reminder_id: uuid.UUID,
     data: Optional[ReminderSnoozeRequest] = None,
@@ -111,7 +117,9 @@ def snooze_reminder(
     }
 
 
-@router.delete("/delete_reminder_by_id/{reminder_id}", operation_id="delete_reminder_by_id", summary="Delete Reminder By Id")
+@router.delete(
+    "/delete_reminder_by_id/{reminder_id}", operation_id="delete_reminder_by_id", summary="Delete Reminder By Id"
+)
 def delete_reminder(
     reminder_id: uuid.UUID,
     db: Session = Depends(get_db),

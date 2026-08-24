@@ -69,12 +69,7 @@ class NotificationService:
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
 
         offset = (page - 1) * per_page
-        notifications = (
-            query.order_by(Notification.created_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
-        )
+        notifications = query.order_by(Notification.created_at.desc()).offset(offset).limit(per_page).all()
 
         formatted = [cls._format_notification_response(n) for n in notifications]
         return formatted, total, total_pages

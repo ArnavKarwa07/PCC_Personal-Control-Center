@@ -56,11 +56,7 @@ def test_dispatch_pending_reminders(db_session):
     assert r_future.status == ReminderStatus.PENDING
 
     # Verify notifications created
-    notifs = (
-        db_session.query(Notification)
-        .filter(Notification.type == NotificationType.TASK_REMINDER)
-        .all()
-    )
+    notifs = db_session.query(Notification).filter(Notification.type == NotificationType.TASK_REMINDER).all()
     assert len(notifs) == 2
     titles = [n.title for n in notifs]
     assert "Reminder: Due Reminder" in titles
@@ -103,11 +99,7 @@ def test_process_recurring_tasks(db_session):
     assert new_task.due_date == today
 
     # Verify notification created
-    notif = (
-        db_session.query(Notification)
-        .filter(Notification.type == NotificationType.RECURRING_TASK)
-        .first()
-    )
+    notif = db_session.query(Notification).filter(Notification.type == NotificationType.RECURRING_TASK).first()
     assert notif is not None
     assert "Daily Standup Meeting" in notif.title
 

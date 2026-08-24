@@ -15,7 +15,9 @@ class Board(BaseModel):
     name = Column(String(255), nullable=False)
 
     project = relationship("Project", back_populates="boards")
-    columns = relationship("BoardColumn", back_populates="board", cascade="all, delete-orphan", order_by="BoardColumn.position")
+    columns = relationship(
+        "BoardColumn", back_populates="board", cascade="all, delete-orphan", order_by="BoardColumn.position"
+    )
 
 
 class BoardColumn(BaseModel):
@@ -29,7 +31,9 @@ class BoardColumn(BaseModel):
     color = Column(String(20), nullable=True)
 
     board = relationship("Board", back_populates="columns")
-    cards = relationship("BoardCard", back_populates="column", cascade="all, delete-orphan", order_by="BoardCard.position")
+    cards = relationship(
+        "BoardCard", back_populates="column", cascade="all, delete-orphan", order_by="BoardCard.position"
+    )
 
 
 class BoardCard(BaseModel):
@@ -37,7 +41,9 @@ class BoardCard(BaseModel):
 
     __tablename__ = "board_cards"
 
-    column_id = Column(Uuid(as_uuid=True), ForeignKey("board_columns.id", ondelete="CASCADE"), nullable=False, index=True)
+    column_id = Column(
+        Uuid(as_uuid=True), ForeignKey("board_columns.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True)
     position = Column(Integer, nullable=False, default=0)
 

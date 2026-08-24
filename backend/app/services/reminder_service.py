@@ -61,10 +61,7 @@ class ReminderService:
 
         offset = (page - 1) * per_page
         reminders = (
-            query.order_by(Reminder.remind_at.asc(), Reminder.created_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
+            query.order_by(Reminder.remind_at.asc(), Reminder.created_at.desc()).offset(offset).limit(per_page).all()
         )
 
         formatted = [cls._format_reminder_response(r) for r in reminders]

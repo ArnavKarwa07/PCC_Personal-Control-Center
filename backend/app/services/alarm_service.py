@@ -50,12 +50,7 @@ class AlarmService:
         total_pages = max(1, math.ceil(total / per_page)) if total > 0 else 1
 
         offset = (page - 1) * per_page
-        alarms = (
-            query.order_by(Alarm.time.asc(), Alarm.created_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
-        )
+        alarms = query.order_by(Alarm.time.asc(), Alarm.created_at.desc()).offset(offset).limit(per_page).all()
 
         formatted = [cls._format_alarm_response(a) for a in alarms]
         return formatted, total, total_pages

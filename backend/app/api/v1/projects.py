@@ -47,7 +47,9 @@ def list_projects(
     }
 
 
-@router.post("/create_project", operation_id="create_project", status_code=status.HTTP_201_CREATED, summary="Create Project")
+@router.post(
+    "/create_project", operation_id="create_project", status_code=status.HTTP_201_CREATED, summary="Create Project"
+)
 def create_project(
     data: ProjectCreate,
     db: Session = Depends(get_db),
@@ -88,7 +90,9 @@ def update_project_by_id(
     }
 
 
-@router.delete("/delete_project_by_id/{project_id}", operation_id="delete_project_by_id", summary="Delete Project By Id")
+@router.delete(
+    "/delete_project_by_id/{project_id}", operation_id="delete_project_by_id", summary="Delete Project By Id"
+)
 def delete_project_by_id(
     project_id: uuid.UUID,
     db: Session = Depends(get_db),

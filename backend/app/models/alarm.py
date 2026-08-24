@@ -1,6 +1,6 @@
 """Alarm model for time-based wake/trigger events."""
 
-from sqlalchemy import Boolean, Column, ForeignKey, String, Time, Uuid
+from sqlalchemy import Boolean, Column, String, Time
 
 from app.models.base import BaseModel
 

@@ -60,7 +60,9 @@ def test_goals_negative_missing_payload_fields(client: TestClient, auth_headers:
 def test_goals_negative_nonexistent_resource_lookup(client: TestClient, auth_headers: dict):
     """Test 404 output format for non-existent goal ID operations."""
     fake_id = str(uuid.uuid4())
-    res_patch = client.patch(f"/api/v1/goals/update_goal_by_id/{fake_id}", json={"progress": 50.0}, headers=auth_headers)
+    res_patch = client.patch(
+        f"/api/v1/goals/update_goal_by_id/{fake_id}", json={"progress": 50.0}, headers=auth_headers
+    )
     assert res_patch.status_code == 404
     assert res_patch.json()["error"]["code"] in ("GOAL_NOT_FOUND", "NOT_FOUND")
 

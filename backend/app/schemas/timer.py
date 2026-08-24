@@ -39,8 +39,12 @@ class TimerUpdate(BaseModel):
 class TimerStateAction(BaseModel):
     """Payload for executing state transitions on a timer."""
 
-    action: str = Field(..., pattern="^(start|pause|reset|complete)$", description="Action to perform: start, pause, reset, complete")
-    remaining_seconds: Optional[int] = Field(None, ge=0, description="Current remaining seconds when pausing or updating")
+    action: str = Field(
+        ..., pattern="^(start|pause|reset|complete)$", description="Action to perform: start, pause, reset, complete"
+    )
+    remaining_seconds: Optional[int] = Field(
+        None, ge=0, description="Current remaining seconds when pausing or updating"
+    )
 
 
 class TimerResponse(TimerBase):

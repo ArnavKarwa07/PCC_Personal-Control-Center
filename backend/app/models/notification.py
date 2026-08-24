@@ -2,7 +2,7 @@
 
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text, Uuid
+from sqlalchemy import Column, DateTime, Enum, String, Text, Uuid
 
 from app.models.base import BaseModel
 
@@ -49,7 +49,9 @@ class Notification(BaseModel):
         nullable=False,
     )
     status = Column(
-        Enum(NotificationDeliveryStatus, name="notification_status", values_callable=lambda obj: [e.value for e in obj]),
+        Enum(
+            NotificationDeliveryStatus, name="notification_status", values_callable=lambda obj: [e.value for e in obj]
+        ),
         default=NotificationDeliveryStatus.PENDING,
         nullable=False,
     )

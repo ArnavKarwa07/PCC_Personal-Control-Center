@@ -129,4 +129,3 @@ def test_task_recurrence_respects_end_date(client, auth_headers):
     tasks = list_res.json()["data"]
     assert len(tasks) == 1
     assert tasks[0]["status"] == "done"
-

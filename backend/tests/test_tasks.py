@@ -32,7 +32,7 @@ def test_list_tasks(client, auth_headers):
     for i in range(3):
         client.post(
             "/api/v1/tasks/create_task",
-            json={"title": f"Task {i+1}", "status": "inbox"},
+            json={"title": f"Task {i + 1}", "status": "inbox"},
             headers=auth_headers,
         )
 
@@ -152,7 +152,9 @@ def test_tasks_negative_nonexistent_resource_lookup(client, auth_headers):
     assert res_get.status_code == 404
     assert res_get.json()["error"]["code"] == "TASK_NOT_FOUND"
 
-    res_patch = client.patch(f"/api/v1/tasks/update_task_by_id/{fake_id}", json={"title": "Updated"}, headers=auth_headers)
+    res_patch = client.patch(
+        f"/api/v1/tasks/update_task_by_id/{fake_id}", json={"title": "Updated"}, headers=auth_headers
+    )
     assert res_patch.status_code == 404
     assert res_patch.json()["error"]["code"] == "TASK_NOT_FOUND"
 

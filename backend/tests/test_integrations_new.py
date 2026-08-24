@@ -294,7 +294,14 @@ def test_camel_case_config_key_alignment(client):
 
     jira_res = client.post(
         "/api/v1/integrations/connect_integration/jira",
-        json={"config": {"domain": "myjira.atlassian.net", "email": "admin@myjira.com", "apiToken": "jira_token_777", "projectKey": "CAMEL"}},
+        json={
+            "config": {
+                "domain": "myjira.atlassian.net",
+                "email": "admin@myjira.com",
+                "apiToken": "jira_token_777",
+                "projectKey": "CAMEL",
+            }
+        },
     )
     assert jira_res.status_code == 200
     j_cfg = jira_res.json()["data"]["config"]
@@ -321,4 +328,3 @@ def test_worker_rollback_on_sync_exception(db_session, monkeypatch):
 
     stats = poll_external_sync(db_session)
     assert stats["total_synced"] == 0
-

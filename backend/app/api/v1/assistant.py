@@ -10,7 +10,12 @@ from app.services.assistant_service import assistant_service
 router = APIRouter(prefix="/assistant", tags=["AI Executive Assistant"])
 
 
-@router.post("/process_assistant_query", operation_id="process_assistant_query", response_model=AssistantQueryResponse, summary="Process Assistant Query")
+@router.post(
+    "/process_assistant_query",
+    operation_id="process_assistant_query",
+    response_model=AssistantQueryResponse,
+    summary="Process Assistant Query",
+)
 def process_assistant_query(
     request: AssistantQueryRequest,
     db: Session = Depends(get_db),
@@ -19,7 +24,12 @@ def process_assistant_query(
     return assistant_service.process_query(db=db, request=request)
 
 
-@router.get("/get_daily_briefing", operation_id="get_daily_briefing", response_model=DailyBriefingRead, summary="Get Daily Briefing")
+@router.get(
+    "/get_daily_briefing",
+    operation_id="get_daily_briefing",
+    response_model=DailyBriefingRead,
+    summary="Get Daily Briefing",
+)
 def get_daily_briefing(
     db: Session = Depends(get_db),
 ):

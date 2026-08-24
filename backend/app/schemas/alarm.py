@@ -38,7 +38,9 @@ class AlarmUpdate(BaseModel):
 class AlarmToggleRequest(BaseModel):
     """Payload for toggling alarm state explicitly."""
 
-    is_enabled: Optional[bool] = Field(None, description="Explicit enable/disable state; if omitted, toggles current value")
+    is_enabled: Optional[bool] = Field(
+        None, description="Explicit enable/disable state; if omitted, toggles current value"
+    )
 
 
 class AlarmResponse(AlarmBase):
