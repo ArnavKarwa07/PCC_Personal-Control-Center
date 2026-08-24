@@ -1,6 +1,5 @@
 """Integration tests for audit verifications and payload contract fixes."""
 
-import pytest
 from datetime import datetime, timedelta, timezone
 
 

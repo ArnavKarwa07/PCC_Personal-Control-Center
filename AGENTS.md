@@ -43,3 +43,7 @@
 - **Window Label Declaration**: Always declare `"label": "main"` in `tauri.conf.json` under `"app" -> "windows"` array to match `capabilities/default.json` and Rust IPC window handles.
 - **Safe Window IPC Result Handling**: Replaced `.unwrap()` calls in `frontend/src-tauri/src/lib.rs` with safe `let _ = ...` handles to prevent panics during OS window events.
 - **Credential Security & Sanitization**: NEVER commit raw database passwords, Neon connection strings, or secrets into markdown files, release notes, or git logs. Use `<REDACTED_PASSWORD>` placeholders.
+
+## 7. CI/CD & Post-Merge Verification Rules (CRITICAL MANDATE)
+- **NEVER** assume CI/CD checks or post-merge workflow runs will pass automatically without running local verification (`python -m ruff check .` in `backend`, `npx tsc --noEmit` in `frontend`, `pytest` in `backend`).
+- **MUST** inspect and monitor live GitHub Actions workflow runs (`gh run list` / `gh run watch`) after pushing tags or commits until 100% of pipeline jobs complete with SUCCESS status.

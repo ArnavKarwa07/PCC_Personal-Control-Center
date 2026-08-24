@@ -75,7 +75,9 @@ class GoalService:
             db.query(GoalMilestone).filter(GoalMilestone.goal_id == goal_id).delete()
             for m_item in milestones_data:
                 name = m_item.get("name") if isinstance(m_item, dict) else getattr(m_item, "name", "Milestone")
-                target_date = m_item.get("target_date") if isinstance(m_item, dict) else getattr(m_item, "target_date", None)
+                target_date = (
+                    m_item.get("target_date") if isinstance(m_item, dict) else getattr(m_item, "target_date", None)
+                )
                 completed = m_item.get("completed") if isinstance(m_item, dict) else getattr(m_item, "completed", False)
                 m = GoalMilestone(
                     goal_id=goal.id,

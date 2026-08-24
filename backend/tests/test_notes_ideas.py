@@ -189,7 +189,6 @@ def test_promote_idea_to_task_with_target_project_id(client, auth_headers):
     assert task_res.json()["data"]["project_id"] == project_id
 
 
-
 def test_notes_ideas_negative_missing_payload_fields(client, auth_headers):
     """Test 422 validation error format when creating notes/ideas with invalid field types."""
     res_note = client.post("/api/v1/notes/create_note", json={"is_pinned": ["invalid", "list"]}, headers=auth_headers)

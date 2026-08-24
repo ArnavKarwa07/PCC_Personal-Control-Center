@@ -63,4 +63,3 @@ class GoalRead(GoalBase):
 
     id: uuid.UUID
     milestones: List[MilestoneRead] = Field(default_factory=list)
-
