@@ -443,11 +443,9 @@ export const tasksApi = {
       query.append('status', backendStatus);
     }
     const qs = query.toString();
-    const res = await apiClient.get<any[]>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`);
-    if (Array.isArray(res)) {
-      return res.map(normalizeTask);
-    }
-    return [];
+    const res = await apiClient.get<any>(`/tasks/list_tasks${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    return items.map(normalizeTask);
   },
   getById: async (id: string): Promise<Task> => {
     const res = await apiClient.get<any>(`/tasks/get_task_by_id/${id}`);
@@ -768,11 +766,9 @@ export const remindersApi = {
 
 export const alarmsApi = {
   getAll: async (): Promise<Alarm[]> => {
-    const raw = await apiClient.get<any[]>('/alarms/list_alarms');
-    if (Array.isArray(raw)) {
-      return raw.map(normalizeAlarm);
-    }
-    return [];
+    const raw = await apiClient.get<any>('/alarms/list_alarms');
+    const items = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+    return items.map(normalizeAlarm);
   },
   getById: async (id: string): Promise<Alarm> => {
     const raw = await apiClient.get<any>(`/alarms/get_alarm_by_id/${id}`);
@@ -834,7 +830,10 @@ export const alarmsApi = {
 };
 
 export const timersApi = {
-  getAll: () => apiClient.get<Array<Record<string, unknown>>>('/timers/list_timers'),
+  getAll: async (): Promise<Array<Record<string, unknown>>> => {
+    const res = await apiClient.get<any>('/timers/list_timers');
+    return Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+  },
   getById: (id: string) => apiClient.get<Record<string, unknown>>(`/timers/get_timer_by_id/${id}`),
   create: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/timers/create_timer', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.patch<Record<string, unknown>>(`/timers/update_timer_by_id/${id}`, data),
@@ -844,7 +843,10 @@ export const timersApi = {
 };
 
 export const notificationsApi = {
-  getAll: () => apiClient.get<AppNotification[]>('/notifications/list_notifications'),
+  getAll: async (): Promise<AppNotification[]> => {
+    const res = await apiClient.get<any>('/notifications/list_notifications');
+    return Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+  },
   markAsRead: (id: string) => apiClient.patch<AppNotification>(`/notifications/mark_notification_as_read/${id}`, {}),
   markAllAsRead: () => apiClient.patch<{ success: boolean }>('/notifications/mark_all_notifications_as_read', {}),
   delete: (id: string) => apiClient.delete<{ success: boolean }>(`/notifications/delete_notification_by_id/${id}`),
@@ -852,7 +854,10 @@ export const notificationsApi = {
 };
 
 export const integrationsApi = {
-  getAll: () => apiClient.get<Integration[]>('/integrations/list_integrations'),
+  getAll: async (): Promise<Integration[]> => {
+    const res = await apiClient.get<any>('/integrations/list_integrations');
+    return Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+  },
   update: (provider: string, data: Partial<Integration>) => apiClient.put<Integration>(`/integrations/${provider}`, data),
   connect: (provider: string, config: Record<string, string>) => apiClient.post<Integration>(`/integrations/connect_integration/${provider}`, config),
   disconnect: (provider: string) => apiClient.post<Integration>(`/integrations/disconnect_integration/${provider}`, {}),
@@ -986,7 +991,10 @@ export const assistantApi = {
 };
 
 export const contactsApi = {
-  getAll: () => apiClient.get<Array<Record<string, unknown>>>('/contacts/list_contacts'),
+  getAll: async (): Promise<Array<Record<string, unknown>>> => {
+    const res = await apiClient.get<any>('/contacts/list_contacts');
+    return Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+  },
   getById: (id: string) => apiClient.get<Record<string, unknown>>(`/contacts/get_contact_by_id/${id}`),
   create: (data: Record<string, unknown>) => apiClient.post<Record<string, unknown>>('/contacts/create_contact', data),
   update: (id: string, data: Record<string, unknown>) => apiClient.patch<Record<string, unknown>>(`/contacts/update_contact_by_id/${id}`, data),
